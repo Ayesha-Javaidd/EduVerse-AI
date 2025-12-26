@@ -3,8 +3,6 @@ import { AdminDashboardComponent } from './features/admin/pages/admin-dashboard/
 import { CoursesComponent } from './features/admin/pages/courses/courses.component';
 import { SettingsComponent } from './features/admin/pages/settings/settings.component';
 import { LoginComponent } from './features/auth/pages/login/login.component';
-import { AdminSignupComponent } from './features/auth/pages/signups/admin-signup/admin-signup.component';
-import { StudentSignupComponent } from './features/auth/pages/signups/student-signup/student-signup.component';
 import { NotFoundComponent } from './features/not-found/not-found/not-found.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { LandingPageComponent } from './features/landing-page/landing-page.component';
@@ -33,6 +31,9 @@ import { SuperAdminTenantsComponent } from './features/super-admin/pages/super-a
 import { SuperAdminSettingsComponent } from './features/super-admin/pages/super-admin-settings/super-admin-settings.component';
 import { StudentDetailsComponent } from './features/teacher/pages/student-details/student-details.component';
 import { SuperAdminTenantSettingsComponent } from './features/super-admin/pages/super-admin-tenant-settings/super-admin-tenant-settings.component';
+import { SignupComponent } from './features/auth/pages/signup/signup.component';
+import { AuthGuard } from './features/auth/guards/auth.guard';
+import { RoleGuard } from './features/auth/guards/role.guard';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -41,14 +42,15 @@ export const routes: Routes = [
     component: AuthLayoutComponent,
     children: [
       { path: 'login', component: LoginComponent },
-      { path: 'studentsignup', component: StudentSignupComponent },
-      { path: 'adminsignup', component: AdminSignupComponent },
+      { path: 'signup', component: SignupComponent },
     ],
   },
 
   {
     path: 'admin',
     component: AdminLayoutComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['admin'] },
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: AdminDashboardComponent },
@@ -56,13 +58,14 @@ export const routes: Routes = [
       { path: 'teachers', component: TeachersComponent },
       { path: 'students', component: StudentsComponent },
       { path: 'settings', component: SettingsComponent },
-
     ],
   },
 
   {
     path: 'teacher',
     component: TeacherLayoutComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['teacher'] },
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: TeacherDashboardComponent },
@@ -78,6 +81,8 @@ export const routes: Routes = [
   {
     path: 'student',
     component: StudentLayoutComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['student'] },
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: StudentDashboardComponent },
@@ -93,12 +98,17 @@ export const routes: Routes = [
   {
     path: 'super-admin',
     component: SuperAdminLayoutComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['super_admin'] },
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: SuperadminDashboardComponent },
       { path: 'tenants', component: SuperAdminTenantsComponent },
       { path: 'settings', component: SuperAdminSettingsComponent },
-      { path: 'tenant-settings/:id', component: SuperAdminTenantSettingsComponent },
+      {
+        path: 'tenant-settings/:id',
+        component: SuperAdminTenantSettingsComponent,
+      },
     ],
   },
 

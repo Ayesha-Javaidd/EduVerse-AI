@@ -1,43 +1,13 @@
 <div class="transition-all min-h-screen bg-gray-50">
-  <app-header pageTitle="Settings"></app-header>
+  <app-header
+    [profile]="{ name: 'Student Profile', initials: 'SP' }"
+    pageTitle="Settings"
+  ></app-header>
   <main class="p-6">
     <div class="max-w-6xl mx-auto bg-white rounded-lg shadow p-6">
-      <div class="border-b border-gray-200 mb-6">
-        <nav class="flex space-x-8" aria-label="Tabs">
-          <button
-            class="px-3 py-2 text-sm font-medium border-b-2"
-            [ngClass]="
-              activeTab === 'profile'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            "
-            (click)="activeTab = 'profile'"
-          >
-            Profile Settings
-          </button>
-          <button
-            class="px-3 py-2 text-sm font-medium border-b-2"
-            [ngClass]="
-              activeTab === 'system'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            "
-            (click)="activeTab = 'system'"
-          >
-            System Settings
-          </button>
-        </nav>
-      </div>
-
-      <div
-        *ngIf="activeTab === 'profile'"
-        class="grid grid-cols-1 lg:grid-cols-2 gap-6"
-      >
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <app-profile-form></app-profile-form>
         <app-change-password></app-change-password>
-      </div>
-      <div *ngIf="activeTab === 'system'" class="space-y-6">
-        <app-system-settings></app-system-settings>
       </div>
     </div>
   </main>

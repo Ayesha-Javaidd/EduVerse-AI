@@ -6,18 +6,24 @@ import {
   Validators,
 } from '@angular/forms';
 import { NgIf } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, NgIf, RouterLink],
+  standalone: true, // important if using imports
+  imports: [ReactiveFormsModule, NgIf, RouterLink, HttpClientModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css',
+  styleUrls: ['./login.component.css'], // fixed typo
 })
 export class LoginComponent {
   loginForm: FormGroup;
 
-  constructor(private formBuilder: FormBuilder, private router: Router) {
+  constructor(
+    private formBuilder: FormBuilder,
+    private authService: AuthService
+  ) {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
@@ -25,15 +31,21 @@ export class LoginComponent {
   }
 
   onSubmit() {
-    if (this.loginForm.valid) {
-      const { email, password } = this.loginForm.value;
-      console.log('Login attempt:', { email, password });
-
-      this.router.navigate(['/admin/dashboard']);
-    } else {
-      console.log('Form is invalid');
+    if (this.loginForm.invalid) {
       this.markFormGroupTouched();
+      return;
     }
+
+    const payload = this.loginForm.value;
+
+    this.authService.login(payload).subscribe({
+      next: () => {
+        // navigation handled by AuthService.redirectByRole()
+      },
+      error: (err) => {
+        console.error('Login failed', err);
+      },
+    });
   }
 
   private markFormGroupTouched() {

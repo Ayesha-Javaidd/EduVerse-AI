@@ -13,16 +13,21 @@
       + Add Course
     </app-button>
 
+    <app-filters
+      [searchPlaceholder]="'Search courses...'"
+      [dropdowns]="dropdownOptions"
+      (filtersChange)="applyFilters($event)"
+    >
+    </app-filters>
+
     <app-data-table
       [title]="'Course List'"
       [columns]="columns"
-      [rows]="courses"
+      [rows]="filteredCourses"
       [enableActions]="true"
       (edit)="onEdit($event)"
       (delete)="onDelete($event)"
     ></app-data-table>
-
-    <!-- Add this modal -->
 
     <app-generate-courses
       *ngIf="showCreateCourse"
