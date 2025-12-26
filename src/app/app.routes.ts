@@ -32,7 +32,8 @@ import { SuperAdminSettingsComponent } from './features/super-admin/pages/super-
 import { StudentDetailsComponent } from './features/teacher/pages/student-details/student-details.component';
 import { SuperAdminTenantSettingsComponent } from './features/super-admin/pages/super-admin-tenant-settings/super-admin-tenant-settings.component';
 import { SignupComponent } from './features/auth/pages/signup/signup.component';
-import { AuthGuard, RoleGuard } from './features/auth/guards/auth.guard';
+import { AuthGuard } from './features/auth/guards/auth.guard';
+import { RoleGuard } from './features/auth/guards/role.guard';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },

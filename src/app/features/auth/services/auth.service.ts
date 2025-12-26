@@ -21,7 +21,7 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();
 
-  private API_BASE = 'http://localhost:8000/auth'; // adjust if needed
+  private API_BASE = 'http://localhost:8000/auth/token'; // adjust if needed
 
   constructor(private http: HttpClient, private router: Router) {
     this.restoreSession();
@@ -32,8 +32,17 @@ export class AuthService {
   // ============================
 
   login(payload: LoginRequest): Observable<AuthResponse> {
+    const body = new URLSearchParams();
+    body.set('username', payload.email); // backend uses "username"
+    body.set('password', payload.password);
+    body.set('grant_type', 'password');
+
     return this.http
-      .post<AuthResponse>(`${this.API_BASE}/login`, payload)
+      .post<AuthResponse>(`${this.API_BASE}`, body.toString(), {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      })
       .pipe(tap((res) => this.handleAuthSuccess(res.access_token)));
   }
 

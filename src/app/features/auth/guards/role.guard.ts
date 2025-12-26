@@ -1,29 +1,29 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { User } from '../models/user.model';
 
 /**
- * Auth Guard
- * - Blocks unauthenticated users
- * - Prevents authenticated users from accessing login/signup
+ * Role Guard
+ * Usage:
+ * canActivate: [AuthGuard, RoleGuard]
+ * data: { roles: ['admin', 'teacher'] }
  */
-export const AuthGuard: CanActivateFn = (route, state) => {
+export const RoleGuard: CanActivateFn = (route) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  const isAuthenticated = authService.isAuthenticated();
-  const path = route.routeConfig?.path;
+  const expectedRoles: string[] = route.data['roles'] ?? [];
+  const userRole = authService.getRole();
 
-  // Block authenticated users from auth pages
-  if (isAuthenticated && (path === 'login' || path === 'signup')) {
-    redirectByRole(authService, router);
+  // Not logged in
+  if (!authService.isAuthenticated()) {
+    router.navigate(['/login']);
     return false;
   }
 
-  // Block unauthenticated users
-  if (!isAuthenticated) {
-    router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+  // Role mismatch
+  if (!userRole || !expectedRoles.includes(userRole)) {
+    redirectByRole(authService, router);
     return false;
   }
 
