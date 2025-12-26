@@ -3,7 +3,6 @@ import { HeaderComponent } from '../../../../shared/components/header/header.com
 import { ProfileFormComponent } from '../../../../shared/components/profile-form/profile-form.component';
 import { ChangePasswordComponent } from '../../../../shared/components/change-password/change-password.component';
 import { CommonModule } from '@angular/common';
-import { SystemSettingsComponent } from "../../../admin/components/system-settings/system-settings.component";
 
 @Component({
   selector: 'app-student-settings',
@@ -12,8 +11,7 @@ import { SystemSettingsComponent } from "../../../admin/components/system-settin
     CommonModule,
     ChangePasswordComponent,
     ProfileFormComponent,
-    SystemSettingsComponent
-],
+  ],
   templateUrl: './student-settings.component.html',
   styleUrl: './student-settings.component.css',
 })

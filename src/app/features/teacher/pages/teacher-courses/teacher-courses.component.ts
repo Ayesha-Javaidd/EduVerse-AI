@@ -7,6 +7,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { GenerateCoursesComponent } from '../generate-courses/generate-courses.component';
 import { CommonModule } from '@angular/common';
+import { FiltersComponent } from "../../../../shared/components/filters/filters.component";
 
 @Component({
   selector: 'app-teacher-courses',
@@ -16,7 +17,8 @@ import { CommonModule } from '@angular/common';
     ButtonComponent,
     GenerateCoursesComponent,
     CommonModule,
-  ], // Add CreateCourseComponent here
+    FiltersComponent
+], // Add CreateCourseComponent here
   templateUrl: './teacher-courses.component.html',
   styleUrl: './teacher-courses.component.css',
 })
@@ -46,17 +48,17 @@ export class TeacherCoursesComponent {
     { name: 'Chemistry Fundamentals', id: 'CHEM101', duration: '12 Weeks' },
   ];
 
-  onCourseCreated(courseData: any): void {
-    // Fix: Create object that matches your data structure
-    const newCourse = {
-      name: courseData.title,
-      id: this.generateCourseId(courseData.category),
-      duration: '12 Weeks', // You can make this dynamic based on your form
-    };
+  // onCourseCreated(courseData: any): void {
+  //   // Fix: Create object that matches your data structure
+  //   const newCourse = {
+  //     name: courseData.title,
+  //     id: this.generateCourseId(courseData.category),
+  //     duration: '12 Weeks', // You can make this dynamic based on your form
+  //   };
 
-    this.courses = [...this.courses, newCourse];
-    this.showCreateCourse = false;
-  }
+  //   this.courses = [...this.courses, newCourse];
+  //   this.showCreateCourse = false;
+  // }
 
   onCancelCreate(): void {
     this.showCreateCourse = false;
@@ -66,9 +68,9 @@ export class TeacherCoursesComponent {
     console.log('Edit course:', course);
   }
 
-  onDelete(course: Course): void {
-    this.courses = this.courses.filter((c) => c.id !== course.id);
-  }
+  // onDelete(course: Course): void {
+  //   this.courses = this.courses.filter((c) => c.id !== course.id);
+  // }
 
   onAddCourse(): void {
     this.showCreateCourse = true;
@@ -79,6 +81,45 @@ export class TeacherCoursesComponent {
     const prefix = category.substring(0, 4).toUpperCase();
     const number = (this.courses.length + 101).toString();
     return prefix + number;
+  }
+
+  dropdownOptions = [
+    {
+      key: 'duration',
+      label: 'Duration',
+      options: ['10 Weeks', '12 Weeks', '15 Weeks'],
+    },
+  ];
+
+  filteredCourses = [...this.courses];
+  applyFilters(filters: any) {
+    this.filteredCourses = this.courses.filter((course) => {
+      const matchesSearch =
+        !filters.search ||
+        course.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        course.id.toLowerCase().includes(filters.search.toLowerCase());
+
+      const matchesDuration =
+        !filters.duration || course.duration === filters.duration;
+
+      return matchesSearch && matchesDuration;
+    });
+  }
+  onCourseCreated(courseData: any): void {
+    const newCourse = {
+      name: courseData.title,
+      id: this.generateCourseId(courseData.category),
+      duration: '12 Weeks',
+    };
+
+    this.courses = [...this.courses, newCourse];
+    this.applyFilters({ search: '', duration: '' });
+    this.showCreateCourse = false;
+  }
+
+  onDelete(course: Course): void {
+    this.courses = this.courses.filter((c) => c.id !== course.id);
+    this.applyFilters({ search: '', duration: '' });
   }
 }
 
