@@ -10,6 +10,7 @@ import {
   SimpleChanges,
   HostListener,
 } from '@angular/core';
+import { AuthService } from '../../../features/auth/services/auth.service';
 
 interface MenuItem {
   icon: string;
@@ -34,7 +35,7 @@ export class SidebarComponent implements OnChanges {
   isMobile = false;
   menuItems: MenuItem[] = [];
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit() {
     this.updateScreenSize();
@@ -139,9 +140,7 @@ export class SidebarComponent implements OnChanges {
   }
 
   logout() {
-    localStorage.removeItem('token');
-    sessionStorage.clear();
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 
   toggleDesktopSidebar() {
