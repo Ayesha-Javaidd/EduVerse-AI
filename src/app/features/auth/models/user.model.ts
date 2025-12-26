@@ -1,5 +1,5 @@
 export interface JwtPayload {
-  sub: string; // user id
+  user_id: string; // user id
   email?: string;
   role: 'student' | 'teacher' | 'admin' | 'super_admin';
   tenant_id?: string;

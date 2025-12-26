@@ -34,6 +34,9 @@ import { SuperAdminTenantSettingsComponent } from './features/super-admin/pages/
 import { SignupComponent } from './features/auth/pages/signup/signup.component';
 import { AuthGuard } from './features/auth/guards/auth.guard';
 import { RoleGuard } from './features/auth/guards/role.guard';
+import { StudentSignupComponent } from './features/auth/pages/student-signup/student-signup.component';
+import { TeacherSignupComponent } from './features/auth/pages/teacher-signup/teacher-signup.component';
+import { AdminSignupComponent } from './features/auth/pages/admin-signup/admin-signup.component';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -43,6 +46,9 @@ export const routes: Routes = [
     children: [
       { path: 'login', component: LoginComponent },
       { path: 'signup', component: SignupComponent },
+      { path: 'signup/student', component: StudentSignupComponent },
+      { path: 'signup/teacher', component: TeacherSignupComponent },
+      { path: 'signup/admin', component: AdminSignupComponent },
     ],
   },
 

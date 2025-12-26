@@ -46,8 +46,23 @@ export class AuthService {
       .pipe(tap((res) => this.handleAuthSuccess(res.access_token)));
   }
 
-  signup(payload: UserSignupRequest | AdminSignupRequest): Observable<any> {
-    return this.http.post(`${this.API_BASE}/signup`, payload);
+  signup(payload: any, role: 'student' | 'teacher' | 'admin'): Observable<any> {
+    let url = '';
+    switch (role) {
+      case 'student':
+        url = 'http://localhost:8000/auth/student/signup';
+        break;
+      case 'teacher':
+        url = 'http://localhost:8000/auth/teacher/signup';
+        break;
+      case 'admin':
+        url = 'http://localhost:8000/auth/admin/signup';
+        break;
+      default:
+        throw new Error('Invalid role for signup');
+    }
+
+    return this.http.post(url, payload);
   }
 
   logout(): void {
@@ -80,21 +95,6 @@ export class AuthService {
   // PRIVATE HELPERS
   // ============================
 
-  private handleAuthSuccess(token: string): void {
-    localStorage.setItem(TOKEN_KEY, token);
-
-    const payload = this.decodeJwt(token);
-
-    if (this.isTokenExpired(payload)) {
-      this.logout();
-      return;
-    }
-
-    const user = this.mapJwtToUser(payload);
-    this.currentUserSubject.next(user);
-    this.redirectByRole(user.role);
-  }
-
   private restoreSession(): void {
     const token = this.getAccessToken();
     if (!token) return;
@@ -116,8 +116,8 @@ export class AuthService {
 
   private mapJwtToUser(payload: JwtPayload): User {
     return {
-      id: payload.sub,
-      email: payload.email,
+      id: payload.user_id, // was sub
+      email: payload.email ?? '', // fallback if email not present in JWT
       role: payload.role,
       tenantId: payload.tenant_id,
     };
@@ -145,5 +145,23 @@ export class AuthService {
       default:
         this.router.navigate(['/login']);
     }
+  }
+  private handleAuthSuccess(token: string): void {
+    localStorage.setItem(TOKEN_KEY, token);
+
+    const payload = this.decodeJwt(token);
+    console.log('JWT payload:', payload); // <-- debug
+
+    if (this.isTokenExpired(payload)) {
+      this.logout();
+      return;
+    }
+
+    const user = this.mapJwtToUser(payload);
+    console.log('Mapped user:', user); // <-- debug
+    this.currentUserSubject.next(user);
+
+    console.log('Redirecting to dashboard for role:', user.role);
+    this.redirectByRole(user.role);
   }
 }
