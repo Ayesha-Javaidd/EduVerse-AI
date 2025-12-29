@@ -1,7 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { User } from '../models/user.model';
 
 /**
  * Auth Guard
@@ -21,8 +20,8 @@ export const AuthGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
-  // Block unauthenticated users
-  if (!isAuthenticated) {
+  // Block unauthenticated users from protected routes
+  if (!isAuthenticated && state.url !== '/login' && state.url !== '/signup') {
     router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
     return false;
   }

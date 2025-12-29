@@ -7,8 +7,10 @@ import {
   Validators,
   ReactiveFormsModule,
   FormsModule,
-  FormControl,
 } from '@angular/forms';
+
+// Import Course model
+import { Course } from '../../../../shared/models/course.model';
 
 @Component({
   selector: 'app-create-quiz',
@@ -18,15 +20,14 @@ import {
   styleUrls: ['./create-quiz.component.css'],
 })
 export class CreateQuizComponent implements OnInit {
-  @Input() quiz: any = null;
+  @Input() quiz: any = null;                    // Quiz data for edit mode
+  @Input() courses: Course[] = [];              // Courses from parent (fetched from API)
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
 
   quizForm!: FormGroup;
   isEditMode = false;
   isDisabled = false;
-
-  courses = ['Mathematics', 'Physics', 'Chemistry', 'Computer Science'];
 
   constructor(private fb: FormBuilder) {}
 
@@ -43,7 +44,8 @@ export class CreateQuizComponent implements OnInit {
     this.quizForm = this.fb.group({
       id: [null],
       quizNo: ['', Validators.required],
-      course: ['', Validators.required],
+      course: [''],                            // Will store course title (optional for display)
+      courseId: ['', Validators.required],     // Will store course ID (required)
       dueDate: ['', Validators.required],
       description: [''],
       questions: this.fb.array([this.createQuestionGroup()]),
@@ -77,11 +79,29 @@ export class CreateQuizComponent implements OnInit {
     this.questions.removeAt(index);
   }
 
+  /**
+   * Called when course selection changes.
+   * Updates both course name and courseId in form.
+   */
+  onCourseChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const courseId = select.value;
+    const selectedCourse = this.courses.find(c => c.id === courseId);
+
+    if (selectedCourse) {
+      this.quizForm.patchValue({
+        course: selectedCourse.title,
+        courseId: selectedCourse.id,
+      });
+    }
+  }
+
   populateFormWithQuizData(quizData: any): void {
     this.quizForm.patchValue({
       id: quizData.id,
       quizNo: quizData.quizNo,
       course: quizData.course,
+      courseId: quizData.courseId || '',
       dueDate: this.formatDate(quizData.dueDate),
       description: quizData.description,
       status: quizData.status,
