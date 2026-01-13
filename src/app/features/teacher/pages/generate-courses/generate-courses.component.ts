@@ -9,6 +9,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
+import { CourseService } from '../../../../core/services/course.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-generate-courses',
@@ -22,6 +24,7 @@ import { NgFor, NgIf } from '@angular/common';
   ],
   templateUrl: './generate-courses.component.html',
   styleUrl: './generate-courses.component.css',
+  standalone: true
 })
 export class GenerateCoursesComponent {
   @Output() courseCreated = new EventEmitter<any>();
@@ -30,7 +33,7 @@ export class GenerateCoursesComponent {
   courseForm: FormGroup;
   isSubmitting = false;
   uploadedFiles: File[] = [];
-  isDragging = false; // Initialize properly
+  isDragging = false;
 
   categories = [
     'Mathematics',
@@ -43,7 +46,11 @@ export class GenerateCoursesComponent {
     'Other',
   ];
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private courseService: CourseService, // UPDATED: Injected CourseService
+    private authService: AuthService      // UPDATED: Injected AuthService
+  ) {
     this.courseForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
       category: ['', Validators.required],
@@ -87,18 +94,38 @@ export class GenerateCoursesComponent {
 
   onSubmit(): void {
     if (this.courseForm.valid) {
-      this.isSubmitting = true;
+      const user = this.authService.getCurrentUser();
+      const tenantId = this.authService.getTenantId();
 
-      setTimeout(() => {
+      if (user && tenantId) {
+        this.isSubmitting = true;
+
+        // UPDATED: Prepare CourseCreate object for backend
         const courseData = {
           ...this.courseForm.value,
-          files: this.uploadedFiles,
-          createdAt: new Date(),
+          teacherId: user.id,
+          tenantId: tenantId,
+          enrolledStudents: 0,
+          status: 'Active',
+          duration: '12 Weeks' // Placeholder
         };
 
-        this.courseCreated.emit(courseData);
-        this.isSubmitting = false;
-      }, 1000);
+        // UPDATED: Call real backend service
+        this.courseService.createCourse(courseData).subscribe({
+          next: (res) => {
+
+            this.courseCreated.emit(res);
+            this.isSubmitting = false;
+          },
+          error: (err) => {
+            console.error('Course creation failed', err);
+            alert(`Failed to create course: ${err.error?.detail || 'Unknown error'}`);
+            this.isSubmitting = false;
+          }
+        });
+      } else {
+        alert('You must be logged in as a teacher to create courses.');
+      }
     } else {
       Object.keys(this.courseForm.controls).forEach((key) => {
         this.courseForm.get(key)?.markAsTouched();

@@ -1,34 +1,29 @@
 <div class="transition-all min-h-screen bg-gray-50">
-    <app-header pageTitle="Students"></app-header>
-  
-    <main class="p-6">
-  
-      <app-filters
-        [dropdowns]="[
-            {key: 'status', label: 'Status', options: ['Enrolled', 'Graduated', 'Dropped']}
-        ]"
-        searchPlaceholder="Search by name or email"
-        (filtersChange)="onFiltersChange($event)"
-      ></app-filters>
+  <app-header pageTitle="Students"></app-header>
 
-      <br>
+  <main class="p-6">
 
-      <app-data-table 
-        title="Manage Students" 
-        [columns]="studentColumns" 
-        [rows]="filteredStudents" 
-        [showViewAll]="false"
-        [enableActions]="true" 
-        [rowClickable]="true" 
-        (edit)="onEditStudent($event)" 
-        (delete)="onDeleteStudent($event)"
-        [totalItems]="filteredStudents.length"
-        [pageSize]="5"
-        [currentPage]="currentPage"
-        (pageChange)="onPageChange($event)"
-        >
-      </app-data-table>
-  
-    </main>
+    <div class="flex items-center justify-between">
+      <app-filters class="flex-grow mr-4" [dropdowns]="[
+              {key: 'status', label: 'Status', options: ['Active', 'Enrolled', 'Graduated', 'Dropped']}
+          ]" searchPlaceholder="Search by name or email" (filtersChange)="onFiltersChange($event)"></app-filters>
+
+      <app-button customColor="mb-6 bg-blue-950 text-white hover:bg-gray-500 cursor-pointer"
+        (buttonClick)="onAddStudent()">
+        Add Student
+      </app-button>
+    </div>
+
+    <br>
+
+    <app-data-table title="Manage Students" [columns]="studentColumns" [rows]="filteredStudents" [showViewAll]="false"
+      [enableActions]="true" [rowClickable]="true" (edit)="onEditStudent($event)" (delete)="onDeleteStudent($event)"
+      [totalItems]="filteredStudents.length" [pageSize]="5" [currentPage]="currentPage"
+      (pageChange)="onPageChange($event)">
+    </app-data-table>
+
+  </main>
+
+  <app-entity-modal [isOpen]="isModalOpen" [title]="modalTitle" [fields]="studentFields" [initialData]="selectedStudent"
+    [isEditMode]="isEditMode" (close$)="onModalClose()" (submit$)="onModalSubmit($event)"></app-entity-modal>
 </div>
-

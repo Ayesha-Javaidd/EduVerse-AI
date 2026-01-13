@@ -48,7 +48,7 @@ export class ProfileFormComponent {
 
   onSubmit() {
     if (this.profileForm.valid) {
-      console.log('Profile Settings Data:', this.profileForm.value);
+
       alert('Profile updated successfully');
     } else {
       this.profileForm.markAllAsTouched();

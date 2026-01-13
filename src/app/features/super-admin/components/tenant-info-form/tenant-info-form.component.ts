@@ -53,6 +53,6 @@ export class TenantInfoFormComponent {
   }
 
   onPasswordChanged(event: any) {
-    console.log(`Password changed: ${event}`);
+
   }
 }

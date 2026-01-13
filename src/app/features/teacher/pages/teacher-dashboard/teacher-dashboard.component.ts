@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
@@ -8,6 +8,8 @@ import {
   TableColumn,
 } from '../../../../shared/components/data-table/data-table.component';
 import { StudentEnrollmentChartComponent } from '../../components/student-enrollment-chart/student-enrollment-chart.component';
+import { CourseService, BackendCourse } from '../../../../core/services/course.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-teacher-dashboard',
@@ -20,22 +22,22 @@ import { StudentEnrollmentChartComponent } from '../../components/student-enroll
   ],
   templateUrl: './teacher-dashboard.component.html',
   styleUrl: './teacher-dashboard.component.css',
+  standalone: true
 })
-export class TeacherDashboardComponent {
+export class TeacherDashboardComponent implements OnInit {
   teacherProfile = {
     name: 'Teacher Name',
     initials: 'TN',
     avatar: '',
   };
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private courseService: CourseService, // UPDATED: Injected CourseService
+    private authService: AuthService      // UPDATED: Injected AuthService
+  ) { }
 
   quickLinks = [
-    {
-      title: 'Create Course',
-      icon: 'fa fa-plus',
-      action: () => this.onCreateCourse(),
-    },
     {
       title: 'Create Quizzes',
       icon: 'fa fa-edit',
@@ -46,13 +48,8 @@ export class TeacherDashboardComponent {
       icon: 'fa-solid fa-file-circle-plus',
       action: () => this.onGenerateAssignment(),
     },
-    
   ];
 
-  onCreateCourse() {
-    this.router.navigate(['/teacher/courses']);
-  }
-   
   onGenerateAssignment() {
     this.router.navigate(['/teacher/assignments']);
   }
@@ -63,28 +60,28 @@ export class TeacherDashboardComponent {
   statsCards: StatCard[] = [
     {
       title: 'Courses',
-      value: '12',
+      value: '0',
       icon: 'fas fa-book',
       iconBgClass: 'bg-indigo-100',
       iconColorClass: 'text-indigo-600',
     },
     {
       title: 'Students',
-      value: '240',
+      value: '0',
       icon: 'fas fa-users',
       iconBgClass: 'bg-green-100',
       iconColorClass: 'text-green-600',
     },
     {
       title: 'Assignments',
-      value: '36',
+      value: '0',
       icon: 'fas fa-file-alt',
       iconBgClass: 'bg-orange-100',
       iconColorClass: 'text-orange-600',
     },
     {
       title: 'Awaiting Grading',
-      value: '8',
+      value: '0',
       icon: 'fas fa-tasks',
       iconBgClass: 'bg-red-100',
       iconColorClass: 'text-red-600',
@@ -92,35 +89,52 @@ export class TeacherDashboardComponent {
   ];
 
   courseColumns: TableColumn[] = [
-    { key: 'name', label: 'Course Name', type: 'text' },
-    { key: 'id', label: 'Course ID', type: 'text' },
+    { key: 'title', label: 'Course Name', type: 'text' },
+    { key: 'courseCode', label: 'Course ID', type: 'text' },
     { key: 'duration', label: 'Duration', type: 'text' },
-    { key: 'students', label: 'Entrolled Students', type: 'text' },
+    { key: 'enrolledStudents', label: 'Enrolled Students', type: 'text' },
   ];
 
-  courses = [
-    {
-      name: 'Introduction to Algebra',
-      id: 'MATH101',
-      duration: '12 Weeks',
-      students: '25',
-    },
-    {
-      name: 'World History: Ancient Civilizations',
-      id: 'HIST201',
-      duration: '10 Weeks',
-      students: '22',
-    },
-    {
-      name: 'Introduction to Python Programming',
-      id: 'CS101',
-      duration: '15 Weeks',
-      students: '30',
-    },
-  ];
+  courses: BackendCourse[] = []; // UPDATED: Properly typed
+  loading: boolean = true;
+
+  ngOnInit() {
+    this.loadDashboardData();
+  }
+
+  // UPDATED: Fetch teacher-specific data with proper types
+  loadDashboardData() {
+    const user = this.authService.getCurrentUser();
+    const tenantId = this.authService.getTenantId();
+
+    if (user && tenantId) {
+      this.teacherProfile.name = user.fullName || 'Teacher';
+      this.teacherProfile.initials = this.teacherProfile.name.split(' ').map(n => n[0]).join('').toUpperCase();
+
+      // Use teacherId if available
+      const teacherId = user.teacherId || user.id;
+
+      this.courseService.getCourses(tenantId, { teacher_id: teacherId }).subscribe({
+        next: (data: BackendCourse[]) => {
+          this.courses = data;
+          this.statsCards[0].value = data.length.toString();
+
+          // Calculate total students across all courses
+          const totalStudents = data.reduce((acc: number, c: BackendCourse) => acc + (c.enrolledStudents || 0), 0);
+          this.statsCards[1].value = totalStudents.toString();
+
+          this.loading = false;
+        },
+        error: (err: { message: string }) => {
+          console.error('Error loading teacher dashboard data', err);
+          this.loading = false;
+        }
+      });
+    }
+  }
 
   onViewCourse(row: any) {
-    console.log('View clicked for course:', row);
+
   }
 
   onViewAllCourses() {
@@ -135,3 +149,4 @@ interface StatCard {
   iconBgClass: string;
   iconColorClass: string;
 }
+

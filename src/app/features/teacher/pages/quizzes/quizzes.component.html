@@ -1,33 +1,70 @@
 <div class="min-h-screen bg-gray-50">
   <app-header
     [pageTitle]="'Quizzes'"
-    [profile]="{ name: 'Teacher Profile', initials: 'TP' }"
+    [profile]="{ name: teacherProfile?.user?.fullName || 'Teacher', initials: (teacherProfile?.user?.fullName || 'T').charAt(0) }"
   ></app-header>
   <div class="mx-auto w-full p-6 space-y-6">
 
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center py-8">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <p class="mt-2 text-gray-600">Loading quizzes...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+      {{ error }}
+      <button (click)="loadTeacherContext()" class="ml-4 underline">Retry</button>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && !error && quizzes.length === 0" class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">No quizzes yet</h3>
+      <p class="mt-1 text-sm text-gray-500">Get started by creating your first quiz.</p>
+    </div>
+
     <!-- Existing Quizzes -->
-    <div class="space-y-3">
+    <div *ngIf="!loading && quizzes.length > 0" class="space-y-3">
       <div
         *ngFor="let quiz of quizzes"
         (click)="openModal(quiz)"
         class="p-4 border rounded-lg bg-white flex justify-between items-center shadow-sm hover:bg-blue-50 cursor-pointer transition"
       >
         <div>
-          <h3 class="font-semibold">Quiz {{ quiz.quizNo }}</h3>
-          <p class="text-sm text-gray-600">{{ quiz.course }}</p>
+          <h3 class="font-semibold">Quiz {{ getQuizDisplayNumber(quiz) }}</h3>
+          <p class="text-sm text-gray-600">{{ quiz.courseName }}</p>
           <p class="text-sm text-gray-500">
             {{ quiz.questions.length }} Questions |
             Due: {{ quiz.dueDate | date: 'mediumDate' }}
           </p>
-          <p class="text-sm text-gray-600"> <span class="font-bold">Description:</span> {{ quiz.description }}</p>
+          <p class="text-sm text-gray-600">
+            <span class="font-bold">Description:</span> {{ quiz.description || 'No description' }}
+          </p>
         </div>
-        <span
-          [class.text-green-600]="quiz.status === 'Active'"
-          [class.text-red-600]="quiz.status === 'Inactive'"
-          class="font-medium"
-        >
-          {{ quiz.status }}
-        </span>
+        <div class="flex items-center space-x-3">
+          <span
+            [class.text-green-600]="quiz.status === 'active'"
+            [class.text-red-600]="quiz.status === 'inactive'"
+            class="font-medium capitalize"
+          >
+            {{ quiz.status }}
+          </span>
+          <!-- Delete Button -->
+          <button
+            (click)="deleteQuiz(quiz.id); $event.stopPropagation()"
+            class="text-red-500 hover:text-red-700 p-1"
+            title="Delete Quiz"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -36,8 +73,9 @@
       <button
         class="bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2 px-6 rounded-md"
         (click)="openModal()"
+        [disabled]="loading"
       >
-        + Generate Quiz
+        + Create Quiz
       </button>
     </div>
   </div>
@@ -46,6 +84,7 @@
   <app-create-quiz
     *ngIf="showModal"
     [quiz]="selectedQuiz"
+    [courses]="courses"
     (close)="closeModal()"
     (save)="addOrUpdateQuiz($event)"
   ></app-create-quiz>

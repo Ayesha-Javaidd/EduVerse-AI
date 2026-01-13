@@ -18,9 +18,9 @@ import { HeaderComponent } from '../../../../shared/components/header/header.com
 })
 export class SuperadminDashboardComponent implements OnInit {
 
-  
+
   pageTitle = 'Super Admin Dashboard';
-  notificationCount = 5; 
+  notificationCount = 5;
   profile = {
     name: 'Super Admin',
     initials: 'SA'
@@ -149,16 +149,16 @@ export class SuperadminDashboardComponent implements OnInit {
 
   // Triggered when user clicks notifications bell
   onNotificationClick(): void {
-    console.log('Notifications clicked');
+
   }
 
   // Triggered when user clicks profile/avatar
   onProfileClick(): void {
-    console.log('Profile clicked');
+
   }
 
   // Triggered when user clicks logout button
   onLogoutClick(): void {
-    console.log('Logout clicked');
+
   }
 }

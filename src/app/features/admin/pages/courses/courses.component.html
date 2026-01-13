@@ -3,31 +3,28 @@
 
   <main class="p-6">
 
-    <app-filters
-      [dropdowns]="[
-          {key: 'status', label: 'Status', options: ['Active', 'Inactive', 'Upcoming', 'Completed']}
-      ]"
-      searchPlaceholder="Search by course title, instructor or category"
-      (filtersChange)="onFiltersChange($event)"
-    ></app-filters>
+    <div class="flex items-center justify-between">
+      <app-filters class="flex-grow mr-4" [dropdowns]="[
+            {key: 'status', label: 'Status', options: ['Active', 'Inactive', 'Upcoming', 'Completed']}
+        ]" searchPlaceholder="Search by course title, instructor or category"
+        (filtersChange)="onFiltersChange($event)"></app-filters>
+
+      <app-button customColor="mb-6 bg-blue-950 text-white hover:bg-gray-500 cursor-pointer"
+        (buttonClick)="onAddCourse()">
+        Add Course
+      </app-button>
+    </div>
 
     <br>
 
-    <app-data-table 
-      title="Manage Courses" 
-      [columns]="courseColumns" 
-      [rows]="filteredCourses" 
-      [showViewAll]="false"
-      [enableActions]="true" 
-      [rowClickable]="true" 
-      (edit)="onEditCourse($event)"
-      (delete)="onDeleteCourse($event)"
-      [totalItems]="filteredCourses.length"
-      [pageSize]="5"
-      [currentPage]="currentPage"
-      (pageChange)="onPageChange($event)"
-      >
+    <app-data-table title="Manage Courses" [columns]="courseColumns" [rows]="filteredCourses" [showViewAll]="false"
+      [enableActions]="true" [rowClickable]="true" (edit)="onEditCourse($event)" (delete)="onDeleteCourse($event)"
+      [totalItems]="filteredCourses.length" [pageSize]="5" [currentPage]="currentPage"
+      (pageChange)="onPageChange($event)">
     </app-data-table>
 
   </main>
+
+  <app-entity-modal [isOpen]="isModalOpen" [title]="modalTitle" [fields]="courseFields" [initialData]="selectedCourse"
+    [isEditMode]="isEditMode" (close$)="onModalClose()" (submit$)="onModalSubmit($event)"></app-entity-modal>
 </div>

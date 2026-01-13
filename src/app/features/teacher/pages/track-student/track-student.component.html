@@ -1,31 +1,17 @@
 <div class="transition-all min-h-screen bg-gray-50">
-  <app-header
-    [profile]="{ name: 'Teacher Profile', initials: 'TP' }"
-    pageTitle="Student Tracking"
-  ></app-header>
+  <app-header pageTitle="Student Tracking"></app-header>
 
   <div class="p-6 space-y-6">
     <!-- Filters -->
-    <app-filters
-      [dropdowns]="dropdowns"
-      [searchPlaceholder]="'Search students...'"
-      (filtersChange)="onFiltersChange($event)"
-    ></app-filters>
+    <app-filters [dropdowns]="dropdowns" [searchPlaceholder]="'Search students...'"
+      (filtersChange)="onFiltersChange($event)"></app-filters>
 
- 
+
 
     <!-- Data Table with Progress Bar -->
-    <app-data-table
-      [title]="'Students'"
-      [columns]="columns"
-      [rows]="students"
-      [rowClickable]="false"
-      [pageSize]="pageSize"
-      [currentPage]="currentPage"
-      [totalItems]="totalItems"
-      (actionClick)="onActionClick($event)"
-      (pageChange)="currentPage = $event"
-    >
+    <app-data-table [title]="'Students'" [columns]="columns" [rows]="students" [rowClickable]="false"
+      [pageSize]="pageSize" [currentPage]="currentPage" [totalItems]="totalItems" (actionClick)="onActionClick($event)"
+      (pageChange)="currentPage = $event">
     </app-data-table>
   </div>
 </div>

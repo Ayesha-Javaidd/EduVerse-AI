@@ -16,7 +16,7 @@ export class ButtonComponent {
   @Input() loading: boolean = false;
   @Input() fullWidth: boolean = false;
   @Input() class: string = '';
-  @Input() customColor: string = ''; 
+  @Input() customColor: string = '';
 
   @Output() buttonClick = new EventEmitter<MouseEvent>();
 
@@ -50,7 +50,7 @@ export class ButtonComponent {
 
     return [
       baseClasses,
-      this.customColor || variantClasses[this.variant], 
+      this.customColor || variantClasses[this.variant],
       sizeClasses[this.size],
       widthClass,
       this.class
@@ -59,9 +59,9 @@ export class ButtonComponent {
       .join(' ');
   }
 
-  onClick(): void {
+  onClick(event: MouseEvent): void {
     if (!this.disabled && !this.loading) {
-      this.buttonClick.emit();
+      this.buttonClick.emit(event);
     }
   }
 }

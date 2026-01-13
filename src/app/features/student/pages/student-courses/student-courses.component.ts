@@ -9,16 +9,18 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 import { CourseCardComponent, Course } from '../../components/course-card/course-card.component';
+import { CourseService, BackendCourse } from '../../../../core/services/course.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-student-courses',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    HeaderComponent, 
-    ButtonComponent, 
-    StatCardComponent, 
+    CommonModule,
+    FormsModule,
+    HeaderComponent,
+    ButtonComponent,
+    StatCardComponent,
     FiltersComponent,
     CourseCardComponent
   ],
@@ -26,15 +28,15 @@ import { CourseCardComponent, Course } from '../../components/course-card/course
   styleUrl: './student-courses.component.css'
 })
 export class StudentCoursesComponent implements OnInit {
-  
+
   profile = {
     name: 'Tayyaba Aly',
     initials: 'TA'
   };
 
-  // Filter configuration for the reusable component
+  // Filter configuration
   filterConfig = {
-    searchPlaceholder: 'Search by course name or instructor...',
+    searchPlaceholder: 'Search by course name or category...',
     dropdowns: [
       {
         key: 'status',
@@ -44,108 +46,9 @@ export class StudentCoursesComponent implements OnInit {
     ]
   };
 
-  courses: Course[] = [
-    {
-      id: '1',
-      title: 'Web Development Masterclass',
-      instructor: 'Dr Eman Shahbaz',
-     
-      progress: 65,
-      duration: '12h 30m',
-      lessonsCompleted: 24,
-      totalLessons: 42,
-      category: 'Web Development',
-      level: 'Intermediate',
-      rating: 4.8,
-      nextLesson: 'Building RESTful APIs',
-      dueDate: 'Dec 15',
-      image: 'assets/images/Web Development.jpeg',
-    },
-    {
-      id: '2',
-      title: 'UI/UX Design Fundamentals',
-      instructor: 'Dr Ayesha Javaid',
-     
-      progress: 40,
-      duration: '8h 15m',
-      lessonsCompleted: 12,
-      totalLessons: 30,
-      category: 'Design',
-      level: 'Beginner',
-      rating: 4.9,
-      nextLesson: 'Color Theory Basics',
-      image: 'assets/images/UI_UX.jpeg',
-      dueDate: 'Dec 15',
-    },
-    {
-      id: '3',
-      title: 'Data Science with Python',
-      instructor: 'Dr Manahil Kamran',
-      
-      progress: 85,
-      duration: '16h 45m',
-      lessonsCompleted: 34,
-      totalLessons: 40,
-      category: 'Data Science',
-      level: 'Advanced',
-      rating: 4.7,
-      nextLesson: 'Machine Learning Models',
-      dueDate: 'Dec 20',
-      image: 'assets/images/Data_Science.jpeg',
-    },
-    {
-      id: '4',
-      title: 'Mobile App Development',
-      instructor: 'Dr Hassan',
-      
-      progress: 20,
-      duration: '14h 00m',
-      lessonsCompleted: 8,
-      totalLessons: 40,
-      category: 'Mobile Dev',
-      level: 'Intermediate',
-      rating: 4.6,
-      nextLesson: 'React Native Basics',
-      dueDate: 'Jan 5',
-      image: 'assets/images/Mobile_Dev.jpeg',
-    },
-    {
-      id: '5',
-      title: 'Digital Marketing Strategy',
-      instructor: 'Prof Maham',
-      
-      progress: 0,
-      duration: '10h 30m',
-      lessonsCompleted: 0,
-      totalLessons: 35,
-      category: 'Marketing',
-      level: 'Beginner',
-      rating: 4.5,
-      nextLesson: 'Introduction to SEO',
-      image: 'assets/images/Marketing.jpeg',
-      dueDate: 'Dec 15',
-    },
-    {
-      id: '6',
-      title: 'Cloud Computing AWS',
-      instructor: 'Prof Aruj Anwar',
-      
-      progress: 55,
-      duration: '18h 20m',
-      lessonsCompleted: 22,
-      totalLessons: 40,
-      category: 'Cloud',
-      level: 'Advanced',
-      rating: 4.9,
-      nextLesson: 'EC2 Instance Management',
-      image: 'assets/images/Cloud.jpeg',
-      dueDate: 'Dec 15',
-    }
-  ];
-
- 
-
+  courses: Course[] = []; // UPDATED: Now initialized as empty
   filteredCourses: Course[] = [];
+  loading: boolean = true;
 
   stats = {
     total: 0,
@@ -154,43 +57,92 @@ export class StudentCoursesComponent implements OnInit {
     hours: 0
   };
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private courseService: CourseService, // UPDATED: Injected CourseService
+    private authService: AuthService      // UPDATED: Injected AuthService
+  ) { }
 
   ngOnInit() {
-    this.calculateStats();
-    this.filteredCourses = [...this.courses];
+    this.loadStudentCourses();
+  }
+
+  // UPDATED: New method to fetch courses from backend
+  loadStudentCourses() {
+    const user = this.authService.getCurrentUser();
+    const tenantId = this.authService.getTenantId();
+
+    if (user && tenantId) {
+      this.profile.name = user.fullName || 'Student';
+      this.profile.initials = this.profile.name.split(' ').map(n => n[0]).join('').toUpperCase();
+
+      // Use studentId if available
+      const studentId = user.studentId || user.id;
+
+      this.courseService.getStudentCourses(studentId, tenantId).subscribe({
+        next: (backendCourses) => {
+          // Map backend data to frontend interface
+          this.courses = backendCourses.map(bc => this.mapToFrontendCourse(bc));
+          this.filteredCourses = [...this.courses];
+          this.calculateStats();
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error loading student courses', err);
+          this.loading = false;
+        }
+      });
+    } else {
+      console.warn('User not logged in or tenant missing');
+      this.loading = false;
+    }
+  }
+
+  // UPDATED: Helper to map backend schema to frontend interface
+  private mapToFrontendCourse(bc: BackendCourse): Course {
+    return {
+      id: bc._id,
+      title: bc.title,
+      instructor: bc.instructorName || 'Instructor',
+      image: bc.thumbnailUrl || 'assets/images/Web Development.jpeg',
+      progress: bc.progress || 0,
+      duration: bc.duration || '0h',
+      lessonsCompleted: bc.lessonsCompleted || 0,
+      totalLessons: bc.totalLessons || 0,
+      category: bc.category,
+      level: (bc.level as any) || 'Beginner',
+      rating: 4.5,       // Placeholder
+      nextLesson: bc.nextLesson || 'Overview',
+      dueDate: 'N/A'
+    };
   }
 
   calculateStats() {
-  this.stats.total = this.courses.length;
-  this.stats.inProgress = this.courses.filter(c => (c.progress ?? 0) > 0 && (c.progress ?? 0) < 100).length;
-  this.stats.completed = this.courses.filter(c => c.progress === 100).length;
-  this.stats.hours = this.courses.reduce((acc, c) => {
-    const hours = parseFloat((c.duration ?? '0h').split('h')[0]) || 0;
-    return acc + hours;
-  }, 0);
-}
+    this.stats.total = this.courses.length;
+    this.stats.inProgress = this.courses.filter(c => (c.progress ?? 0) > 0 && (c.progress ?? 0) < 100).length;
+    this.stats.completed = this.courses.filter(c => c.progress === 100).length;
+    this.stats.hours = this.courses.reduce((acc, c) => {
+      const match = (c.duration ?? '0h').match(/(\d+)h/);
+      const hours = match ? parseFloat(match[1]) : 0;
+      return acc + hours;
+    }, 0);
+  }
 
-
-  // Handle filter changes from the filter component
   onFiltersChange(filters: { [key: string]: string }) {
     let filtered = [...this.courses];
 
-    // Apply search filter
     const searchQuery = filters['search'] || '';
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(c =>
         c.title.toLowerCase().includes(query) ||
-        c.instructor.toLowerCase().includes(query) ||
         c.category.toLowerCase().includes(query)
       );
     }
 
-    // Apply status filter from dropdown
     const status = filters['status'] || '';
     if (status && status !== 'All') {
-      switch(status) {
+      switch (status) {
         case 'In Progress':
           filtered = filtered.filter(c => (c.progress ?? 0) > 0 && (c.progress ?? 0) < 100);
           break;
@@ -207,7 +159,7 @@ export class StudentCoursesComponent implements OnInit {
   }
 
   onCourseClick(course: Course) {
-    console.log('Course clicked:', course.title);
+
   }
 
   navigateToExplore() {

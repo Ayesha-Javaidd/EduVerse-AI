@@ -18,10 +18,17 @@
       <!-- Course -->
       <div>
         <label class="block text-sm font-medium mb-1">Course</label>
-        <select formControlName="course" class="w-full border rounded-md p-2">
+        <select
+          formControlName="courseId"
+          class="w-full border rounded-md p-2"
+          (change)="onCourseChange($event)"
+        >
           <option value="">Select a course</option>
-          <option *ngFor="let c of courses" [value]="c">{{ c }}</option>
+          <option *ngFor="let c of courses" [value]="c.id">{{ c.title }}</option>
         </select>
+        <p *ngIf="courses.length === 0" class="text-xs text-gray-500 mt-1">
+          No courses available. Please create a course first.
+        </p>
       </div>
 
       <!-- Quiz Number -->

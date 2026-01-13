@@ -1,15 +1,11 @@
-<div
-  class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30"
->
-  <app-header [profile]="profile" pageTitle="My Courses"></app-header>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
+  <app-header pageTitle="My Courses"></app-header>
 
   <main class="p-6 lg:p-8">
     <div class="max-w-7xl mx-auto">
       <!-- Hero Section -->
       <div class="mb-8">
-        <div
-          class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6"
-        >
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
           <div>
             <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
               My Learning Journey
@@ -19,12 +15,9 @@
             </p>
           </div>
 
-          <app-button
-            [variant]="'primary'"
-            [size]="'lg'"
+          <app-button [variant]="'primary'" [size]="'lg'"
             customColor="bg-blue-950 text-white hover:bg-blue-900 transition-colors duration-300 cursor-pointer"
-            (buttonClick)="navigateToExplore()"
-          >
+            (buttonClick)="navigateToExplore()">
             <i class="fa-solid fa-compass mr-2"></i>
             Explore Courses
           </app-button>
@@ -32,55 +25,28 @@
 
         <!-- Stats Grid -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <app-stat-card
-            title="Total Courses"
-            [value]="stats.total"
-            icon="fa-solid fa-book"
-            iconBgClass="bg-indigo-100"
-            bgColor="bg-blue-50"
-            iconColorClass="text-indigo-600"
-          >
+          <app-stat-card title="Total Courses" [value]="stats.total" icon="fa-solid fa-book" iconBgClass="bg-indigo-100"
+            bgColor="bg-blue-50" iconColorClass="text-indigo-600">
           </app-stat-card>
 
-          <app-stat-card
-            title="In Progress"
-            [value]="stats.inProgress"
-            icon="fa-solid fa-spinner"
-            iconBgClass="bg-blue-100"
-            bgColor="bg-blue-50"
-            iconColorClass="text-blue-600"
-          >
+          <app-stat-card title="In Progress" [value]="stats.inProgress" icon="fa-solid fa-spinner"
+            iconBgClass="bg-blue-100" bgColor="bg-blue-50" iconColorClass="text-blue-600">
           </app-stat-card>
 
-          <app-stat-card
-            title="Completed"
-            [value]="stats.completed"
-            icon="fa-solid fa-check-circle"
-            bgColor="bg-blue-50"
-            iconBgClass="bg-emerald-100"
-            iconColorClass="text-emerald-600"
-          >
+          <app-stat-card title="Completed" [value]="stats.completed" icon="fa-solid fa-check-circle"
+            bgColor="bg-blue-50" iconBgClass="bg-emerald-100" iconColorClass="text-emerald-600">
           </app-stat-card>
 
-          <app-stat-card
-            title="Total Hours"
-            [value]="stats.hours"
-            icon="fa-solid fa-clock"
-            iconBgClass="bg-amber-100"
-            bgColor="bg-blue-50"
-            iconColorClass="text-amber-600"
-          >
+          <app-stat-card title="Total Hours" [value]="stats.hours" icon="fa-solid fa-clock" iconBgClass="bg-amber-100"
+            bgColor="bg-blue-50" iconColorClass="text-amber-600">
           </app-stat-card>
         </div>
       </div>
 
       <!-- Filters Component -->
       <div class="mb-8">
-        <app-filters
-          [searchPlaceholder]="filterConfig.searchPlaceholder"
-          [dropdowns]="filterConfig.dropdowns"
-          (filtersChange)="onFiltersChange($event)"
-        >
+        <app-filters [searchPlaceholder]="filterConfig.searchPlaceholder" [dropdowns]="filterConfig.dropdowns"
+          (filtersChange)="onFiltersChange($event)">
         </app-filters>
       </div>
 
@@ -88,28 +54,19 @@
       <div class="mb-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-6">
           {{ filteredCourses.length }} Course{{
-            filteredCourses.length !== 1 ? "s" : ""
+          filteredCourses.length !== 1 ? "s" : ""
           }}
           Found
         </h2>
 
-        <div
-          *ngIf="filteredCourses.length === 0"
-          class="text-center py-12 bg-white rounded-xl shadow-md"
-        >
+        <div *ngIf="filteredCourses.length === 0" class="text-center py-12 bg-white rounded-xl shadow-md">
           <i class="fa-solid fa-inbox text-6xl text-gray-300 mb-4"></i>
           <p class="text-gray-500 text-lg font-semibold">No courses found</p>
         </div>
 
-        <div
-          *ngIf="filteredCourses.length > 0"
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          <app-course-card
-            *ngFor="let course of filteredCourses"
-            [course]="course"
-            (courseClick)="onCourseClick($event)"
-          >
+        <div *ngIf="filteredCourses.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <app-course-card *ngFor="let course of filteredCourses" [course]="course"
+            (courseClick)="onCourseClick($event)">
           </app-course-card>
         </div>
       </div>
@@ -122,11 +79,7 @@
         <p class="text-base md:text-lg mb-6 opacity-90">
           Explore thousands of courses and expand your knowledge
         </p>
-        <app-button
-          [variant]="'light'"
-          [size]="'xl'"
-          (buttonClick)="navigateToExplore()"
-        >
+        <app-button [variant]="'light'" [size]="'xl'" (buttonClick)="navigateToExplore()">
           <i class="fa-solid fa-compass mr-2"></i>
           Browse All Courses
         </app-button>

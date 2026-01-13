@@ -1,46 +1,26 @@
 <div class="transition-all min-h-screen bg-gray-50">
-  <app-header
-    pageTitle="Teacher Dashboard"
-    [profile]="{ name: 'Teacher Profile', initials: 'TP' }"
-  ></app-header>
+  <app-header pageTitle="Teacher Dashboard"></app-header>
   <div class="px-6 mt-6">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-      <div
-        *ngFor="let link of quickLinks"
-        (click)="link.action()"
-        class="cursor-pointer rounded-xl bg-slate-900 text-white flex flex-col items-center justify-center py-8 shadow hover:opacity-90 transition"
-      >
+    <div class="flex flex-wrap justify-center gap-6 max-w-6xl mx-auto">
+      <div *ngFor="let link of quickLinks" (click)="link.action()"
+        class="w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.333%-1.5rem)] cursor-pointer rounded-xl bg-slate-900 text-white flex flex-col items-center justify-center py-8 shadow hover:opacity-90 transition">
         <i [class]="link.icon + ' text-2xl mb-2'"></i>
         <span class="text-lg font-semibold">{{ link.title }}</span>
       </div>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-      <app-stat-card
-        *ngFor="let s of statsCards"
-        [title]="s.title"
-        [value]="s.value"
-        [icon]="s.icon"
-        [iconBgClass]="s.iconBgClass"
-        [iconColorClass]="s.iconColorClass"
-      >
+      <app-stat-card *ngFor="let s of statsCards" [title]="s.title" [value]="s.value" [icon]="s.icon"
+        [iconBgClass]="s.iconBgClass" [iconColorClass]="s.iconColorClass">
       </app-stat-card>
     </div>
   </div>
 
   <div class="px-6 mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
- 
-    <div class="lg:col-span-2">
-      <app-data-table
-        title="My Courses"
-        [columns]="courseColumns"
-        viewAllRoute="/teacher/courses"
-        [rows]="courses"
-        [showViewAll]="true"
 
-        (actionClick)="onViewCourse($event)"
-        (viewAllClick)="onViewAllCourses()"
-      >
+    <div class="lg:col-span-2">
+      <app-data-table title="My Courses" [columns]="courseColumns" viewAllRoute="/teacher/courses" [rows]="courses"
+        [showViewAll]="true" (actionClick)="onViewCourse($event)" (viewAllClick)="onViewAllCourses()">
       </app-data-table>
     </div>
 

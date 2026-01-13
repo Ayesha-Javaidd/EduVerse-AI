@@ -1,89 +1,102 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   DataTableComponent,
   TableColumn,
 } from '../../../../shared/components/data-table/data-table.component';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
-import { GenerateCoursesComponent } from '../generate-courses/generate-courses.component';
 import { CommonModule } from '@angular/common';
+import { CourseService, BackendCourse } from '../../../../core/services/course.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 
 @Component({
   selector: 'app-teacher-courses',
   imports: [
     HeaderComponent,
     DataTableComponent,
-    ButtonComponent,
-    GenerateCoursesComponent,
     CommonModule,
-  ], // Add CreateCourseComponent here
+    FiltersComponent,
+  ],
   templateUrl: './teacher-courses.component.html',
   styleUrl: './teacher-courses.component.css',
+  standalone: true
 })
-
-// OR keep your current interface and update the data structure
-export class TeacherCoursesComponent {
+export class TeacherCoursesComponent implements OnInit {
   columns: TableColumn[] = [
-    { key: 'name', label: 'Course Name', type: 'text' },
-    { key: 'id', label: 'Course ID', type: 'text' },
+    { key: 'title', label: 'Course Name', type: 'text' },
+    { key: 'courseCode', label: 'Course Code', type: 'text' },
     { key: 'duration', label: 'Duration', type: 'text' },
+    { key: 'enrolledStudents', label: 'Students', type: 'text' },
+    { key: 'status', label: 'Status', type: 'badge' },
   ];
 
-  showCreateCourse: boolean = false;
+  courses: any[] = []; // UPDATED: Now empty by default
+  allCourses: any[] = []; // Store original data for client-side filtering
+  loading: boolean = true;
 
-  courses = [
-    { name: 'Introduction to Algebra', id: 'MATH101', duration: '12 Weeks' },
-    {
-      name: 'World History: Ancient Civilizations',
-      id: 'HIST201',
-      duration: '10 Weeks',
-    },
-    {
-      name: 'Introduction to Python Programming',
-      id: 'CS101',
-      duration: '15 Weeks',
-    },
-    { name: 'Chemistry Fundamentals', id: 'CHEM101', duration: '12 Weeks' },
-  ];
+  filterConfig = {
+    searchPlaceholder: 'Search courses...',
+    dropdowns: [
+      {
+        key: 'status',
+        label: 'Status',
+        options: ['Active', 'Inactive', 'Upcoming', 'Completed']
+      }
+    ]
+  };
 
-  onCourseCreated(courseData: any): void {
-    // Fix: Create object that matches your data structure
-    const newCourse = {
-      name: courseData.title,
-      id: this.generateCourseId(courseData.category),
-      duration: '12 Weeks', // You can make this dynamic based on your form
-    };
+  constructor(
+    private router: Router,               // ADDED: For navigation
+    private courseService: CourseService, // UPDATED: Injected CourseService
+    private authService: AuthService      // UPDATED: Injected AuthService
+  ) { }
 
-    this.courses = [...this.courses, newCourse];
-    this.showCreateCourse = false;
+  ngOnInit() {
+    this.loadTeacherCourses();
   }
 
-  onCancelCreate(): void {
-    this.showCreateCourse = false;
+  // UPDATED: Fetch courses for this specific teacher
+  loadTeacherCourses() {
+    const user = this.authService.getCurrentUser();
+    const tenantId = this.authService.getTenantId();
+
+    if (user && tenantId) {
+      this.loading = true;
+      // Use teacherId if available
+      const teacherId = user.teacherId || user.id;
+
+      // We pass the teacher_id to the generic getCourses method
+      this.courseService.getCourses(tenantId, { teacher_id: teacherId }).subscribe({
+        next: (backendCourses) => {
+          this.allCourses = backendCourses;
+          this.courses = [...this.allCourses];
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error loading teacher courses', err);
+          this.loading = false;
+        }
+      });
+    }
   }
 
-  onEdit(course: Course): void {
-    console.log('Edit course:', course);
+  onFiltersChange(filters: { [key: string]: string }) {
+    const search = filters['search']?.toLowerCase() || '';
+    const status = filters['status'] || '';
+
+    this.courses = this.allCourses.filter(course => {
+      const matchesSearch = !search ||
+        course.title?.toLowerCase().includes(search) ||
+        course.courseCode?.toLowerCase().includes(search);
+
+      const matchesStatus = !status || course.status === status;
+
+      return matchesSearch && matchesStatus;
+    });
   }
 
-  onDelete(course: Course): void {
-    this.courses = this.courses.filter((c) => c.id !== course.id);
-  }
+  onView(course: any): void {
 
-  onAddCourse(): void {
-    this.showCreateCourse = true;
   }
-
-  // Helper method to generate course ID
-  private generateCourseId(category: string): string {
-    const prefix = category.substring(0, 4).toUpperCase();
-    const number = (this.courses.length + 101).toString();
-    return prefix + number;
-  }
-}
-
-interface Course {
-  name: string;
-  id: string;
-  duration: string;
 }

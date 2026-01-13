@@ -1,14 +1,9 @@
 <div class="min-h-screen bg-white overflow-x-hidden">
-  <app-header
-    pageTitle="Leaderboard"
-    [profile]="{ name: 'Student Profile', initials: 'SP' }"
-  ></app-header>
+  <app-header pageTitle="Leaderboard"></app-header>
   <div class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
     <div class="lg:col-span-2 space-y-8">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div
-          class="rounded-2xl border border-gray-100 p-6 flex items-center justify-between bg-yellow-50"
-        >
+        <div class="rounded-2xl border border-gray-100 p-6 flex items-center justify-between bg-yellow-50">
           <div>
             <h2 class="text-gray-700 text-lg font-semibold">
               Total Points Earned
@@ -20,16 +15,12 @@
               +{{ pointsChange() }} this week
             </p>
           </div>
-          <div
-            class="flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 text-yellow-600"
-          >
+          <div class="flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 text-yellow-600">
             <i class="fa-solid fa-star text-3xl"></i>
           </div>
         </div>
 
-        <div
-          class="rounded-2xl border border-gray-100 p-6 flex flex-col justify-between bg-blue-50"
-        >
+        <div class="rounded-2xl border border-gray-100 p-6 flex flex-col justify-between bg-blue-50">
           <div>
             <h2 class="text-gray-700 text-lg font-semibold">
               Level Progression
@@ -44,10 +35,8 @@
               <span>Level {{ nextLevel() }}</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2.5">
-              <div
-                class="bg-blue-500 h-2.5 rounded-full transition-all duration-700 ease-in-out"
-                [style.width.%]="100 - (xpToNext() / 5000) * 100"
-              ></div>
+              <div class="bg-blue-500 h-2.5 rounded-full transition-all duration-700 ease-in-out"
+                [style.width.%]="100 - (xpToNext() / 5000) * 100"></div>
             </div>
             <p class="text-sm text-gray-600 mt-2">
               {{ xpToNext() }} XP to next level
@@ -60,15 +49,10 @@
       <div class="rounded-2xl border border-gray-100 p-6 bg-purple-50">
         <h2 class="text-gray-700 text-lg font-semibold mb-6">Badges Earned</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8">
-          <div
-            *ngFor="let badge of badges"
-            class="flex flex-col items-center"
-            [ngClass]="badge.locked ? 'opacity-40' : ''"
-          >
-            <div
-              class="flex items-center justify-center h-16 w-16 rounded-full mb-3"
-              [ngClass]="[badge.color, badge.textColor]"
-            >
+          <div *ngFor="let badge of badges" class="flex flex-col items-center"
+            [ngClass]="badge.locked ? 'opacity-40' : ''">
+            <div class="flex items-center justify-center h-16 w-16 rounded-full mb-3"
+              [ngClass]="[badge.color, badge.textColor]">
               <i [class]="badge.icon + ' text-2xl'"></i>
             </div>
             <p class="text-base font-semibold text-gray-800 text-center">
@@ -81,37 +65,26 @@
     </div>
 
     <!-- RIGHT SIDE (Leaderboard aligned properly) -->
-    <div
-      class="rounded-2xl border border-gray-100 p-6 bg-sky-50 flex flex-col justify-start h-auto"
-    >
+    <div class="rounded-2xl border border-gray-100 p-6 bg-sky-50 flex flex-col justify-start h-auto">
       <h2 class="text-gray-700 text-lg font-semibold mb-6">Leaderboard</h2>
       <div class="space-y-4">
-        <div
-          *ngFor="let player of leaderboard"
-          (click)="selectPlayer(player.rank)"
-          class="flex items-center justify-between rounded-xl p-4 cursor-pointer transition-all duration-300"
-          [ngClass]="
+        <div *ngFor="let player of leaderboard" (click)="selectPlayer(player.rank)"
+          class="flex items-center justify-between rounded-xl p-4 cursor-pointer transition-all duration-300" [ngClass]="
             selectedRank === player.rank
               ? 'border-2 border-blue-500 bg-blue-50 scale-[1.02] shadow-sm'
               : 'border border-gray-200 bg-white hover:bg-gray-100 hover:scale-[1.01]'
-          "
-        >
+          ">
           <div class="flex items-center gap-4">
-            <div
-              class="flex items-center justify-center h-11 w-11 rounded-full font-semibold text-lg"
-              [ngClass]="player.color"
-            >
+            <div class="flex items-center justify-center h-11 w-11 rounded-full font-semibold text-lg"
+              [ngClass]="player.color">
               {{ player.rank }}
             </div>
             <div>
-              <p
-                class="text-base font-semibold"
-                [ngClass]="
+              <p class="text-base font-semibold" [ngClass]="
                   selectedRank === player.rank
                     ? 'text-gray-900'
                     : 'text-gray-800'
-                "
-              >
+                ">
                 {{ player.name }}
               </p>
               <p class="text-sm text-gray-500">
@@ -119,16 +92,12 @@
               </p>
             </div>
           </div>
-          <img
-            [src]="player.avatar"
-            [alt]="player.name"
-            class="h-11 w-11 rounded-full object-cover border transition-all duration-300"
-            [ngClass]="
+          <img [src]="player.avatar" [alt]="player.name"
+            class="h-11 w-11 rounded-full object-cover border transition-all duration-300" [ngClass]="
               selectedRank === player.rank
                 ? 'border-blue-400 shadow-md'
                 : 'border-gray-200'
-            "
-          />
+            " />
         </div>
       </div>
     </div>
@@ -136,25 +105,19 @@
 
   <!-- Certificates Full Width -->
   <div class="px-6 mt-8">
-    <div
-      class="rounded-2xl border border-gray-100 p-8 bg-indigo-50 shadow-sm w-full"
-    >
+    <div class="rounded-2xl border border-gray-100 p-8 bg-indigo-50 shadow-sm w-full">
       <h2 class="text-gray-700 text-lg font-semibold mb-6">Certificates</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-        <div
-          *ngFor="let cert of certificates"
-          class="flex items-center justify-between border border-gray-200 rounded-xl p-5 bg-white hover:shadow-md transition-all"
-        >
+        <div *ngFor="let cert of certificates"
+          class="flex items-center justify-between border border-gray-200 rounded-xl p-5 bg-white hover:shadow-md transition-all">
           <div>
             <p class="text-base font-semibold text-gray-800">
               {{ cert.title }}
             </p>
             <p class="text-sm text-gray-500 mt-1">{{ cert.date }}</p>
           </div>
-          <button
-            (click)="downloadCertificate(cert.file)"
-            class="bg-blue-900 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-blue-800 transition"
-          >
+          <button (click)="downloadCertificate(cert.file)"
+            class="bg-blue-900 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-blue-800 transition">
             <i class="fa-solid fa-download mr-2"></i>Download
           </button>
         </div>
@@ -164,16 +127,12 @@
 
   <!-- Progress & Analytics -->
   <div class="px-6 mt-8">
-    <div
-      class="rounded-2xl border border-gray-100 p-8 bg-blue-50 shadow-sm w-full"
-    >
+    <div class="rounded-2xl border border-gray-100 p-8 bg-blue-50 shadow-sm w-full">
       <h2 class="text-gray-800 text-xl font-semibold mb-6">
         Progress & Analytics
       </h2>
       <div class="flex flex-row gap-6 w-full">
-        <div
-          class="bg-white rounded-xl p-6 border border-gray-200 w-2/3 h-[420px] shadow-sm"
-        >
+        <div class="bg-white rounded-xl p-6 border border-gray-200 w-2/3 h-[420px] shadow-sm">
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-gray-700 text-lg font-semibold">
               Course Completion
@@ -183,31 +142,19 @@
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" class="sr-only peer" />
                 <div
-                  class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-4 peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"
-                ></div>
+                  class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-4 peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all">
+                </div>
               </label>
             </div>
           </div>
-          <canvas
-            baseChart
-            [data]="courseCompletionData"
-            [options]="courseCompletionOptions"
-            [type]="'bar'"
-          ></canvas>
+          <canvas baseChart [data]="courseCompletionData" [options]="courseCompletionOptions" [type]="'bar'"></canvas>
         </div>
 
-        <div
-          class="bg-white rounded-xl p-6 border border-gray-200 w-1/3 h-[420px] shadow-sm"
-        >
+        <div class="bg-white rounded-xl p-6 border border-gray-200 w-1/3 h-[420px] shadow-sm">
           <h3 class="text-gray-700 text-lg font-semibold mb-4">
             Weekly Study Time
           </h3>
-          <canvas
-            baseChart
-            [data]="weeklyStudyData"
-            [options]="weeklyStudyOptions"
-            [type]="'line'"
-          ></canvas>
+          <canvas baseChart [data]="weeklyStudyData" [options]="weeklyStudyOptions" [type]="'line'"></canvas>
         </div>
       </div>
     </div>

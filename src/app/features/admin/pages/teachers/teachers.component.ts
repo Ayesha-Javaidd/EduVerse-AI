@@ -1,31 +1,31 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TableColumn, DataTableComponent } from '../../../../shared/components/data-table/data-table.component';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { CommonModule } from '@angular/common';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { AdminService } from '../../../../core/services/admin.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { EntityModalComponent, FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
 
 @Component({
   selector: 'app-teachers',
   standalone: true,
-  imports: [HeaderComponent, DataTableComponent, CommonModule, FiltersComponent, ButtonComponent],
+  imports: [HeaderComponent, DataTableComponent, CommonModule, FiltersComponent, ButtonComponent, EntityModalComponent],
   templateUrl: './teachers.component.html',
   styleUrl: './teachers.component.css'
 })
-export class TeachersComponent {
-  currentPage = 1;   // track current page
+export class TeachersComponent implements OnInit {
+  currentPage = 1;
 
   onPageChange(page: number) {
     this.currentPage = page;
-    console.log('Page changed:', page);
-    // You could also fetch new data from backend here if needed
   }
-
 
   teacherColumns: TableColumn[] = [
     { key: 'avatar', label: 'Teacher', type: 'avatar' },
-    { key: 'courses', label: 'Courses', type: 'text' },
-    { key: 'students', label: 'Students', type: 'text' },
+    { key: 'email', label: 'Email', type: 'text' },
+    { key: 'assignedCoursesCount', label: 'Courses', type: 'text' },
     { key: 'role', label: 'Role', type: 'text' },
     {
       key: 'status',
@@ -33,207 +33,150 @@ export class TeachersComponent {
       type: 'badge',
       badgeColors: {
         Active: 'bg-green-100 text-green-800',
+        active: 'bg-green-100 text-green-800',
         Inactive: 'bg-red-100 text-red-800',
+        inactive: 'bg-red-100 text-red-800',
       },
     },
   ];
 
-  teachers = [
+  teachers: any[] = [];
+  filteredTeachers: any[] = [];
+  loading: boolean = true;
+
+  // Modal state
+  isModalOpen = false;
+  isEditMode = false;
+  modalTitle = 'Add Teacher';
+  selectedTeacher: any = null;
+
+  teacherFields: FormField[] = [
+    { name: 'fullName', label: 'Full Name', type: 'text', required: true, placeholder: 'Enter full name' },
+    { name: 'email', label: 'Email', type: 'email', required: true, placeholder: 'Enter email address' },
+    { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'Enter password (min 6 characters)' },
+    { name: 'contactNo', label: 'Contact Number', type: 'text', placeholder: 'Enter contact number' },
+    { name: 'country', label: 'Country', type: 'text', placeholder: 'Enter country' },
+    { name: 'qualifications', label: 'Qualifications', type: 'array', placeholder: 'e.g., PhD in Computer Science' },
+    { name: 'subjects', label: 'Subjects', type: 'array', placeholder: 'e.g., Mathematics, Physics' },
     {
-      "id": 1,
-      "name": "John Doe",
-      "email": "john.doe@example.com",
-      "courses": 12,
-      "students": 345,
-      "role": "Teacher",
-      "status": "Active",
-      "avatar": "JD"
+      name: 'status', label: 'Status', type: 'select', options: [
+        { value: 'active', label: 'Active' },
+        { value: 'inactive', label: 'Inactive' }
+      ]
     },
-    {
-      "id": 2,
-      "name": "Jane Smith",
-      "email": "jane.smith@example.com",
-      "courses": 8,
-      "students": 210,
-      "role": "Sub-Admin",
-      "status": "Active",
-      "avatar": "JS"
-    },
-    {
-      "id": 3,
-      "name": "Robert Brown",
-      "email": "robert.brown@example.com",
-      "courses": 15,
-      "students": 450,
-      "role": "Teacher",
-      "status": "Inactive",
-      "avatar": "RB"
-    },
-    {
-      "id": 4,
-      "name": "Alice Green",
-      "email": "alice.green@example.com",
-      "courses": 10,
-      "students": 280,
-      "role": "Teacher",
-      "status": "Active",
-      "avatar": "AG"
-    },
-    {
-      "id": 5,
-      "name": "Michael Davis",
-      "email": "michael.davis@example.com",
-      "courses": 7,
-      "students": 190,
-      "role": "Sub-Admin",
-      "status": "Inactive",
-      "avatar": "MD"
-    },
-    {
-      "id": 6,
-      "name": "Emily Wilson",
-      "email": "emily.wilson@example.com",
-      "courses": 14,
-      "students": 420,
-      "role": "Teacher",
-      "status": "Active",
-      "avatar": "EW"
-    },
-    {
-      "id": 7,
-      "name": "David Clark",
-      "email": "david.clark@example.com",
-      "courses": 9,
-      "students": 250,
-      "role": "Sub-Admin",
-      "status": "Active",
-      "avatar": "DC"
-    },
-    {
-      "id": 8,
-      "name": "Olivia Hall",
-      "email": "olivia.hall@example.com",
-      "courses": 11,
-      "students": 280,
-      "role": "Teacher",
-      "status": "Inactive",
-      "avatar": "OH"
-    },
-    {
-      "id": 9,
-      "name": "Chris Baker",
-      "email": "chris.baker@example.com",
-      "courses": 13,
-      "students": 310,
-      "role": "Sub-Admin",
-      "status": "Active",
-      "avatar": "CB"
-    },
-    {
-      "id": 10,
-      "name": "Sophia Moore",
-      "email": "sophia.moore@example.com",
-      "courses": 15,
-      "students": 340,
-      "role": "Teacher",
-      "status": "Inactive",
-      "avatar": "SM"
-    },
-    {
-      "id": 11,
-      "name": "Mark King",
-      "email": "mark.king@example.com",
-      "courses": 10,
-      "students": 370,
-      "role": "Sub-Admin",
-      "status": "Active",
-      "avatar": "MK"
-    },
-    {
-      "id": 12,
-      "name": "Laura Adams",
-      "email": "laura.adams@example.com",
-      "courses": 12,
-      "students": 400,
-      "role": "Teacher",
-      "status": "Inactive",
-      "avatar": "LA"
-    },
-    {
-      "id": 13,
-      "name": "Kevin Hill",
-      "email": "kevin.hill@example.com",
-      "courses": 14,
-      "students": 430,
-      "role": "Sub-Admin",
-      "status": "Active",
-      "avatar": "KH"
-    },
-    {
-      "id": 14,
-      "name": "Mia Scott",
-      "email": "mia.scott@example.com",
-      "courses": 9,
-      "students": 260,
-      "role": "Teacher",
-      "status": "Inactive",
-      "avatar": "MS"
-    },
-    {
-      "id": 15,
-      "name": "George Taylor",
-      "email": "george.taylor@example.com",
-      "courses": 11,
-      "students": 290,
-      "role": "Sub-Admin",
-      "status": "Active",
-      "avatar": "GT"
-    },
-    {
-      "id": 16,
-      "name": "Anna Evans",
-      "email": "anna.evans@example.com",
-      "courses": 13,
-      "students": 320,
-      "role": "Teacher",
-      "status": "Inactive",
-      "avatar": "AE"
-    },
-    {
-      "id": 17,
-      "name": "Peter Wright",
-      "email": "peter.wright@example.com",
-      "courses": 15,
-      "students": 350,
-      "role": "Sub-Admin",
-      "status": "Active",
-      "avatar": "PW"
-    }
   ];
 
+  constructor(
+    private adminService: AdminService,
+    private authService: AuthService
+  ) { }
+
+  ngOnInit() {
+    this.loadTeachers();
+  }
+
+  loadTeachers() {
+    this.loading = true;
+    this.adminService.getTeachers().subscribe({
+      next: (data) => {
+        this.teachers = data.map(t => ({
+          ...t,
+          avatar: t.fullName?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'TR',
+          assignedCoursesCount: t.assignedCourses?.length || 0,
+          name: t.fullName
+        }));
+        this.filteredTeachers = [...this.teachers];
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading teachers', err);
+        this.loading = false;
+      }
+    });
+  }
+
   onAddTeacher() {
-    // will open a modal
-    console.log('Add clicked');
+    this.isEditMode = false;
+    this.modalTitle = 'Add Teacher';
+    this.selectedTeacher = null;
+    this.isModalOpen = true;
   }
 
   onEditTeacher(teacher: any) {
-    console.log('Edit clicked for:', teacher);
+    this.isEditMode = true;
+    this.modalTitle = 'Edit Teacher';
+    this.selectedTeacher = teacher;
+    this.isModalOpen = true;
   }
 
   onDeleteTeacher(teacher: any) {
-    console.log('Delete clicked for:', teacher);
+    if (confirm(`Are you sure you want to delete ${teacher.fullName}?`)) {
+      this.adminService.deleteTeacher(teacher.id).subscribe({
+        next: () => {
+          this.loadTeachers();
+        },
+        error: (err) => {
+          alert(`Failed to delete teacher: ${err.error?.detail || 'Unknown error'}`);
+        }
+      });
+    }
   }
 
-  filteredTeachers = [...this.teachers];
+  onModalClose() {
+    this.isModalOpen = false;
+    this.selectedTeacher = null;
+  }
+
+  onModalSubmit(formData: any) {
+    const tenantId = this.authService.getTenantId();
+    if (!tenantId) {
+      alert('Tenant ID not found. Please log in again.');
+      return;
+    }
+
+    const teacherData: any = {
+      ...formData,
+      tenantId,
+      role: 'teacher'
+    };
+
+    // Only set default for new teachers if not provided
+    if (!this.isEditMode) {
+      teacherData.assignedCourses = [];
+      if (!teacherData.status) teacherData.status = 'active';
+    }
+
+    // Remove password and immutable fields if editing
+    if (this.isEditMode) {
+      delete teacherData.password;
+      delete teacherData.role;
+      delete teacherData.tenantId;
+    }
+
+    const request = this.isEditMode
+      ? this.adminService.updateTeacher(this.selectedTeacher.id, teacherData)
+      : this.adminService.createTeacher(teacherData);
+
+    request.subscribe({
+      next: () => {
+        this.onModalClose();
+        this.loadTeachers();
+      },
+      error: (err) => {
+        alert(`Failed to ${this.isEditMode ? 'update' : 'create'} teacher: ${err.error?.detail || 'Unknown error'}`);
+      }
+    });
+  }
 
   onFiltersChange(filters: { [key: string]: string }) {
-    this.currentPage = 1; // → when user changes filters, we should go back to page 1.
+    this.currentPage = 1;
     this.filteredTeachers = this.teachers.filter(t => {
       const matchesSearch = !filters['search'] ||
-        t.name.toLowerCase().includes(filters['search'].toLowerCase()) ||
-        t.email.toLowerCase().includes(filters['search'].toLowerCase());
+        (t.fullName && t.fullName.toLowerCase().includes(filters['search'].toLowerCase())) ||
+        (t.email && t.email.toLowerCase().includes(filters['search'].toLowerCase()));
 
-      const matchesStatus = !filters['status'] || t.status === filters['status'];
+      const matchesStatus = !filters['status'] ||
+        (t.status && t.status.toLowerCase() === filters['status'].toLowerCase());
 
       return matchesSearch && matchesStatus;
     })

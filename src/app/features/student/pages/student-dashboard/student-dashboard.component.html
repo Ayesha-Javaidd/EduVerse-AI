@@ -1,9 +1,6 @@
 <div class="transition-all min-h-screen bg-gray-50">
   <!-- Header -->
-  <app-header
-    [profile]="{ name: 'Student Profile', initials: 'SP' }"
-    pageTitle="Dashboard"
-  ></app-header>
+  <app-header pageTitle="Dashboard"></app-header>
 
   <main class="px-6 py-6 space-y-8 max-w-7xl mx-auto">
     <!-- Top Section: Stats (Left) + Progress Snapshot (Right) -->
@@ -12,15 +9,9 @@
       <div class="lg:col-span-2 flex flex-col gap-8">
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-          <app-stat-card
-            *ngFor="let stat of statsCards"
-            [title]="stat.title"
-            [value]="stat.value"
-            [bgColor]="stat.bgColor"
-            [icon]="stat.icon"
-            [iconBgClass]="stat.iconBgClass"
-            [iconColorClass]="stat.iconColorClass"
-          ></app-stat-card>
+          <app-stat-card *ngFor="let stat of statsCards" [title]="stat.title" [value]="stat.value"
+            [bgColor]="stat.bgColor" [icon]="stat.icon" [iconBgClass]="stat.iconBgClass"
+            [iconColorClass]="stat.iconColorClass"></app-stat-card>
         </div>
 
         <!-- Notifications -->
@@ -36,8 +27,8 @@
 
     <!-- Bottom Section: Recommended Courses -->
     <div>
-     
-<app-courses-card [recommendations]="recommendations"></app-courses-card>
+
+      <app-courses-card [recommendations]="recommendations"></app-courses-card>
     </div>
   </main>
 </div>

@@ -66,7 +66,7 @@ export class ChangePasswordComponent implements OnInit {
 
   onSubmit() {
     if (this.changePasswordForm.valid) {
-      console.log('Password Change Data:', this.changePasswordForm.value);
+
       alert('Password changed successfully');
     } else {
       this.changePasswordForm.markAllAsTouched();

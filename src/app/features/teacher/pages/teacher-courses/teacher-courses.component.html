@@ -1,33 +1,11 @@
 <div class="min-h-screen bg-gray-50">
-  <app-header
-    [pageTitle]="'Courses'"
-    [profile]="{ name: 'Teacher Profile', initials: 'TP' }"
-  ></app-header>
+  <app-header [pageTitle]="'Courses'"></app-header>
 
   <main class="p-6">
-    <app-button
-      customColor="mb-6 bg-blue-950 text-white hover:bg-gray-500 cursor-pointer"
-      size="lg"
-      (buttonClick)="onAddCourse()"
-    >
-      + Add Course
-    </app-button>
+    <app-filters [dropdowns]="filterConfig.dropdowns" [searchPlaceholder]="filterConfig.searchPlaceholder"
+      (filtersChange)="onFiltersChange($event)"></app-filters>
 
-    <app-data-table
-      [title]="'Course List'"
-      [columns]="columns"
-      [rows]="courses"
-      [enableActions]="true"
-      (edit)="onEdit($event)"
-      (delete)="onDelete($event)"
-    ></app-data-table>
-
-    <!-- Add this modal -->
-
-    <app-generate-courses
-      *ngIf="showCreateCourse"
-      (courseCreated)="onCourseCreated($event)"
-      (cancelled)="onCancelCreate()"
-    ></app-generate-courses>
+    <app-data-table [title]="'Course List'" [columns]="columns" [rows]="courses"
+      [enableActions]="false"></app-data-table>
   </main>
 </div>

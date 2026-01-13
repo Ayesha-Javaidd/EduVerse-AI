@@ -82,7 +82,7 @@ export class SuperAdminTenantsComponent {
   pageSize: number = 5;
   totalItems: number = 0;
 
-  constructor(private router: Router, private tenantService: TenantService) {}
+  constructor(private router: Router, private tenantService: TenantService) { }
 
   ngOnInit() {
     this.tenants = this.tenantService.getTenants();
@@ -94,19 +94,19 @@ export class SuperAdminTenantsComponent {
   }
 
   onActionClick(tenant: any) {
-    console.log('Action clicked for tenant:', tenant);
+
     this.router.navigate(['/super-admin/tenants', tenant.id]);
   }
 
   onEdit(tenant: any) {
-    console.log('Edit tenant:', tenant);
+
     // this.router.navigate(['/super-admin/tenant-settings']);
     this.tenantService.setSelectedTenant(tenant);
     this.router.navigate(['/super-admin/tenant-settings', tenant.id]);
   }
 
   onDelete(tenant: any) {
-    console.log('Delete tenant:', tenant);
+
     if (confirm(`Are you sure you want to delete ${tenant.name}?`)) {
       this.tenants = this.tenants.filter((t) => t.id !== tenant.id);
       this.totalItems = this.tenants.length;

@@ -1,37 +1,18 @@
 <div class="min-h-screen bg-gray-50">
-  <app-header
-    pageTitle="Tenant Management"
-    [profile]="{ name: 'Super Admin', initials: 'SP' }"
-  ></app-header>
+  <app-header pageTitle="Tenant Management"></app-header>
 
   <main class="p-6">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <app-stat-card
-        *ngFor="let stat of stats"
-        [title]="stat.title"
-        [value]="stat.value"
-        [icon]="stat.icon"
-        [bgColor]="stat.bgColor"
-        [iconBgClass]="stat.iconBgClass"
-        [iconColorClass]="stat.iconColorClass"
-      ></app-stat-card>
+      <app-stat-card *ngFor="let stat of stats" [title]="stat.title" [value]="stat.value" [icon]="stat.icon"
+        [bgColor]="stat.bgColor" [iconBgClass]="stat.iconBgClass"
+        [iconColorClass]="stat.iconColorClass"></app-stat-card>
     </div>
 
     <div class="bg-white rounded-lg shadow-sm">
-      <app-data-table
-        title="Manage Tenants"
-        [columns]="columns"
-        [rows]="tenants"
-        [currentPage]="currentPage"
-        [pageSize]="pageSize"
-        [totalItems]="totalItems"
-        [enableActions]="true"
-        [rowClickable]="false"
-        (pageChange)="onPageChange($event)"
-        (actionClick)="onActionClick($event)"
-        [visibleActions]="['edit']"
-        (edit)="onEdit($event)"
-      ></app-data-table>
+      <app-data-table title="Manage Tenants" [columns]="columns" [rows]="tenants" [currentPage]="currentPage"
+        [pageSize]="pageSize" [totalItems]="totalItems" [enableActions]="true" [rowClickable]="false"
+        (pageChange)="onPageChange($event)" (actionClick)="onActionClick($event)" [visibleActions]="['edit']"
+        (edit)="onEdit($event)"></app-data-table>
     </div>
   </main>
 </div>

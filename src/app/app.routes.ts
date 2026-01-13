@@ -35,16 +35,10 @@ import { StudentDetailsComponent } from './features/teacher/pages/student-detail
 import { SuperAdminTenantSettingsComponent } from './features/super-admin/pages/super-admin-tenant-settings/super-admin-tenant-settings.component';
 
 export const routes: Routes = [
-  { path: '', component: LandingPageComponent },
-  {
-    path: '',
-    component: AuthLayoutComponent,
-    children: [
-      { path: 'login', component: LoginComponent },
-      { path: 'studentsignup', component: StudentSignupComponent },
-      { path: 'adminsignup', component: AdminSignupComponent },
-    ],
-  },
+  { path: '', component: LandingPageComponent, pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
+  { path: 'studentsignup', component: StudentSignupComponent },
+  { path: 'adminsignup', component: AdminSignupComponent },
 
   {
     path: 'admin',

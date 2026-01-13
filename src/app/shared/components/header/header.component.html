@@ -1,39 +1,28 @@
 <header class="bg-white shadow-sm border-b border-gray-200">
   <div class="flex items-center justify-between p-4">
-    <h1
-      class="text-2xl font-bold text-blue-950"
-      [ngClass]="{ 'ml-12': isMobile }"
-    >
+    <h1 class="text-2xl font-bold text-blue-950" [ngClass]="{ 'ml-12': isMobile }">
       {{ pageTitle }}
     </h1>
 
     <div class="flex items-center space-x-4">
       <div class="flex items-center space-x-3">
         <div class="relative">
-          <div
-            *ngIf="!profile.avatar; else avatarImg"
+          <div *ngIf="!displayProfile.avatar; else avatarImg"
             class="h-10 w-10 rounded-full bg-blue-950 flex items-center justify-center text-blue-950 font-semibold text-sm cursor-pointer"
-            (click)="onProfileClick()"
-          >
+            (click)="onProfileClick()">
             <span class="text-white text-sm font-semibold">
-              {{ profile.initials }}
+              {{ displayProfile.initials }}
             </span>
           </div>
           <ng-template #avatarImg>
-            <img
-              [src]="profile.avatar"
-              [alt]="profile.name"
+            <img [src]="displayProfile.avatar" [alt]="displayProfile.name"
               class="h-8 w-8 rounded-full object-cover cursor-pointer hover:shadow-md transition-shadow"
-              (click)="onProfileClick()"
-            />
+              (click)="onProfileClick()" />
           </ng-template>
         </div>
 
-        <span
-          class="text-sm font-medium text-blue-950 cursor-pointer hover:text-gray-900"
-          (click)="onProfileClick()"
-        >
-          {{ profile.name }}
+        <span class="text-sm font-medium text-blue-950 cursor-pointer hover:text-gray-900" (click)="onProfileClick()">
+          {{ displayProfile.name }}
         </span>
       </div>
     </div>

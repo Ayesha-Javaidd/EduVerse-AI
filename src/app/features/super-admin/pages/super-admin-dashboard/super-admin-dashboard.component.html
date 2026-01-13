@@ -1,34 +1,22 @@
 <!-- Header -->
-<app-header
-  [pageTitle]="pageTitle"
-  [notificationCount]="notificationCount"
-  [profile]="profile"
-  (notificationClick)="onNotificationClick()"
-  (profileClick)="onProfileClick()"
-  (logoutClick)="onLogoutClick()"
-></app-header>
+<app-header [pageTitle]="pageTitle" [notificationCount]="notificationCount" (notificationClick)="onNotificationClick()"
+  (profileClick)="onProfileClick()" (logoutClick)="onLogoutClick()"></app-header>
 
 <!-- Main Content -->
 <div class="p-6 space-y-6 bg-gray-50 min-h-screen">
-  
+
   <!-- Stats Grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    <app-stat-card
-      *ngFor="let stat of stats"
-      [title]="stat.title"
-      [value]="stat.value"
-      [icon]="stat.icon"
-      [iconBgClass]="stat.iconBgClass"
-      [iconColorClass]="stat.iconColorClass"
-      [bgColor]="stat.bgColor"
-    ></app-stat-card>
+    <app-stat-card *ngFor="let stat of stats" [title]="stat.title" [value]="stat.value" [icon]="stat.icon"
+      [iconBgClass]="stat.iconBgClass" [iconColorClass]="stat.iconColorClass" [bgColor]="stat.bgColor"></app-stat-card>
   </div>
 
   <!-- Charts Row -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    
+
     <!-- Tenant Growth Chart -->
-    <div class="lg:col-span-2 bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-lg border border-blue-100 p-6 hover:shadow-xl transition-all duration-300">
+    <div
+      class="lg:col-span-2 bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-lg border border-blue-100 p-6 hover:shadow-xl transition-all duration-300">
       <div class="flex items-center justify-between mb-8">
         <div>
           <h3 class="text-xl font-bold text-gray-900 flex items-center">
@@ -38,13 +26,14 @@
           <p class="text-sm text-gray-500 mt-1">Monthly tenant registration overview</p>
         </div>
         <div class="flex items-center space-x-2">
-          <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500 text-white shadow-md">
+          <span
+            class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500 text-white shadow-md">
             <i class="fa-solid fa-arrow-up mr-1"></i>
             +12.5%
           </span>
         </div>
       </div>
-      
+
       <!-- Enhanced Bar Chart with 3D effect -->
       <div class="h-72 flex items-end justify-between space-x-3 px-2">
         <div *ngFor="let data of tenantGrowthData; let i = index" class="flex-1 flex flex-col items-center group">
@@ -52,38 +41,41 @@
             <!-- Shadow/3D effect -->
             <div
               class="absolute bottom-0 w-full bg-gradient-to-t from-gray-300 to-gray-200 rounded-t-xl opacity-30 transform translate-y-1"
-              [style.height.%]="getBarHeight(data.tenants)"
-            ></div>
+              [style.height.%]="getBarHeight(data.tenants)"></div>
             <!-- Main bar with gradient -->
             <div
               class="bar-animate absolute bottom-0 w-full bg-gradient-to-t from-blue-600 via-blue-500 to-cyan-400 rounded-t-xl transition-all duration-700 ease-out hover:from-blue-700 hover:via-blue-600 hover:to-cyan-500 flex items-start justify-center pt-3 shadow-lg group-hover:shadow-2xl group-hover:scale-105 cursor-pointer relative overflow-hidden"
-              [style.height.%]="getBarHeight(data.tenants)"
-              [style.animation-delay.ms]="i * 150"
-            >
+              [style.height.%]="getBarHeight(data.tenants)" [style.animation-delay.ms]="i * 150">
               <!-- Shine effect -->
-              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-30 transform -skew-x-12 group-hover:translate-x-full transition-all duration-1000"></div>
-              
+              <div
+                class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-30 transform -skew-x-12 group-hover:translate-x-full transition-all duration-1000">
+              </div>
+
               <!-- Value badge -->
-              <span class="relative z-10 text-white text-sm font-bold bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/30">
+              <span
+                class="relative z-10 text-white text-sm font-bold bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/30">
                 {{ data.tenants }}
               </span>
             </div>
-            
+
             <!-- Glow effect on hover -->
-            <div class="absolute bottom-0 w-full h-2 bg-gradient-to-t from-blue-400 to-transparent opacity-0 group-hover:opacity-60 blur-xl transition-all duration-500"></div>
+            <div
+              class="absolute bottom-0 w-full h-2 bg-gradient-to-t from-blue-400 to-transparent opacity-0 group-hover:opacity-60 blur-xl transition-all duration-500">
+            </div>
           </div>
           <span class="text-sm text-gray-700 mt-3 font-semibold group-hover:text-blue-600 transition-colors">
             {{ data.month }}
           </span>
         </div>
       </div>
-      
+
       <!-- Gradient line at bottom -->
       <div class="mt-6 h-1 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 rounded-full"></div>
     </div>
 
     <!-- Enhanced Activity Distribution -->
-    <div class="bg-gradient-to-br from-white to-purple-50 rounded-xl shadow-lg border border-purple-100 p-6 hover:shadow-xl transition-all duration-300">
+    <div
+      class="bg-gradient-to-br from-white to-purple-50 rounded-xl shadow-lg border border-purple-100 p-6 hover:shadow-xl transition-all duration-300">
       <div class="mb-6">
         <h3 class="text-xl font-bold text-gray-900 flex items-center">
           <i class="fa-solid fa-chart-pie text-purple-600 mr-3"></i>
@@ -96,61 +88,32 @@
       <div class="flex items-center justify-center mb-8 relative">
         <div class="relative w-48 h-48">
           <!-- Outer glow ring -->
-          <div class="absolute inset-0 rounded-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 opacity-20 blur-xl animate-pulse"></div>
-          
+          <div
+            class="absolute inset-0 rounded-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 opacity-20 blur-xl animate-pulse">
+          </div>
+
           <!-- Enhanced SVG Donut -->
           <svg class="w-full h-full transform -rotate-90 drop-shadow-lg">
             <!-- Background circle -->
-            <circle
-              cx="96"
-              cy="96"
-              r="70"
-              stroke="#f3f4f6"
-              stroke-width="24"
-              fill="none"
-            />
+            <circle cx="96" cy="96" r="70" stroke="#f3f4f6" stroke-width="24" fill="none" />
             <!-- Active segment - Green -->
-            <circle
-              cx="96"
-              cy="96"
-              r="70"
-              stroke="url(#greenGradient)"
-              stroke-width="24"
-              fill="none"
-              [attr.stroke-dasharray]="getPercentage(activityData[0].value) * 4.4 + ' 440'"
-              stroke-linecap="round"
+            <circle cx="96" cy="96" r="70" stroke="url(#greenGradient)" stroke-width="24" fill="none"
+              [attr.stroke-dasharray]="getPercentage(activityData[0].value) * 4.4 + ' 440'" stroke-linecap="round"
               class="transition-all duration-1000 donut-animate"
-              style="filter: drop-shadow(0 4px 6px rgba(16, 185, 129, 0.4))"
-            />
+              style="filter: drop-shadow(0 4px 6px rgba(16, 185, 129, 0.4))" />
             <!-- Pending segment - Yellow -->
-            <circle
-              cx="96"
-              cy="96"
-              r="70"
-              stroke="url(#yellowGradient)"
-              stroke-width="24"
-              fill="none"
+            <circle cx="96" cy="96" r="70" stroke="url(#yellowGradient)" stroke-width="24" fill="none"
               [attr.stroke-dasharray]="getPercentage(activityData[1].value) * 4.4 + ' 440'"
-              [attr.stroke-dashoffset]="-getPercentage(activityData[0].value) * 4.4"
-              stroke-linecap="round"
+              [attr.stroke-dashoffset]="-getPercentage(activityData[0].value) * 4.4" stroke-linecap="round"
               class="transition-all duration-1000 donut-animate"
-              style="filter: drop-shadow(0 4px 6px rgba(234, 179, 8, 0.4)); animation-delay: 0.3s"
-            />
+              style="filter: drop-shadow(0 4px 6px rgba(234, 179, 8, 0.4)); animation-delay: 0.3s" />
             <!-- Inactive segment - Red -->
-            <circle
-              cx="96"
-              cy="96"
-              r="70"
-              stroke="url(#redGradient)"
-              stroke-width="24"
-              fill="none"
+            <circle cx="96" cy="96" r="70" stroke="url(#redGradient)" stroke-width="24" fill="none"
               [attr.stroke-dasharray]="getPercentage(activityData[2].value) * 4.4 + ' 440'"
               [attr.stroke-dashoffset]="-(getPercentage(activityData[0].value) + getPercentage(activityData[1].value)) * 4.4"
-              stroke-linecap="round"
-              class="transition-all duration-1000 donut-animate"
-              style="filter: drop-shadow(0 4px 6px rgba(239, 68, 68, 0.4)); animation-delay: 0.6s"
-            />
-            
+              stroke-linecap="round" class="transition-all duration-1000 donut-animate"
+              style="filter: drop-shadow(0 4px 6px rgba(239, 68, 68, 0.4)); animation-delay: 0.6s" />
+
             <!-- Gradients -->
             <defs>
               <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -167,11 +130,13 @@
               </linearGradient>
             </defs>
           </svg>
-          
+
           <!-- Center content with animation -->
           <div class="absolute inset-0 flex items-center justify-center">
-            <div class="text-center bg-white rounded-full w-28 h-28 flex flex-col items-center justify-center shadow-lg border-4 border-gray-100">
-              <p class="text-3xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent count-up">
+            <div
+              class="text-center bg-white rounded-full w-28 h-28 flex flex-col items-center justify-center shadow-lg border-4 border-gray-100">
+              <p
+                class="text-3xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent count-up">
                 {{ totalOrganizations }}
               </p>
               <p class="text-xs text-gray-500 font-semibold mt-1">Total</p>
@@ -182,12 +147,12 @@
 
       <!-- Enhanced Legend -->
       <div class="space-y-3">
-        <div *ngFor="let item of activityData; let i = index" 
-             class="flex items-center justify-between p-3 rounded-lg bg-white/60 backdrop-blur-sm hover:bg-white transition-all duration-300 hover:shadow-md cursor-pointer group"
-             [style.animation-delay.ms]="i * 100">
+        <div *ngFor="let item of activityData; let i = index"
+          class="flex items-center justify-between p-3 rounded-lg bg-white/60 backdrop-blur-sm hover:bg-white transition-all duration-300 hover:shadow-md cursor-pointer group"
+          [style.animation-delay.ms]="i * 100">
           <div class="flex items-center space-x-3">
-            <div class="w-4 h-4 rounded-full shadow-md group-hover:scale-125 transition-transform duration-300" 
-                 [ngClass]="item.color"></div>
+            <div class="w-4 h-4 rounded-full shadow-md group-hover:scale-125 transition-transform duration-300"
+              [ngClass]="item.color"></div>
             <span class="text-sm font-medium text-gray-700 group-hover:text-gray-900">{{ item.category }}</span>
           </div>
           <div class="flex items-center space-x-2">
@@ -256,15 +221,7 @@
   </div>
 
   <!-- Top Organizations Table -->
-  <app-data-table
-    [title]="'Top Organizations'"
-    [columns]="organizationColumns"
-    [rows]="organizationRows"
-    [showViewAll]="true"
-    [viewAllRoute]="'/super-admin/tenants'"
-   
-   
-   
-  ></app-data-table>
+  <app-data-table [title]="'Top Organizations'" [columns]="organizationColumns" [rows]="organizationRows"
+    [showViewAll]="true" [viewAllRoute]="'/super-admin/tenants'"></app-data-table>
 
 </div>

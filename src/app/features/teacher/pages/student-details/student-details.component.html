@@ -1,17 +1,11 @@
-<app-header [profile]="{ name: 'Teacher Profile', initials: 'TP' }" pageTitle="Student Details"></app-header>
+<app-header pageTitle="Student Details"></app-header>
 
 <div class="p-6">
   <!-- Sticky Back Arrow -->
   <div class="sticky top-0 z-10 bg-gray-50 py-2">
     <div class="flex items-center cursor-pointer" (click)="goBack()">
-      <svg
-        class="h-5 w-5 text-blue-500 mr-2"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
+      <svg class="h-5 w-5 text-blue-500 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
       </svg>
       <span class="text-blue-500 font-medium hover:underline">Back</span>
@@ -23,25 +17,12 @@
 
   <div class="grid md:grid-cols-2 gap-6">
     <!-- Quizzes Table -->
-    <app-data-table
-      [title]="'Quizzes'"
-      [columns]="quizColumns"
-      [rows]="student.quizzes"
-      [rowClickable]="false"
-      [pageSize]="5"
-      [currentPage]="1"
-      [totalItems]="student.quizzes.length"
-    ></app-data-table>
+    <app-data-table [title]="'Quizzes'" [columns]="quizColumns" [rows]="student.quizzes" [rowClickable]="false"
+      [pageSize]="5" [currentPage]="1" [totalItems]="student.quizzes.length"></app-data-table>
 
     <!-- Assignments Table -->
-    <app-data-table
-      [title]="'Assignments'"
-      [columns]="assignmentColumns"
-      [rows]="student.assignments"
-      [rowClickable]="false"
-      [pageSize]="5"
-      [currentPage]="1"
-      [totalItems]="student.assignments.length"
-    ></app-data-table>
+    <app-data-table [title]="'Assignments'" [columns]="assignmentColumns" [rows]="student.assignments"
+      [rowClickable]="false" [pageSize]="5" [currentPage]="1"
+      [totalItems]="student.assignments.length"></app-data-table>
   </div>
 </div>

@@ -41,10 +41,10 @@ export class AdminSignupComponent {
 
   onSubmit() {
     if (this.signupForm.valid) {
-      console.log('Signup Successful:', this.signupForm.value);
+
       this.router.navigate(['/admin/dashboard']);
     } else {
-      console.log('Invalid Form');
+
       this.markFormGroupTouched();
     }
   }
