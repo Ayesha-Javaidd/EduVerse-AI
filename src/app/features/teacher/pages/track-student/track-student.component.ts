@@ -9,7 +9,7 @@ import {
   TableColumn,
 } from '../../../../shared/components/data-table/data-table.component';
 import { PerformanceService, StudentPerformance } from '../../../../core/services/performance.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthService } from '../../../auth/services/auth.service';
 import { CourseService } from '../../../../core/services/course.service';
 
 @Component({
@@ -75,7 +75,7 @@ export class TrackStudentComponent implements OnInit {
   }
 
   loadTeacherCourses() {
-    const user = this.authService.getCurrentUser();
+    const user = this.authService.getUser();
     const tenantId = this.authService.getTenantId();
     const teacherId = user?.teacherId || user?.id;
 
@@ -95,7 +95,7 @@ export class TrackStudentComponent implements OnInit {
 
   // UPDATED: Load real performance data with proper types
   loadPerformances() {
-    const user = this.authService.getCurrentUser();
+    const user = this.authService.getUser();
     const tenantId = this.authService.getTenantId();
     const teacherId = user?.teacherId;
 

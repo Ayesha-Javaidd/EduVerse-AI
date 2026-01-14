@@ -1,14 +1,8 @@
 <div class="transition-all min-h-screen bg-gray-50">
-  <app-header
-    [profile]="{ name: 'Teacher Profile', initials: 'TP' }"
-    pageTitle="Settings"
-  ></app-header>
+  <app-header pageTitle="Settings"></app-header>
 
   <main class="p-6">
-    <div
-      *ngIf="activeTab === 'profile'"
-      class="grid grid-cols-1 lg:grid-cols-2 gap-6"
-    >
+    <div *ngIf="activeTab === 'profile'" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <app-profile-form></app-profile-form>
       <app-change-password></app-change-password>
     </div>

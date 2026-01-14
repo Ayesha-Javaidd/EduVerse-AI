@@ -7,7 +7,7 @@ import { ContinueLearningComponent } from '../../components/continue-learning/co
 import { CoursesCardComponent, Course } from '../../components/courses-card/courses-card.component';
 import { CommonModule } from '@angular/common';
 import { CourseService } from '../../../../core/services/course.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthService } from '../../../auth/services/auth.service';
 import { QuizService } from '../../../teacher/services/quiz.service';
 import { QuizSubmissionService } from '../../services/quiz-submission.service';
 import { forkJoin } from 'rxjs';
@@ -70,7 +70,7 @@ export class StudentDashboardComponent implements OnInit {
 
   // UPDATED: New method to load dashboard data from backend with proper types
   loadDashboardData() {
-    const user = this.authService.getCurrentUser();
+    const user = this.authService.getUser();
     const tenantId = this.authService.getTenantId();
 
     if (user && tenantId) {

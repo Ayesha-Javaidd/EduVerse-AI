@@ -6,24 +6,23 @@ import {
   Validators,
 } from '@angular/forms';
 import { NgIf } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../../../core/services/auth.service';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, NgIf, RouterLink],
+  standalone: true, // important if using imports
+  imports: [ReactiveFormsModule, NgIf, RouterLink, HttpClientModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css',
-  standalone: true
+  styleUrls: ['./login.component.css'], // fixed typo
 })
 export class LoginComponent {
   loginForm: FormGroup;
-  errorMessage: string = '';
 
   constructor(
     private formBuilder: FormBuilder,
-    private router: Router,
-    private authService: AuthService // UPDATED: Injected AuthService
+    private authService: AuthService
   ) {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
@@ -31,37 +30,22 @@ export class LoginComponent {
     });
   }
 
-  onSubmit(): void {
-    if (this.loginForm.valid) {
-      const { email, password } = this.loginForm.value;
-
-      // UPDATED: Now calling real backend service with proper types
-      this.authService.login(email, password).subscribe({
-        next: (response: { user: { role: string }, access_token: string }) => {
-
-          const role = response.user.role;
-
-          // Navigate based on user role
-          if (role === 'admin') {
-            this.router.navigate(['/admin/dashboard']);
-          } else if (role === 'teacher') {
-            this.router.navigate(['/teacher/dashboard']);
-          } else if (role === 'student') {
-            this.router.navigate(['/student/dashboard']);
-          } else if (role === 'super_admin') {
-            this.router.navigate(['/super-admin/dashboard']);
-          } else {
-            this.router.navigate(['/']);
-          }
-        },
-        error: (err: { error?: { detail?: string } }) => {
-          console.error('Login failed', err);
-          this.errorMessage = err.error?.detail || 'Invalid email or password';
-        }
-      });
-    } else {
+  onSubmit() {
+    if (this.loginForm.invalid) {
       this.markFormGroupTouched();
+      return;
     }
+
+    const payload = this.loginForm.value;
+
+    this.authService.login(payload).subscribe({
+      next: () => {
+        // navigation handled by AuthService.redirectByRole()
+      },
+      error: (err) => {
+        console.error('Login failed', err);
+      },
+    });
   }
 
   private markFormGroupTouched() {

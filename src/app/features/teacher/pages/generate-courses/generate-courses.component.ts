@@ -10,7 +10,7 @@ import {
 } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
 import { CourseService } from '../../../../core/services/course.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-generate-courses',
@@ -94,7 +94,7 @@ export class GenerateCoursesComponent {
 
   onSubmit(): void {
     if (this.courseForm.valid) {
-      const user = this.authService.getCurrentUser();
+      const user = this.authService.getUser();
       const tenantId = this.authService.getTenantId();
 
       if (user && tenantId) {

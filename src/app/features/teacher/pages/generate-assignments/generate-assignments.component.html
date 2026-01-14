@@ -1,88 +1,47 @@
-<app-header
-  pageTitle="Assignments"
-  [profile]="{ name: 'Teacher Profile', initials: 'TP' }"
-  (profileClick)="onProfileClick()"
-></app-header>
+<app-header pageTitle="Assignments"></app-header>
 
 <div class="min-h-screen bg-white p-6 max-w-7xl mx-auto">
   <div class="flex justify-between items-center mb-4">
     <p class="text-blue-950 text-xl">Create and manage student assignments</p>
-    <app-button
-      (buttonClick)="openCreateModal()"
-      customColor="bg-blue-950 text-white hover:bg-gray-500"
-    >
+    <app-button (buttonClick)="openCreateModal()" customColor="bg-blue-950 text-white hover:bg-gray-500">
       <i class="fa-solid fa-plus mr-2"></i> Create Assignment
     </app-button>
   </div>
 
   <div class="grid md:grid-cols-2 gap-10 mb-4 px-20">
-    <app-stat-card
-      icon="fa-solid fa-file-alt"
-      [value]="totalAssignmentsCount"
-      title="Total Assignments"
-      bgColor="bg-purple-50"
-      iconBgClass="bg-purple-100"
-      iconColorClass="text-purple-600"
-    ></app-stat-card>
+    <app-stat-card icon="fa-solid fa-file-alt" [value]="totalAssignmentsCount" title="Total Assignments"
+      bgColor="bg-purple-50" iconBgClass="bg-purple-100" iconColorClass="text-purple-600"></app-stat-card>
 
-    <app-stat-card
-      icon="fa-solid fa-check-circle"
-      [value]="totalSubmissionsCount"
-      title="Total Submissions"
-      bgColor="bg-green-50"
-      iconBgClass="bg-green-100"
-      iconColorClass="text-green-600"
-    ></app-stat-card>
+    <app-stat-card icon="fa-solid fa-check-circle" [value]="totalSubmissionsCount" title="Total Submissions"
+      bgColor="bg-green-50" iconBgClass="bg-green-100" iconColorClass="text-green-600"></app-stat-card>
   </div>
 
-  <div
-    class="bg-white rounded-2xl shadow-sm border border-border-light p-2 mb-6 inline-flex"
-  >
-    <app-button
-      (buttonClick)="activeTab = 'active'"
-      [customColor]="
+  <div class="bg-white rounded-2xl shadow-sm border border-border-light p-2 mb-6 inline-flex">
+    <app-button (buttonClick)="activeTab = 'active'" [customColor]="
         activeTab === 'active' ? 'bg-slate-500 text-white' : 'text-text-muted'
-      "
-    >
+      ">
       Active ({{ activeCount }})
     </app-button>
-    <app-button
-      (buttonClick)="activeTab = 'completed'"
-      [customColor]="
+    <app-button (buttonClick)="activeTab = 'completed'" [customColor]="
         activeTab === 'completed'
           ? 'bg-slate-500 text-white'
           : 'text-text-muted'
-      "
-    >
+      ">
       Completed ({{ completedCount }})
     </app-button>
   </div>
 
-  <app-empty-state
-    *ngIf="filteredAssignments.length === 0"
-    (createClick)="openCreateModal()"
-  ></app-empty-state>
+  <app-empty-state *ngIf="filteredAssignments.length === 0" (createClick)="openCreateModal()"></app-empty-state>
 
   <div *ngIf="filteredAssignments.length > 0" class="flex flex-col gap-4 mb-10">
-    <app-assignment-card
-      *ngFor="let assignment of filteredAssignments"
-      [assignment]="assignment"
-      (onView)="viewAssignment($event)"
-      (onEdit)="editAssignment($event)"
-      (onDelete)="deleteAssignment($event)"
-      (onToggleStatus)="toggleAssignmentStatus($event)"
-    >
+    <app-assignment-card *ngFor="let assignment of filteredAssignments" [assignment]="assignment"
+      (onView)="viewAssignment($event)" (onEdit)="editAssignment($event)" (onDelete)="deleteAssignment($event)"
+      (onToggleStatus)="toggleAssignmentStatus($event)">
     </app-assignment-card>
   </div>
 
-  <app-assignment-modal
-    *ngIf="showCreateModal"
-    [show]="showCreateModal"
-    [formData]="formData"
-    [editingAssignmentId]="editingAssignmentId"
-    [courses]="courses"
-    (onClose)="closeCreateModal()"
-    (onSubmit)="handleSubmit($event)"
-  >
+  <app-assignment-modal *ngIf="showCreateModal" [show]="showCreateModal" [formData]="formData"
+    [editingAssignmentId]="editingAssignmentId" [courses]="courses" (onClose)="closeCreateModal()"
+    (onSubmit)="handleSubmit($event)">
   </app-assignment-modal>
 </div>

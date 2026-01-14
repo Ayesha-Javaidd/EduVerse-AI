@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { AdminService, AdminTeacher, AdminStudent } from '../../../../core/services/admin.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -18,7 +20,9 @@ import { AuthService } from '../../../../core/services/auth.service';
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css',
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   // stats
   statsCards: StatCard[] = [
     {
@@ -105,12 +109,23 @@ export class AdminDashboardComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.loadAdminData();
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(user => {
+        // Only load data if user is actually an admin and has a tenantId
+        if (user && (user.role === 'admin' || user.role === 'super_admin') && user.tenantId) {
+          this.loadAdminData(user.tenantId);
+        }
+      });
   }
 
-  // UPDATED: Load all required data for admin dashboard with proper types
-  loadAdminData() {
-    const tenantId = this.authService.getTenantId();
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // UPDATED: Load all required data for admin dashboard
+  loadAdminData(tenantId: string) {
     if (tenantId) {
       this.loading = true;
 

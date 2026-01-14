@@ -1,8 +1,5 @@
 <div class="min-h-screen bg-slate-100">
-  <app-header
-    [profile]="{ name: 'Student Profile', initials: 'SP' }"
-    pageTitle="Assignments"
-  ></app-header>
+  <app-header pageTitle="Assignments"></app-header>
 
   <main class="p-6 max-w-7xl mx-auto">
     <div class="bg-white p-5 rounded-2xl">
@@ -13,28 +10,20 @@
       ></app-filters> -->
 
       <div class="mb-6">
-        <app-filters
-          [dropdowns]="filterDropdowns"
-          [searchPlaceholder]="'Search assignments...'"
-          (filtersChange)="onFiltersChange($event)"
-        ></app-filters>
+        <app-filters [dropdowns]="filterDropdowns" [searchPlaceholder]="'Search assignments...'"
+          (filtersChange)="onFiltersChange($event)"></app-filters>
       </div>
 
       <!-- Assignment Grid (3 cards per row) -->
       <div class="flex flex-col gap-4">
-        <app-assignment-detail
-          *ngFor="let assignment of filteredAssignments"
-          [assignment]="assignment"
+        <app-assignment-detail *ngFor="let assignment of filteredAssignments" [assignment]="assignment"
           (onViewSubmit)="handleViewSubmit($event)"
-          (onViewFeedback)="handleViewFeedback($event)"
-        ></app-assignment-detail>
+          (onViewFeedback)="handleViewFeedback($event)"></app-assignment-detail>
       </div>
 
       <!-- Empty State -->
-      <div
-        *ngIf="filteredAssignments.length === 0"
-        class="text-center py-12 bg-white/70 rounded-2xl border border-gray-200 shadow-sm mt-6"
-      >
+      <div *ngIf="filteredAssignments.length === 0"
+        class="text-center py-12 bg-white/70 rounded-2xl border border-gray-200 shadow-sm mt-6">
         <div class="text-gray-400 mb-4">
           <i class="fa-solid fa-file-lines text-4xl"></i>
         </div>

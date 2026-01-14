@@ -23,7 +23,7 @@ export class SuperadminDashboardComponent implements OnInit {
   notificationCount = 5;
   profile = {
     name: 'Super Admin',
-    initials: 'SA'
+    initials: 'S'
   };
 
 

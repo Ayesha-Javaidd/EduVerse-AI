@@ -7,7 +7,9 @@ import {
   OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService, User } from '../../../core/services/auth.service';
+import { AuthService, User } from '../../../features/auth/services/auth.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-header',
@@ -17,6 +19,7 @@ import { AuthService, User } from '../../../core/services/auth.service';
   styleUrl: './header.component.css',
 })
 export class HeaderComponent implements OnInit {
+  private destroy$ = new Subject<void>();
   @Input() pageTitle: string = 'Dashboard';
   @Input() notificationCount: number = 0;
 
@@ -35,17 +38,27 @@ export class HeaderComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.currentUser = this.authService.getCurrentUser();
-    this.setupProfile();
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(user => {
+        this.currentUser = user;
+        this.setupProfile();
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private setupProfile() {
     if (this.profile && this.profile.name) {
       this.displayProfile = this.profile;
     } else if (this.currentUser) {
+      const name = this.currentUser.fullName || 'User';
       this.displayProfile = {
-        name: this.currentUser.fullName,
-        initials: this.getInitials(this.currentUser.fullName)
+        name: name,
+        initials: this.getInitials(name)
       };
     } else {
       this.displayProfile = { name: 'User Profile', initials: 'UP' };
@@ -53,7 +66,8 @@ export class HeaderComponent implements OnInit {
   }
 
   private getInitials(name: string): string {
-    if (!name) return 'UP';
+    if (!name) return 'U';
+    // Always return just the first letter as requested by user
     return name.trim().charAt(0).toUpperCase();
   }
 

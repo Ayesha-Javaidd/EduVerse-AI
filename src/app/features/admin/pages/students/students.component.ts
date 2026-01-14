@@ -4,7 +4,7 @@ import { DataTableComponent, TableColumn } from '../../../../shared/components/d
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 import { AdminService } from '../../../../core/services/admin.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthService } from '../../../auth/services/auth.service';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { EntityModalComponent, FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
 

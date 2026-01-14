@@ -9,7 +9,7 @@ import {
 } from '../../../../shared/components/data-table/data-table.component';
 import { StudentEnrollmentChartComponent } from '../../components/student-enrollment-chart/student-enrollment-chart.component';
 import { CourseService, BackendCourse } from '../../../../core/services/course.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-teacher-dashboard',
@@ -104,12 +104,12 @@ export class TeacherDashboardComponent implements OnInit {
 
   // UPDATED: Fetch teacher-specific data with proper types
   loadDashboardData() {
-    const user = this.authService.getCurrentUser();
+    const user = this.authService.getUser();
     const tenantId = this.authService.getTenantId();
 
     if (user && tenantId) {
       this.teacherProfile.name = user.fullName || 'Teacher';
-      this.teacherProfile.initials = this.teacherProfile.name.split(' ').map(n => n[0]).join('').toUpperCase();
+      this.teacherProfile.initials = this.teacherProfile.name.trim().charAt(0).toUpperCase();
 
       // Use teacherId if available
       const teacherId = user.teacherId || user.id;

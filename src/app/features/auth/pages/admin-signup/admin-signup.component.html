@@ -1,0 +1,144 @@
+<div class="flex inset-0 fixed">
+  <!-- Left Section -->
+  <div
+    class="flex-1 bg-slate-900 text-white h-screen flex flex-col text-center justify-center"
+  >
+    <h1 class="text-white text-4xl font-bold">Join as an Admin</h1>
+    <p class="p-5">Fill in your organization details to get started.</p>
+  </div>
+
+  <!-- Right Section -->
+  <div
+    class="flex-1 bg-white text-slate-900 h-screen overflow-y-auto flex flex-col justify-center items-center"
+  >
+    <div class="p-10 w-full max-w-md">
+      <h1 class="text-3xl font-bold mt-32 mb-5">Admin Signup</h1>
+      <p class="text-slate-500 text-sm mb-4">Let's get you started!</p>
+
+      <form #f="ngForm" class="flex flex-col">
+        <div *ngIf="errorMessage" class="mb-3 text-red-600 text-sm">
+          {{ errorMessage }}
+        </div>
+
+        <!-- Full Name -->
+        <input
+          type="text"
+          name="fullName"
+          [(ngModel)]="fullName"
+          placeholder="Full Name"
+          required
+          class="w-full px-4 py-3 border rounded-md mb-2"
+        />
+
+        <!-- Email -->
+        <input
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="Email"
+          required
+          class="w-full px-4 py-3 border rounded-md mb-2"
+        />
+
+        <!-- Password -->
+        <input
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          placeholder="Password"
+          minlength="6"
+          required
+          class="w-full px-4 py-3 border rounded-md mb-2"
+        />
+
+        <!-- Confirm Password -->
+        <input
+          type="password"
+          name="confirmPassword"
+          [(ngModel)]="confirmPassword"
+          placeholder="Confirm Password"
+          minlength="6"
+          required
+          class="w-full px-4 py-3 border rounded-md mb-2"
+        />
+
+        <!-- Contact No -->
+        <input
+          type="text"
+          name="contactNo"
+          [(ngModel)]="contactNo"
+          placeholder="Contact Number"
+          required
+          class="w-full px-4 py-3 border rounded-md mb-2"
+        />
+
+        <!-- Country -->
+        <input
+          type="text"
+          name="country"
+          [(ngModel)]="country"
+          placeholder="Country"
+          required
+          class="w-full px-4 py-3 border rounded-md mb-2"
+        />
+
+        <!-- Status -->
+        <select
+          name="status"
+          [(ngModel)]="status"
+          required
+          class="w-full px-4 py-3 border rounded-md mb-4"
+        >
+          <option value="active">Active</option>
+          <option value="on_leave">On Leave</option>
+        </select>
+
+        <!-- Profile Image URL -->
+        <input
+          type="text"
+          name="profileImageURL"
+          [(ngModel)]="profileImageURL"
+          placeholder="Profile Image URL (optional)"
+          class="w-full px-4 py-3 border rounded-md mb-2"
+        />
+
+        <!-- Tenant Name -->
+        <input
+          type="text"
+          name="tenantName"
+          [(ngModel)]="tenantName"
+          placeholder="Organization/Tenant Name"
+          required
+          class="w-full px-4 py-3 border rounded-md mb-2"
+        />
+
+        <!-- Tenant Logo URL -->
+        <input
+          type="text"
+          name="tenantLogoUrl"
+          [(ngModel)]="tenantLogoUrl"
+          placeholder="Tenant Logo URL (optional)"
+          class="w-full px-4 py-3 border rounded-md mb-4"
+        />
+
+        <button
+          type="button"
+          (click)="onSignup()"
+          class="w-full py-3.5 bg-slate-900 text-white rounded-md hover:bg-slate-800"
+        >
+          Sign Up
+        </button>
+
+        <p class="text-center text-gray-600 text-sm mt-2">
+          Already have an account?
+          <a
+            routerLink="/login"
+            class="text-blue-950 cursor-pointer font-medium hover:underline"
+          >
+            Login
+          </a>
+        </p>
+      </form>
+    </div>
+  </div>
+</div>

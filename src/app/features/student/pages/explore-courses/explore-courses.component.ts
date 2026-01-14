@@ -7,7 +7,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 import { CourseCardComponent, Course } from '../../components/course-card/course-card.component';
 import { CourseService, BackendCourse } from '../../../../core/services/course.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-explore-courses',
@@ -62,13 +62,13 @@ export class ExploreCoursesComponent implements OnInit {
 
   // UPDATED: Fetch all courses for the tenant that are not necessarily the student's enrolled ones
   loadAvailableCourses() {
-    const user = this.authService.getCurrentUser();
+    const user = this.authService.getUser();
     const tenantId = this.authService.getTenantId();
 
     if (tenantId) {
       if (user) {
         this.profile.name = user.fullName || 'Student';
-        this.profile.initials = this.profile.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        this.profile.initials = this.profile.name.trim().charAt(0).toUpperCase();
       }
 
       // Fetch all courses for this tenant
@@ -139,7 +139,7 @@ export class ExploreCoursesComponent implements OnInit {
   }
 
   onEnrollClick(course: Course) {
-    const user = this.authService.getCurrentUser();
+    const user = this.authService.getUser();
     const tenantId = this.authService.getTenantId();
 
     if (user && tenantId) {

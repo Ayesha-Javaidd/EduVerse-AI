@@ -1,34 +1,22 @@
 <div class="transition-all min-h-screen bg-gray-50">
-    <app-header
-    pageTitle="Tenant Settings"
-    [profile]="{ name: 'Super Admin Profile', initials: 'SP' }"
-    ></app-header>
+    <app-header pageTitle="Tenant Settings"></app-header>
 
     <main class="max-w-6xl mx-auto p-6 space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- left: tenant info takes 2/3 -->
             <div class="lg:col-span-2 space-y-6">
-        
-                <!-- Tenant Info -->
-                <app-tenant-info-form 
-                    [tenant]="tenant"
-                    (save)="onSaveTenant($event)"
-                ></app-tenant-info-form>
 
-                <app-account-actions
-                    (deactivate)="onDeactivate()"
-                    (delete)="onDelete()"
-                ></app-account-actions>
+                <!-- Tenant Info -->
+                <app-tenant-info-form [tenant]="tenant" (save)="onSaveTenant($event)"></app-tenant-info-form>
+
+                <app-account-actions (deactivate)="onDeactivate()" (delete)="onDelete()"></app-account-actions>
             </div>
 
             <!-- right: subscription details -->
             <div>
-                <app-subscription-details
-                    [subscription]="subscriptionDetails"
-                    (upgrade)="onUpgrade()"
-                    (renew)="onRenew()"
-                ></app-subscription-details>
+                <app-subscription-details [subscription]="subscriptionDetails" (upgrade)="onUpgrade()"
+                    (renew)="onRenew()"></app-subscription-details>
             </div>
-        </div>    
+        </div>
     </main>
 </div>

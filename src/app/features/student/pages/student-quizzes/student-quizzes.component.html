@@ -1,9 +1,6 @@
 <div class="transition-all min-h-screen bg-gray-50">
   <!-- Header -->
-  <app-header
-    [profile]="{ name: studentProfile?.user?.fullName || 'Student', initials: (studentProfile?.user?.fullName || 'S').charAt(0) }"
-    pageTitle="Quizzes"
-  ></app-header>
+  <app-header pageTitle="Quizzes"></app-header>
 
   <div class="mx-auto w-full p-6 space-y-6">
 
@@ -31,7 +28,8 @@
 
     <!-- Quiz List -->
     <div *ngIf="!loading && quizzes.length > 0">
-      <div *ngFor="let quiz of quizzes" class="p-4 border rounded-lg bg-white shadow-sm flex justify-between items-center mb-3">
+      <div *ngFor="let quiz of quizzes"
+        class="p-4 border rounded-lg bg-white shadow-sm flex justify-between items-center mb-3">
         <div>
           <h3 class="font-semibold text-lg">Quiz {{ quiz.quizNo }}</h3>
           <p class="text-sm text-gray-600">{{ quiz.course }}</p>
@@ -53,16 +51,11 @@
           </p>
         </div>
 
-        <button
-          [disabled]="isDuePassed(quiz) && quiz.status !== 'Completed'"
-          [ngClass]="{
+        <button [disabled]="isDuePassed(quiz) && quiz.status !== 'Completed'" [ngClass]="{
             'bg-green-600 hover:bg-green-700 text-white': quiz.status === 'Completed',
             'bg-blue-600 hover:bg-blue-700 text-white': quiz.status !== 'Completed',
             'opacity-50 cursor-not-allowed': isDuePassed(quiz) && quiz.status !== 'Completed'
-          }"
-          class="px-4 py-2 rounded-md transition"
-          (click)="openQuiz(quiz)"
-        >
+          }" class="px-4 py-2 rounded-md transition" (click)="openQuiz(quiz)">
           {{ quiz.status === 'Completed' ? 'View Results' : 'Start Quiz' }}
         </button>
       </div>
@@ -70,11 +63,6 @@
   </div>
 
   <!-- Quiz Taking Modal -->
-  <app-quiz-taking-modal
-    *ngIf="showModal"
-    [quiz]="selectedQuiz"
-    [viewOnly]="viewOnly"
-    (close)="closeModal()"
-    (complete)="completeQuiz($event)"
-  ></app-quiz-taking-modal>
+  <app-quiz-taking-modal *ngIf="showModal" [quiz]="selectedQuiz" [viewOnly]="viewOnly" (close)="closeModal()"
+    (complete)="completeQuiz($event)"></app-quiz-taking-modal>
 </div>

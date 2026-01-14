@@ -10,7 +10,7 @@ import { StatCardComponent } from '../../../../shared/components/stat-card/stat-
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 import { CourseCardComponent, Course } from '../../components/course-card/course-card.component';
 import { CourseService, BackendCourse } from '../../../../core/services/course.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-student-courses',
@@ -31,7 +31,7 @@ export class StudentCoursesComponent implements OnInit {
 
   profile = {
     name: 'Tayyaba Aly',
-    initials: 'TA'
+    initials: 'T'
   };
 
   // Filter configuration
@@ -69,12 +69,12 @@ export class StudentCoursesComponent implements OnInit {
 
   // UPDATED: New method to fetch courses from backend
   loadStudentCourses() {
-    const user = this.authService.getCurrentUser();
+    const user = this.authService.getUser();
     const tenantId = this.authService.getTenantId();
 
     if (user && tenantId) {
       this.profile.name = user.fullName || 'Student';
-      this.profile.initials = this.profile.name.split(' ').map(n => n[0]).join('').toUpperCase();
+      this.profile.initials = this.profile.name.trim().charAt(0).toUpperCase();
 
       // Use studentId if available
       const studentId = user.studentId || user.id;

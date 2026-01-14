@@ -7,7 +7,7 @@ import {
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { CommonModule } from '@angular/common';
 import { CourseService, BackendCourse } from '../../../../core/services/course.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthService } from '../../../auth/services/auth.service';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 
 @Component({
@@ -58,7 +58,7 @@ export class TeacherCoursesComponent implements OnInit {
 
   // UPDATED: Fetch courses for this specific teacher
   loadTeacherCourses() {
-    const user = this.authService.getCurrentUser();
+    const user = this.authService.getUser();
     const tenantId = this.authService.getTenantId();
 
     if (user && tenantId) {
