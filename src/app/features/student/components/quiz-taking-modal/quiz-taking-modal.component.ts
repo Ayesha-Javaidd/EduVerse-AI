@@ -19,6 +19,9 @@ export class QuizTakingModalComponent implements OnInit {
   submitted = false;
   score = 0;
 
+  // Option letters for display
+  optionLetters = ['a', 'b', 'c', 'd'];
+
   constructor(private fb: FormBuilder) { }
 
   ngOnInit(): void {
@@ -47,6 +50,13 @@ export class QuizTakingModalComponent implements OnInit {
 
   get questions(): FormArray {
     return this.quizForm.get('questions') as FormArray;
+  }
+
+  /**
+   * Get the letter for a given option index (0 -> 'a', 1 -> 'b', etc.)
+   */
+  getOptionLetter(index: number): string {
+    return this.optionLetters[index] || '';
   }
 
   populateFormWithQuizData(quizData: any): void {

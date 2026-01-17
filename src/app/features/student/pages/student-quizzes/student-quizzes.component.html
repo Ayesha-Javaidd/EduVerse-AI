@@ -3,6 +3,14 @@
   <app-header pageTitle="Quizzes"></app-header>
 
   <div class="mx-auto w-full p-6 space-y-6">
+    <!-- Filter and Search Bar -->
+    <app-filters
+      *ngIf="!loading && quizzes.length > 0"
+      [dropdowns]="filterDropdowns"
+      [searchPlaceholder]="'Search by quiz number or description...'"
+      (filtersChange)="onFiltersChange($event)"
+    ></app-filters>
+
     <!-- Loading State -->
     <div *ngIf="loading" class="text-center py-8">
       <div
@@ -48,11 +56,38 @@
       </p>
     </div>
 
+    <!-- No Results After Filter -->
+    <div
+      *ngIf="!loading && quizzes.length > 0 && filteredQuizzes.length === 0"
+      class="text-center py-12"
+    >
+      <svg
+        class="mx-auto h-12 w-12 text-gray-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        />
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">No quizzes found</h3>
+      <p class="mt-1 text-sm text-gray-500">
+        Try adjusting your search or filter criteria.
+      </p>
+    </div>
+
     <!-- Quiz List -->
-    <div *ngIf="!loading && quizzes.length > 0">
+    <div *ngIf="!loading && filteredQuizzes.length > 0">
       <div
-        *ngFor="let quiz of quizzes"
-        class="p-4 border rounded-lg bg-white shadow-sm flex justify-between items-center mb-3"
+        *ngFor="let quiz of filteredQuizzes"
+        (click)="openQuiz(quiz)"
+        class="p-4 border rounded-lg bg-white shadow-sm flex justify-between items-center mb-3 hover:bg-blue-50 cursor-pointer transition"
+        [class.opacity-60]="isDuePassed(quiz) && quiz.status !== 'Completed'"
+        [class.cursor-not-allowed]="isDuePassed(quiz) && quiz.status !== 'Completed'"
       >
         <div>
           <h3 class="font-semibold text-lg">Quiz {{ quiz.quizNo }}</h3>
@@ -65,10 +100,11 @@
             Due Date: {{ quiz.dueDate | date: "mediumDate" }}
           </p>
 
-          <!-- Score for completed quizzes -->
+          <!-- Score for completed quizzes with dynamic colors -->
           <p
             *ngIf="quiz.status === 'Completed'"
-            class="text-sm text-green-600 font-semibold"
+            class="text-sm font-semibold"
+            [ngClass]="getScoreColorClass(quiz.percentage)"
           >
             Score: {{ quiz.score }}/{{ quiz.totalQuestions }} ({{
               quiz.percentage
@@ -84,21 +120,18 @@
           </p>
         </div>
 
-        <button
-          [disabled]="isDuePassed(quiz) && quiz.status !== 'Completed'"
-          [ngClass]="{
-            'bg-green-600 hover:bg-green-700 text-white':
-              quiz.status === 'Completed',
-            'bg-blue-600 hover:bg-blue-700 text-white':
-              quiz.status !== 'Completed',
-            'opacity-50 cursor-not-allowed':
-              isDuePassed(quiz) && quiz.status !== 'Completed',
-          }"
-          class="px-4 py-2 rounded-md transition"
-          (click)="openQuiz(quiz)"
-        >
-          {{ quiz.status === "Completed" ? "View Results" : "Start Quiz" }}
-        </button>
+        <div class="flex items-center space-x-3">
+          <span
+            [ngClass]="{
+              'text-green-600': quiz.status === 'Completed',
+              'text-blue-600': quiz.status === 'Pending' && !isDuePassed(quiz),
+              'text-red-600': quiz.status === 'Pending' && isDuePassed(quiz)
+            }"
+            class="font-medium"
+          >
+            {{ quiz.status === "Completed" ? "Completed" : (isDuePassed(quiz) ? "Expired" : "Pending") }}
+          </span>
+        </div>
       </div>
     </div>
   </div>

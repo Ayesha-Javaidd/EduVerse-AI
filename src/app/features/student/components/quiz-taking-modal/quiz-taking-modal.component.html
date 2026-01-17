@@ -33,10 +33,10 @@
             Question {{ i + 1 }}: {{ q.value.statement }}
           </p>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="space-y-2">
             <label
-              *ngFor="let opt of q.value.options"
-              class="flex items-center space-x-2 border rounded-md p-2 transition"
+              *ngFor="let opt of q.value.options; let j = index"
+              class="flex items-center space-x-2 border rounded-md p-2 transition cursor-pointer"
               [ngClass]="getResultClass(q, opt)"
             >
               <input
@@ -44,7 +44,9 @@
                 [formControlName]="'selectedAnswer'"
                 [value]="opt"
                 [disabled]="viewOnly"
+                class="cursor-pointer"
               />
+              <span class="font-medium text-gray-600">{{ getOptionLetter(j) }}.</span>
               <span>{{ opt }}</span>
             </label>
           </div>

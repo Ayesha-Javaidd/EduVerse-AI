@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../button/button.component';
 
@@ -10,7 +10,7 @@ import { ButtonComponent } from '../button/button.component';
   templateUrl: './filters.component.html',
   styleUrl: './filters.component.css'
 })
-export class FiltersComponent {
+export class FiltersComponent implements OnInit, OnChanges {
   /** Config for dropdowns */
   @Input() dropdowns: { key: string, label: string, options: string[] }[] = [];
 
@@ -24,12 +24,22 @@ export class FiltersComponent {
   @Output() filtersChange = new EventEmitter<{ [key: string]: string }>();
 
   ngOnInit() {
-    this.dropdowns.forEach(d => {
-      if (!(d.key in this.filters)) {
-        this.filters[d.key] = '';
-      }
-    });
+    this.initializeFilters();
+  }
 
+  ngOnChanges(changes: SimpleChanges) {
+    // Re-initialize filters when dropdowns input changes
+    if (changes['dropdowns'] && !changes['dropdowns'].firstChange) {
+      this.initializeFilters();
+    }
+  }
+
+  private initializeFilters() {
+    // Reset filters to empty (which corresponds to "All")
+    this.filters = { search: '' };
+    this.dropdowns.forEach(d => {
+      this.filters[d.key] = '';
+    });
     this.filtersChange.emit({ ...this.filters });
   }
 
