@@ -54,8 +54,8 @@ export class HeaderComponent implements OnInit {
   private setupProfile() {
     if (this.profile && this.profile.name) {
       this.displayProfile = this.profile;
-    } else if (this.currentUser) {
-      const name = this.currentUser.fullName || 'User';
+    } else if (this.currentUser && this.currentUser.fullName) {
+      const name = this.currentUser.fullName;
       this.displayProfile = {
         name: name,
         initials: this.getInitials(name)

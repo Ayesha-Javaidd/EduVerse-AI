@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { QuizTakingModalComponent } from '../../components/quiz-taking-modal/quiz-taking-modal.component';
+import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 
 // Services
 import { QuizService } from '../../../teacher/services/quiz.service';
@@ -10,6 +12,7 @@ import {
   StudentProfileService,
   StudentProfile,
 } from '../../services/student-profile.service';
+import { ToastService } from '../../../../shared/services/toast.service';
 
 // Models
 import { Quiz } from '../../../../shared/models/quiz.model';
@@ -34,7 +37,7 @@ import {
 @Component({
   selector: 'app-student-quizzes',
   standalone: true,
-  imports: [CommonModule, HeaderComponent, QuizTakingModalComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent, QuizTakingModalComponent, FiltersComponent],
   templateUrl: './student-quizzes.component.html',
   styleUrls: ['./student-quizzes.component.css'],
 })
@@ -43,6 +46,7 @@ export class StudentQuizzesComponent implements OnInit {
   // Component State
   // ========================
   quizzes: any[] = []; // Quizzes with submission status
+  filteredQuizzes: any[] = []; // Filtered list for display
   submissions: QuizSubmission[] = []; // Student's previous submissions
   showModal = false;
   selectedQuiz: any = null;
@@ -50,6 +54,13 @@ export class StudentQuizzesComponent implements OnInit {
   today = new Date();
   loading = false;
   error: string | null = null;
+
+  // Filter configuration
+  filterDropdowns: { key: string; label: string; options: string[] }[] = [];
+  searchText = '';
+  selectedCourseFilter = '';
+  selectedStatusFilter = '';
+  selectedDueDateFilter = '';
 
   // Student context
   studentProfile: StudentProfile | null = null;
@@ -60,6 +71,7 @@ export class StudentQuizzesComponent implements OnInit {
     private quizService: QuizService,
     private submissionService: QuizSubmissionService,
     private studentProfileService: StudentProfileService,
+    private toastService: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -132,6 +144,28 @@ export class StudentQuizzesComponent implements OnInit {
         this.quizzes = quizzes.map((quiz) =>
           this.transformQuizForDisplay(quiz),
         );
+        this.filteredQuizzes = this.quizzes; // Initialize filtered list
+
+        // Set up course filter options (unique course names)
+        const courseNames = [...new Set(quizzes.map((q) => q.courseName))];
+        this.filterDropdowns = [
+          {
+            key: 'course',
+            label: 'Course',
+            options: courseNames,
+          },
+          {
+            key: 'status',
+            label: 'Status',
+            options: ['Completed', 'Pending'],
+          },
+          {
+            key: 'dueDate',
+            label: 'Due Date',
+            options: ['Upcoming', 'Due Passed'],
+          },
+        ];
+
         this.loading = false;
       },
       error: (err) => {
@@ -140,6 +174,28 @@ export class StudentQuizzesComponent implements OnInit {
         this.quizzes = quizzes.map((quiz) =>
           this.transformQuizForDisplay(quiz),
         );
+        this.filteredQuizzes = this.quizzes;
+
+        // Set up course filter options
+        const courseNames = [...new Set(quizzes.map((q) => q.courseName))];
+        this.filterDropdowns = [
+          {
+            key: 'course',
+            label: 'Course',
+            options: courseNames,
+          },
+          {
+            key: 'status',
+            label: 'Status',
+            options: ['Completed', 'Pending'],
+          },
+          {
+            key: 'dueDate',
+            label: 'Due Date',
+            options: ['Upcoming', 'Due Passed'],
+          },
+        ];
+
         this.loading = false;
       },
     });
@@ -196,10 +252,80 @@ export class StudentQuizzesComponent implements OnInit {
     return new Date(quiz.dueDate) < this.today;
   }
 
+  /**
+   * Handle filter changes from FiltersComponent.
+   */
+  onFiltersChange(filters: { [key: string]: string }): void {
+    this.searchText = filters['search'] || '';
+    this.selectedCourseFilter = filters['course'] || '';
+    this.selectedStatusFilter = filters['status'] || '';
+    this.selectedDueDateFilter = filters['dueDate'] || '';
+    this.applyFilters();
+  }
+
+  /**
+   * Apply search and course filters to quizzes.
+   */
+  applyFilters(): void {
+    let result = [...this.quizzes];
+    const today = new Date();
+
+    // Filter by course name
+    if (this.selectedCourseFilter) {
+      result = result.filter(
+        (q) => q.course === this.selectedCourseFilter
+      );
+    }
+
+    // Filter by status (Completed/Pending)
+    if (this.selectedStatusFilter) {
+      result = result.filter(
+        (q) => q.status === this.selectedStatusFilter
+      );
+    }
+
+    // Filter by due date (Upcoming/Due Passed)
+    if (this.selectedDueDateFilter) {
+      if (this.selectedDueDateFilter === 'Upcoming') {
+        // Upcoming should only show pending quizzes with future due dates
+        result = result.filter((q) => new Date(q.dueDate) >= today && q.status !== 'Completed');
+      } else if (this.selectedDueDateFilter === 'Due Passed') {
+        result = result.filter((q) => new Date(q.dueDate) < today);
+      }
+    }
+
+    // Filter by search text (quiz number or description)
+    if (this.searchText) {
+      const searchLower = this.searchText.toLowerCase();
+      result = result.filter(
+        (q) =>
+          q.quizNo.toString().includes(searchLower) ||
+          (q.description && q.description.toLowerCase().includes(searchLower)) ||
+          q.course.toLowerCase().includes(searchLower)
+      );
+    }
+
+    this.filteredQuizzes = result;
+  }
+
+  /**
+   * Get CSS class for score color based on percentage.
+   * Green for >= 70%, Yellow for >= 50%, Red for < 50%
+   */
+  getScoreColorClass(percentage: number): string {
+    if (percentage >= 70) {
+      return 'text-green-600';
+    } else if (percentage >= 50) {
+      return 'text-yellow-600';
+    } else {
+      return 'text-red-600';
+    }
+  }
+
   openQuiz(quiz: any): void {
     // Don't allow if due date passed and not completed
     if (this.isDuePassed(quiz) && quiz.status !== 'Completed') {
-      alert('Due date has passed. You cannot attempt this quiz.');
+      this.toastService.warning('Due date has passed. You cannot attempt this quiz.');
       return;
     }
 
@@ -250,21 +376,23 @@ export class StudentQuizzesComponent implements OnInit {
             score: submission.obtainedMarks || 0,
             percentage: submission.percentage || 0,
           };
+          // Re-apply filters to update the display immediately
+          this.applyFilters();
         }
 
         this.closeModal();
-        alert(
+        this.toastService.success(
           `Quiz submitted! Score: ${submission.obtainedMarks}/${this.selectedQuiz.totalQuestions} (${submission.percentage}%)`,
         );
       },
       error: (err) => {
         console.error('Failed to submit quiz:', err);
         if (err.error?.detail === 'Student already submitted this quiz.') {
-          alert('You have already submitted this quiz.');
+          this.toastService.warning('You have already submitted this quiz.');
           // Reload to get latest data
           this.loadQuizzesAndSubmissions();
         } else {
-          alert(
+          this.toastService.error(
             err.error?.detail || 'Failed to submit quiz. Please try again.',
           );
         }

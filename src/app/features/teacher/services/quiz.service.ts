@@ -145,4 +145,26 @@ export class QuizService {
       params,
     });
   }
+
+  // ========================
+  // CHECK QUIZ SUBMISSIONS
+  // ========================
+  /**
+   * Check if a quiz has any student submissions.
+   * Used to warn teachers before editing - questions cannot be modified
+   * if students have already submitted answers.
+   * @param quizId - The quiz's ObjectId
+   * @returns Observable with hasSubmissions boolean and message
+   */
+  checkQuizSubmissions(quizId: string): Observable<{
+    quizId: string;
+    hasSubmissions: boolean;
+    message: string;
+  }> {
+    return this.http.get<{
+      quizId: string;
+      hasSubmissions: boolean;
+      message: string;
+    }>(`${this.API_URL}/${quizId}/has-submissions`);
+  }
 }
