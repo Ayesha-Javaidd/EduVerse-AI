@@ -20,9 +20,12 @@ import { HttpClientModule } from '@angular/common/http';
 export class LoginComponent {
   loginForm: FormGroup;
 
+  isLoading = false;
+  errorMessage: string | null = null;
+
   constructor(
     private formBuilder: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
   ) {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
@@ -36,14 +39,27 @@ export class LoginComponent {
       return;
     }
 
+    this.isLoading = true;
+    this.errorMessage = null;
+
     const payload = this.loginForm.value;
 
     this.authService.login(payload).subscribe({
       next: () => {
-        // navigation handled by AuthService.redirectByRole()
+        // navigation handled by AuthService
+        this.isLoading = false;
       },
       error: (err) => {
-        console.error('Login failed', err);
+        this.isLoading = false;
+
+        // Map backend error → user-friendly message
+        if (err.status === 401) {
+          this.errorMessage = 'Invalid email or password';
+        } else if (err.status === 0) {
+          this.errorMessage = 'Unable to connect to server';
+        } else {
+          this.errorMessage = 'Something went wrong. Please try again.';
+        }
       },
     });
   }

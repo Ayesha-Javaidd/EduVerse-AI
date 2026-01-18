@@ -72,13 +72,45 @@
           </a>
         </div>
 
-        <button
-          [routerLink]=""
-          type="submit"
-          class="w-full py-3.5 bg-slate-950 text-white border-none rounded-md text-base font-semibold cursor-pointer transition-colors duration-200 mb-6 hover:bg-slate-800 disabled:bg-slate-900 disabled:cursor-not-allowed"
-          [disabled]="loginForm.invalid"
+        <div
+          *ngIf="errorMessage"
+          class="mb-4 rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 animate-fade-in"
         >
-          Login
+          {{ errorMessage }}
+        </div>
+
+        <button
+          type="submit"
+          class="w-full py-3.5 rounded-md text-base font-semibold transition-all duration-200 flex items-center justify-center bg-slate-950 text-white hover:bg-slate-800 disabled:bg-slate-900 disabled:cursor-not-allowed"
+          [disabled]="loginForm.invalid || isLoading"
+        >
+          <ng-container *ngIf="!isLoading; else loadingTpl">
+            Login
+          </ng-container>
+
+          <ng-template #loadingTpl>
+            <svg
+              class="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg>
+            <span class="ml-2">Signing in...</span>
+          </ng-template>
         </button>
 
         <p class="text-center text-gray-600 text-sm">
