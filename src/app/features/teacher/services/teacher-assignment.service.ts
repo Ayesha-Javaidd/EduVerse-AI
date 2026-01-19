@@ -1,22 +1,14 @@
+// src/app/features/teacher/services/teacher-assignment.service.ts
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ENDPOINTS } from '../../../core/constants/api.constants';
-
-export interface Assignment {
-  id?: number;
-  title: string;
-  description: string;
-  course: string;
-  dueDate: string;
-  dueTime: string;
-  totalMarks: number;
-  passingMarks: number;
-  allowLateSubmission: boolean;
-  status?: 'active' | 'completed';
-  submitted?: number;
-  totalStudents?: number;
-}
+import {
+  Assignment,
+  AssignmentCreate,
+  AssignmentUpdate,
+} from '../../../shared/models/assignment.model';
 
 @Injectable({
   providedIn: 'root',
@@ -30,34 +22,46 @@ export class TeacherAssignmentService {
     );
   }
 
-  getAssignmentById(id: number): Observable<Assignment> {
+  getTeacherAssignments(tenantId: string, teacherId: string) {
+    return this.http.get<Assignment[]>(
+      `${ENDPOINTS.TEACHERS.BASE}/teachers/assignments`,
+      {
+        params: {
+          tenantId,
+          teacher_id: teacherId,
+        },
+      },
+    );
+  }
+
+  getAssignmentById(id: string): Observable<Assignment> {
     return this.http.get<Assignment>(
       `${ENDPOINTS.TEACHERS.BASE}/assignments/${id}`,
     );
   }
 
-  createAssignment(data: Assignment): Observable<Assignment> {
+  createAssignment(data: AssignmentCreate): Observable<Assignment> {
     return this.http.post<Assignment>(
       `${ENDPOINTS.TEACHERS.BASE}/assignments`,
       data,
     );
   }
 
-  updateAssignment(id: number, data: Assignment): Observable<Assignment> {
+  updateAssignment(id: string, data: AssignmentUpdate): Observable<Assignment> {
     return this.http.put<Assignment>(
       `${ENDPOINTS.TEACHERS.BASE}/assignments/${id}`,
       data,
     );
   }
 
-  deleteAssignment(id: number): Observable<void> {
+  deleteAssignment(id: string): Observable<void> {
     return this.http.delete<void>(
       `${ENDPOINTS.TEACHERS.BASE}/assignments/${id}`,
     );
   }
 
   toggleAssignmentStatus(
-    id: number,
+    id: string,
     status: 'active' | 'completed',
   ): Observable<Assignment> {
     return this.http.patch<Assignment>(

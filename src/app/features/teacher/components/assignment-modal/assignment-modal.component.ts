@@ -1,116 +1,126 @@
-import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  OnInit,
-  OnChanges,
-  SimpleChanges,
-} from '@angular/core';
-import {
-  ReactiveFormsModule,
+  FormArray,
   FormBuilder,
   FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
   Validators,
-  FormArray,
 } from '@angular/forms';
+import { Course } from '../../../../shared/models/course.model';
+import { AssignmentCreate } from '../../../../shared/models/assignment.model';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { ModalShellComponent } from '../../../../shared/components/modal-shell/modal-shell.component';
 
 @Component({
   selector: 'app-assignment-modal',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    ButtonComponent,
-    ModalShellComponent,
-  ],
   templateUrl: './assignment-modal.component.html',
   styleUrls: ['./assignment-modal.component.css'],
+  imports: [
+    ButtonComponent,
+    ModalShellComponent,
+    FormsModule,
+    ReactiveFormsModule,
+  ],
 })
-export class AssignmentModalComponent implements OnInit, OnChanges {
+export class AssignmentModalComponent implements OnInit {
   @Input() show = false;
-  @Input() formData: any = {}; // 🔹 Two-way data-like behavior
-  @Input() editingAssignmentId: number | null = null;
-  @Input() courses: string[] = [];
+  @Input() editingAssignmentId: string | null = null;
+  @Input() formData: Partial<AssignmentCreate> = {};
+  @Input() courses: Course[] = [];
 
   @Output() onClose = new EventEmitter<void>();
-  @Output() onSubmit = new EventEmitter<any>();
+  @Output() onSubmit = new EventEmitter<AssignmentCreate>();
 
   assignmentForm!: FormGroup;
 
   constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
-    this.buildForm();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    // 🔹 Rebuild form when editing data changes
-    if (changes['formData'] && this.assignmentForm) {
-      this.assignmentForm.patchValue(this.formData);
-    }
-  }
-
-  private buildForm() {
     this.assignmentForm = this.fb.group({
       title: [this.formData.title || '', Validators.required],
-      course: [this.formData.course || '', Validators.required],
+      courseId: [this.formData.courseId || '', Validators.required],
       description: [this.formData.description || '', Validators.required],
-      dueDate: [this.formData.dueDate || '', Validators.required],
-      dueTime: [this.formData.dueTime || '', Validators.required],
+      dueDate: [
+        this.formData.dueDate ? this.formData.dueDate.split('T')[0] : '',
+        Validators.required,
+      ],
+      dueTime: [
+        this.formData.dueDate
+          ? this.formData.dueDate.split('T')[1]?.slice(0, 5)
+          : '',
+        Validators.required,
+      ],
       totalMarks: [
-        this.formData.totalMarks || null,
+        this.formData.totalMarks || '',
         [Validators.required, Validators.min(1), Validators.max(100)],
       ],
       passingMarks: [
-        this.formData.passingMarks || null,
-        [
-          Validators.required,
-          Validators.min(1),
-          Validators.max(100),
-          this.passingMarksValidator.bind(this),
-        ],
+        this.formData.passingMarks || '',
+        [Validators.required, Validators.min(1), Validators.max(100)],
       ],
-      attachments: this.fb.array([]),
       allowLateSubmission: [this.formData.allowLateSubmission || false],
+      attachments: this.fb.array([]),
     });
+
+    // Validate passingMarks <= totalMarks
+    this.assignmentForm
+      .get('passingMarks')
+      ?.setValidators([
+        Validators.required,
+        Validators.min(1),
+        Validators.max(100),
+        this.passingGreaterThanTotal.bind(this),
+      ]);
   }
 
-  passingMarksValidator(control: any) {
-    const total = this.assignmentForm?.get('totalMarks')?.value;
-    if (control.value > total) {
-      return { passingGreaterThanTotal: true };
-    }
-    return null;
-  }
-
+  // Access attachments form array
   get attachments(): FormArray {
     return this.assignmentForm.get('attachments') as FormArray;
   }
 
+  // Custom validator: passingMarks <= totalMarks
+  passingGreaterThanTotal(control: any) {
+    if (!this.assignmentForm) return null;
+    const total = this.assignmentForm.get('totalMarks')?.value;
+    return control.value > total ? { passingGreaterThanTotal: true } : null;
+  }
+
+  submitForm(): void {
+    if (this.assignmentForm.invalid) return;
+
+    const formValue = this.assignmentForm.value;
+
+    // Combine date + time into single ISO string
+    const dueDateTime = new Date(`${formValue.dueDate}T${formValue.dueTime}`);
+
+    const assignmentData: AssignmentCreate = {
+      ...formValue,
+      totalMarks: +formValue.totalMarks,
+      passingMarks: +formValue.passingMarks,
+      dueDate: dueDateTime.toISOString(),
+      attachments: formValue.attachments,
+    };
+
+    this.onSubmit.emit(assignmentData);
+  }
+
+  closeModal(): void {
+    this.onClose.emit();
+    this.assignmentForm.reset();
+    while (this.attachments.length) {
+      this.attachments.removeAt(0);
+    }
+  }
+
   handleFileUpload(event: any) {
-    const files = Array.from(event.target.files);
-    files.forEach((file) => this.attachments.push(this.fb.control(file)));
+    const files: FileList = event.target.files;
+    for (let i = 0; i < files.length; i++) {
+      this.attachments.push(this.fb.control(files[i]));
+    }
   }
 
   removeAttachment(index: number) {
     this.attachments.removeAt(index);
-  }
-
-  submitForm() {
-    if (this.assignmentForm.invalid) {
-      this.assignmentForm.markAllAsTouched();
-      return;
-    }
-
-    // Emit the form value to the parent
-    this.onSubmit.emit(this.assignmentForm.value);
-  }
-
-  closeModal() {
-    this.onClose.emit();
   }
 }
