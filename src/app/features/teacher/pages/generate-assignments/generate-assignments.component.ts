@@ -234,10 +234,14 @@ export class GenerateAssignmentsComponent implements OnInit {
 
     setTimeout(() => (this.successMessage = null), 3000);
   }
-
   private showError(message: string): void {
     this.errorMessage = message;
     this.successMessage = null;
+
+    // Close modal if open
+    if (this.showModal) {
+      this.closeModal();
+    }
 
     setTimeout(() => (this.errorMessage = null), 4000);
   }
@@ -273,12 +277,19 @@ export class GenerateAssignmentsComponent implements OnInit {
 
   deleteAssignment(assignment: Assignment): void {
     console.log('[Action] Delete assignment', assignment.id);
-    this.assignmentService.deleteAssignment(assignment.id).subscribe(() => {
-      console.log('[Delete] Assignment deleted:', assignment.id);
-      this.assignments = (this.assignments || []).filter(
-        (a) => a.id !== assignment.id,
-      );
-      this.applyFilter();
+    this.assignmentService.deleteAssignment(assignment.id).subscribe({
+      next: () => {
+        console.log('[Delete] Assignment deleted:', assignment.id);
+        this.assignments = (this.assignments || []).filter(
+          (a) => a.id !== assignment.id,
+        );
+        this.applyFilter();
+        this.showSuccess('Assignment deleted successfully'); // ADD THIS
+      },
+      error: (err) => {
+        console.error('[Delete] Failed to delete assignment', err);
+        this.showError('Failed to delete assignment. Please try again.'); // ADD THIS
+      },
     });
   }
 
