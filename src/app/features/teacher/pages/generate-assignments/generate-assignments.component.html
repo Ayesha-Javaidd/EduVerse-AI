@@ -12,6 +12,22 @@
     </app-button>
   </div>
 
+  <!-- SUCCESS MESSAGE -->
+  <div
+    *ngIf="successMessage"
+    class="mb-4 rounded-lg bg-green-100 border border-green-300 text-green-800 px-4 py-3"
+  >
+    {{ successMessage }}
+  </div>
+
+  <!-- ERROR MESSAGE -->
+  <div
+    *ngIf="errorMessage"
+    class="mb-4 rounded-lg bg-red-100 border border-red-300 text-red-800 px-4 py-3"
+  >
+    {{ errorMessage }}
+  </div>
+
   <!-- Stats cards -->
   <div class="grid md:grid-cols-2 gap-10 mb-4 px-20">
     <app-stat-card

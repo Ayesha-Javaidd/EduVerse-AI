@@ -60,6 +60,9 @@ export class GenerateAssignmentsComponent implements OnInit {
   formData: Partial<AssignmentCreatePayload> = {};
   editingAssignmentId: string | null = null;
 
+  successMessage: string | null = null;
+  errorMessage: string | null = null;
+
   constructor(
     private teacherProfileService: TeacherProfileService,
     private assignmentService: AssignmentService,
@@ -69,6 +72,20 @@ export class GenerateAssignmentsComponent implements OnInit {
   ngOnInit(): void {
     // console.log('[Init] Loading teacher context...');
     this.loadTeacherContext();
+  }
+
+  private showSuccess(message: string): void {
+    this.successMessage = message;
+    this.errorMessage = null;
+
+    setTimeout(() => (this.successMessage = null), 3000);
+  }
+
+  private showError(message: string): void {
+    this.errorMessage = message;
+    this.successMessage = null;
+
+    setTimeout(() => (this.errorMessage = null), 4000);
   }
 
   /** Load teacher profile */
@@ -274,25 +291,41 @@ export class GenerateAssignmentsComponent implements OnInit {
 
   updateAssignment(id: string, payload: Partial<Assignment>): void {
     console.log('[Update] Updating assignment', id, payload);
-    this.assignmentService
-      .updateAssignment(id, payload)
-      .subscribe((updated) => {
-        console.log('[Update] Assignment updated', updated);
-        const idx = (this.assignments || []).findIndex((a) => a.id === id);
+
+    this.assignmentService.updateAssignment(id, payload).subscribe({
+      next: (updated) => {
+        const idx = this.assignments.findIndex((a) => a.id === id);
         if (idx > -1) this.assignments[idx] = updated;
+
         this.applyFilter();
-      });
+        this.closeModal();
+        this.showSuccess('Assignment updated successfully');
+      },
+      error: (err) => {
+        console.error('[Update] Failed to update assignment', err);
+        this.showError('Failed to update assignment.');
+      },
+    });
   }
 
   createAssignment(payload: AssignmentCreatePayload): void {
     console.log('[Create] Creating assignment with payload', payload);
-    this.assignmentService
-      .createAssignment(payload)
-      .subscribe((newAssignment) => {
+
+    this.assignmentService.createAssignment(payload).subscribe({
+      next: (newAssignment) => {
         console.log('[Create] Assignment created', newAssignment);
-        this.assignments.push(newAssignment);
+
+        this.assignments.unshift(newAssignment);
         this.applyFilter();
-      });
+
+        this.closeModal();
+        this.showSuccess('Assignment created successfully');
+      },
+      error: (err) => {
+        console.error('[Create] Failed to create assignment', err);
+        this.showError('Failed to create assignment. Please try again.');
+      },
+    });
   }
 
   /** Computed properties */
