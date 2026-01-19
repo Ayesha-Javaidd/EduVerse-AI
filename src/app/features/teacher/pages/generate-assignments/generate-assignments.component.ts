@@ -1,27 +1,27 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-// Models
+import { AssignmentSubmission } from '../../../../shared/models/assignment-submission.model';
+import { Course } from '../../../../shared/models/course.model';
+import { AssignmentService } from '../../../../shared/services/assignment.service';
+import {
+  TeacherProfileService,
+  TeacherProfile,
+} from '../../services/teacher-profile.service';
+import { CourseService } from '../../../../shared/services/course.service';
 import {
   Assignment,
-  AssignmentCreate,
-  AssignmentUpdate,
+  AssignmentCreatePayload,
+  AssignmentUpdatePayload,
 } from '../../../../shared/models/assignment.model';
-import { Course } from '../../../../shared/models/course.model';
-
-// Services
-import { TeacherAssignmentService } from '../../services/teacher-assignment.service';
-import { CourseService } from '../../../../shared/services/course.service';
-import { AuthService } from '../../../auth/services/auth.service';
-
-// Components
+import { AssignmentCardComponent } from '../../components/assignment-card/assignment-card.component';
+import { AssignmentModalComponent } from '../../components/assignment-modal/assignment-modal.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
-import { EmptyStateComponent } from '../../components/empty-state/empty-state.component';
-import { AssignmentModalComponent } from '../../components/assignment-modal/assignment-modal.component';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
-import { AssignmentCardComponent } from '../../components/assignment-card/assignment-card.component';
+import { EmptyStateComponent } from '../../components/empty-state/empty-state.component';
+import { ModalShellComponent } from '../../../../shared/components/modal-shell/modal-shell.component';
 
 @Component({
   selector: 'app-generate-assignments',
@@ -29,196 +29,291 @@ import { AssignmentCardComponent } from '../../components/assignment-card/assign
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
+    AssignmentCardComponent,
+    AssignmentModalComponent,
     ButtonComponent,
     StatCardComponent,
-    EmptyStateComponent,
-    AssignmentModalComponent,
     HeaderComponent,
-    AssignmentCardComponent,
+    EmptyStateComponent,
   ],
   templateUrl: './generate-assignments.component.html',
   styleUrls: ['./generate-assignments.component.css'],
 })
 export class GenerateAssignmentsComponent implements OnInit {
+  loading = false;
+  error: string | null = null;
+
+  teacherProfile!: TeacherProfile;
+  teacherId = '';
+  tenantId = '';
+
+  courses: Course[] = [];
   assignments: Assignment[] = [];
   filteredAssignments: Assignment[] = [];
-  courses: Course[] = [];
 
-  showCreateModal = false;
-  formData: Partial<Assignment> = {};
+  assignmentSubmissionStatus = new Map<string, boolean>();
+
+  activeTab: 'active' | 'inactive' | 'completed' = 'active';
+  selectedAssignment: Assignment | null = null;
+  showModal = false;
+  formData: Partial<AssignmentCreatePayload> = {};
   editingAssignmentId: string | null = null;
 
-  selectedCourseFilter: string | null = null;
-  activeTab: 'active' | 'completed' = 'active';
-
-  totalAssignmentsCount = 0;
-  totalSubmissionsCount = 0;
-  totalStudentsCount = 0;
-
-  teacherId: string = '';
-  tenantId: string = '';
-
   constructor(
-    private assignmentService: TeacherAssignmentService,
+    private teacherProfileService: TeacherProfileService,
+    private assignmentService: AssignmentService,
     private courseService: CourseService,
-    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
+    // console.log('[Init] Loading teacher context...');
     this.loadTeacherContext();
   }
 
-  // ----------------------
-  // Teacher & Courses
-  // ----------------------
+  /** Load teacher profile */
   loadTeacherContext(): void {
-    const user = this.authService.getUser();
-    const tenantId = this.authService.getTenantId();
+    this.loading = true;
+    this.error = null;
+    // console.log('[Profile] Fetching teacher profile...');
+    this.teacherProfileService.getMyProfile().subscribe({
+      next: (profile) => {
+        console.log('[Profile] Loaded', profile);
+        this.teacherProfile = profile;
+        this.teacherId = profile.id;
+        this.tenantId = profile.tenantId || '';
 
-    if (!user || !tenantId) {
-      console.error('Teacher profile or tenantId not found');
-      return;
-    }
-
-    this.teacherId = user.id;
-    this.tenantId = tenantId;
-
-    this.loadCourses();
-    this.refreshAssignments();
+        this.loadCourses();
+        this.loadAssignments();
+      },
+      error: (err) => {
+        console.error('[Profile] Failed to load:', err);
+        this.error = 'Failed to load teacher profile. Please try again.';
+        this.loading = false;
+      },
+    });
   }
 
+  /** Load courses for dropdown */
   loadCourses(): void {
-    if (!this.tenantId || !this.teacherId) return;
-
+    if (!this.teacherId || !this.tenantId) return;
+    // console.log('[Courses] Fetching courses...');
     this.courseService
-      .getCourses({ tenantId: this.tenantId, teacher_id: this.teacherId })
+      .getCourses({ teacher_id: this.teacherId, tenantId: this.tenantId })
       .subscribe({
-        next: (courses: Course[]) => {
+        next: (courses) => {
+          console.log('[Courses] Loaded', courses);
           this.courses = courses;
-          console.log('Courses loaded:', courses);
         },
-        error: (err) => console.error('Failed to load courses:', err),
+        error: (err) => console.error('[Courses] Failed to load:', err),
       });
   }
 
-  // ----------------------
-  // Modal Operations
-  // ----------------------
-  openCreateModal(assignment?: Assignment): void {
-    this.showCreateModal = true;
-
-    if (assignment) {
-      this.editingAssignmentId = assignment.id ?? null;
-      this.formData = { ...assignment };
-    } else {
-      this.editingAssignmentId = null;
-      this.formData = {};
-    }
+  /** Load assignments */
+  loadAssignments(): void {
+    this.loading = true;
+    // console.log('[Assignments] Fetching assignments...');
+    this.assignmentService
+      .getAssignments({
+        tenantId: this.tenantId,
+        teacherId: this.teacherId,
+        sortBy: 'uploadedAt',
+        order: -1,
+      })
+      .subscribe({
+        next: (res) => {
+          console.log('[Assignments] Loaded', res.data);
+          this.assignments = res.data || [];
+          this.filteredAssignments = [...this.assignments];
+          this.updateAssignmentStatus();
+          this.loadSubmissionStatus(this.assignments);
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('[Assignments] Failed to load:', err);
+          this.error = 'Failed to load assignments. Please try again.';
+          this.loading = false;
+        },
+      });
   }
 
-  closeCreateModal(): void {
-    this.showCreateModal = false;
-    this.editingAssignmentId = null;
+  /** Load submission status per assignment */
+  loadSubmissionStatus(assignments: Assignment[]): void {
+    console.log('[Submissions] Loading submission status...');
+    assignments.forEach((assignment) => {
+      this.assignmentService
+        .getSubmissionsByAssignment(assignment.id)
+        .subscribe({
+          next: (subs: AssignmentSubmission[]) => {
+            console.log(
+              `[Submissions] Assignment ${assignment.id}:`,
+              subs.length,
+              'submissions',
+            );
+            this.assignmentSubmissionStatus.set(assignment.id, subs.length > 0);
+          },
+          error: () => {
+            console.warn(
+              `[Submissions] Assignment ${assignment.id} failed to load submissions`,
+            );
+            this.assignmentSubmissionStatus.set(assignment.id, false);
+          },
+        });
+    });
+  }
+
+  hasSubmissions(assignmentId: string): boolean {
+    return this.assignmentSubmissionStatus.get(assignmentId) ?? false;
+  }
+
+  /** Update assignment status if past due */
+  updateAssignmentStatus(): void {
+    const now = new Date().toISOString();
+    console.log('[Status] Updating assignment status...');
+    (this.assignments || []).forEach((assignment) => {
+      if (assignment.dueDate < now && assignment.status === 'active') {
+        console.log(`[Status] Assignment ${assignment.id} marked inactive`);
+        assignment.status = 'inactive';
+      }
+    });
+    this.applyFilter();
+  }
+
+  /** Filter assignments by activeTab */
+  applyFilter(): void {
+    console.log('[Filter] Filtering assignments by tab:', this.activeTab);
+    this.filteredAssignments = (this.assignments || []).filter((a) =>
+      this.activeTab === 'completed'
+        ? a.status === 'inactive'
+        : a.status === this.activeTab,
+    );
+    console.log('[Filter] Filtered assignments:', this.filteredAssignments);
+  }
+
+  /** Modal controls */
+  openCreateModal(): void {
+    console.log('[Modal] Opening create assignment modal');
+    this.selectedAssignment = null;
+    this.showModal = true;
     this.formData = {};
+    this.editingAssignmentId = null;
   }
 
-  handleSubmit(data: AssignmentCreate | AssignmentUpdate): void {
-    const processedData = {
-      ...data,
-      totalMarks:
-        typeof data.totalMarks === 'string'
-          ? +data.totalMarks
-          : data.totalMarks,
-      passingMarks:
-        typeof data.passingMarks === 'string'
-          ? +data.passingMarks
-          : data.passingMarks,
+  openEditModal(assignment: Assignment): void {
+    console.log('[Modal] Opening edit modal for assignment', assignment.id);
+    this.selectedAssignment = assignment;
+    this.showModal = true;
+    this.editingAssignmentId = assignment.id;
+    this.formData = {
+      title: assignment.title,
+      courseId: assignment.courseId,
+      description: assignment.description,
+      dueDate: assignment.dueDate.split('T')[0],
+      dueTime: assignment.dueDate.split('T')[1]?.slice(0, 5) || undefined,
+      totalMarks: assignment.totalMarks,
+      passingMarks: assignment.passingMarks,
+      allowedFormats: assignment.allowedFormats,
+      fileUrl: assignment.fileUrl ?? undefined,
     };
+    console.log('[Modal] Form data set', this.formData);
+  }
+
+  closeModal(): void {
+    console.log('[Modal] Closing modal');
+    this.selectedAssignment = null;
+    this.showModal = false;
+    this.formData = {};
+    this.editingAssignmentId = null;
+  }
+
+  /** Submit assignment create/edit */
+  handleSubmit(payload: AssignmentCreatePayload): void {
+    console.log('[Submit] Payload received:', payload);
+    const normalizedPayload: Partial<Assignment> = {
+      ...payload,
+      dueTime: payload.dueTime ?? undefined,
+      fileUrl: payload.fileUrl ?? undefined,
+    };
+    // console.log('[Submit] Normalized payload:', normalizedPayload);
 
     if (this.editingAssignmentId) {
-      this.assignmentService
-        .updateAssignment(this.editingAssignmentId, processedData)
-        .subscribe(() => {
-          this.refreshAssignments();
-          this.closeCreateModal();
-        });
+      console.log('[Submit] Updating assignment:', this.editingAssignmentId);
+      this.updateAssignment(this.editingAssignmentId, normalizedPayload);
     } else {
-      this.assignmentService
-        .createAssignment(processedData as AssignmentCreate)
-        .subscribe(() => {
-          this.refreshAssignments();
-          this.closeCreateModal();
-        });
+      console.log('[Submit] Creating new assignment');
+      this.createAssignment(payload);
     }
   }
 
-  // ----------------------
-  // Assignment Operations
-  // ----------------------
-  refreshAssignments(): void {
-    this.assignmentService.getAllAssignments().subscribe((assignments) => {
-      this.assignments = assignments;
-      this.totalAssignmentsCount = assignments.length;
-      this.totalSubmissionsCount = assignments.reduce(
-        (sum, a) => sum + (a.submitted ?? 0),
-        0,
-      );
-      this.totalStudentsCount = assignments.reduce(
-        (sum, a) => sum + (a.totalStudents ?? 0),
-        0,
-      );
-      this.applyFilters();
-    });
-  }
-
-  applyFilters(): void {
-    this.filteredAssignments = this.assignments.filter((a) => {
-      return (
-        (!this.selectedCourseFilter ||
-          a.courseId === this.selectedCourseFilter) &&
-        (this.activeTab === 'active'
-          ? a.status === 'active'
-          : a.status === 'completed')
-      );
-    });
+  /** Assignment actions */
+  viewAssignment(assignment: Assignment): void {
+    console.log('[Action] View assignment', assignment);
   }
 
   editAssignment(assignment: Assignment): void {
-    this.openCreateModal(assignment);
+    console.log('[Action] Edit assignment', assignment.id);
+    this.openEditModal(assignment);
   }
 
   deleteAssignment(assignment: Assignment): void {
-    if (!assignment.id) return;
+    console.log('[Action] Delete assignment', assignment.id);
     this.assignmentService.deleteAssignment(assignment.id).subscribe(() => {
-      this.assignments = this.assignments.filter((a) => a.id !== assignment.id);
-      this.applyFilters();
+      console.log('[Delete] Assignment deleted:', assignment.id);
+      this.assignments = (this.assignments || []).filter(
+        (a) => a.id !== assignment.id,
+      );
+      this.applyFilter();
     });
   }
 
   toggleAssignmentStatus(assignment: Assignment): void {
-    const newStatus: 'active' | 'completed' =
-      assignment.status === 'active' ? 'completed' : 'active';
-    if (assignment.id) {
-      this.assignmentService
-        .toggleAssignmentStatus(assignment.id, newStatus)
-        .subscribe((updated) => {
-          assignment.status = updated.status;
-        });
-    }
+    const newStatus = assignment.status === 'active' ? 'inactive' : 'active';
+    console.log(`[Action] Toggle status for ${assignment.id} -> ${newStatus}`);
+    this.updateAssignment(assignment.id, { status: newStatus });
   }
 
-  viewAssignment(assignment: Assignment): void {
-    console.log('View assignment clicked:', assignment);
+  updateAssignment(id: string, payload: Partial<Assignment>): void {
+    console.log('[Update] Updating assignment', id, payload);
+    this.assignmentService
+      .updateAssignment(id, payload)
+      .subscribe((updated) => {
+        console.log('[Update] Assignment updated', updated);
+        const idx = (this.assignments || []).findIndex((a) => a.id === id);
+        if (idx > -1) this.assignments[idx] = updated;
+        this.applyFilter();
+      });
   }
 
-  // ----------------------
-  // Derived counts
-  // ----------------------
+  createAssignment(payload: AssignmentCreatePayload): void {
+    console.log('[Create] Creating assignment with payload', payload);
+    this.assignmentService
+      .createAssignment(payload)
+      .subscribe((newAssignment) => {
+        console.log('[Create] Assignment created', newAssignment);
+        this.assignments.push(newAssignment);
+        this.applyFilter();
+      });
+  }
+
+  /** Computed properties */
+  get totalAssignmentsCount(): number {
+    return (this.assignments || []).length;
+  }
+
+  get totalSubmissionsCount(): number {
+    return (this.assignments || []).reduce(
+      (count, a) =>
+        count + ((this.assignmentSubmissionStatus.get(a.id) ?? false) ? 1 : 0),
+      0,
+    );
+  }
+
   get activeCount(): number {
-    return this.assignments.filter((a) => a.status === 'active').length;
+    return (this.assignments || []).filter((a) => a.status === 'active').length;
   }
 
   get completedCount(): number {
-    return this.assignments.filter((a) => a.status === 'completed').length;
+    return (this.assignments || []).filter((a) => a.status === 'inactive')
+      .length;
   }
 }

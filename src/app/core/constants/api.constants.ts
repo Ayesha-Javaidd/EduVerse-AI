@@ -25,6 +25,12 @@ export const ENDPOINTS = {
   PERFORMANCE: {
     BASE: `${API_BASE_URL}/studentPerformance`,
   },
+
+  ASSIGNMENTS: {
+    BASE: `${API_BASE_URL}/assignments`,
+    BY_ID: (id: string) => `${API_BASE_URL}/assignments/${id}`,
+  },
+
   ASSIGNMENT_SUBMISSIONS: {
     BASE: `${API_BASE_URL}/assignment-submissions`,
     BY_STUDENT: `${API_BASE_URL}/assignment-submissions/me`,
@@ -33,4 +39,4 @@ export const ENDPOINTS = {
     SUBMISSION: (submissionId: string) =>
       `${API_BASE_URL}/assignment-submissions/${submissionId}`,
   },
-};
+} as const;

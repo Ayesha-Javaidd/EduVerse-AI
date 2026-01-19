@@ -46,11 +46,9 @@
       Active ({{ activeCount }})
     </app-button>
     <app-button
-      (buttonClick)="activeTab = 'completed'"
+      (buttonClick)="activeTab = 'inactive'"
       [customColor]="
-        activeTab === 'completed'
-          ? 'bg-slate-500 text-white'
-          : 'text-text-muted'
+        activeTab === 'inactive' ? 'bg-slate-500 text-white' : 'text-text-muted'
       "
     >
       Completed ({{ completedCount }})
@@ -77,12 +75,14 @@
   </div>
 
   <app-assignment-modal
-    *ngIf="showCreateModal"
-    [show]="showCreateModal"
+    *ngIf="showModal"
+    [show]="showModal"
     [formData]="formData"
     [editingAssignmentId]="editingAssignmentId"
     [courses]="courses"
-    (onClose)="closeCreateModal()"
+    [currentTeacherId]="teacherId"
+    [currentTenantId]="tenantId"
+    (onClose)="closeModal()"
     (onSubmit)="handleSubmit($event)"
   ></app-assignment-modal>
 </div>

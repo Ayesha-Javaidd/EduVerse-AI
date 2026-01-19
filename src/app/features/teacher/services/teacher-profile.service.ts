@@ -31,7 +31,7 @@ export interface TeacherProfile {
 /**
  * TeacherProfileService
  * ---------------------
- * Service to fetch teacher's own profile data.
+ * Service to fetch teacher's own profile data. 
  * Used to get teacherId and tenantId for quiz operations.
  */
 @Injectable({
