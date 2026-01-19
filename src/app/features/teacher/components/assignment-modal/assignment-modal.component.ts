@@ -107,10 +107,10 @@ export class AssignmentModalComponent implements OnInit {
       totalMarks: Number(value.totalMarks),
       passingMarks: Number(value.passingMarks),
       status: 'active', // default status
-      fileUrl: null, // handle files separately if needed
+      fileUrl: value.attachments?.[0]?.name || null, // first file name or null
       allowedFormats: ['pdf', 'docx'], // default
       allowLateSubmission: Boolean(value.allowLateSubmission),
-      attachments: value.attachments.map((file: File) => file.name), // or upload separately
+      // attachments: value.attachments.map((file: File) => file.name), // or upload separately
     };
 
     console.log('Submitting payload:', payload);

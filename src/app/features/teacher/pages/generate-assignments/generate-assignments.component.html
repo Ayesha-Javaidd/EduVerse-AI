@@ -1,7 +1,7 @@
 <app-header pageTitle="Assignments"></app-header>
 
 <div class="min-h-screen bg-white p-6 max-w-7xl mx-auto">
-  <!-- Top section: title + create button -->
+  <!-- Top section -->
   <div class="flex justify-between items-center mb-4">
     <p class="text-blue-950 text-xl">Create and manage student assignments</p>
     <app-button
@@ -28,8 +28,8 @@
     {{ errorMessage }}
   </div>
 
-  <!-- Stats cards -->
-  <div class="grid md:grid-cols-2 gap-10 mb-4 px-20">
+  <!-- Stats -->
+  <div class="grid md:grid-cols-2 gap-10 mb-6 px-20">
     <app-stat-card
       icon="fa-solid fa-file-alt"
       [value]="totalAssignmentsCount"
@@ -54,15 +54,16 @@
     class="bg-white rounded-2xl shadow-sm border border-border-light p-2 mb-6 inline-flex"
   >
     <app-button
-      (buttonClick)="activeTab = 'active'"
+      (buttonClick)="activeTab = 'active'; applyFilter()"
       [customColor]="
         activeTab === 'active' ? 'bg-slate-500 text-white' : 'text-text-muted'
       "
     >
       Active ({{ activeCount }})
     </app-button>
+
     <app-button
-      (buttonClick)="activeTab = 'inactive'"
+      (buttonClick)="activeTab = 'inactive'; applyFilter()"
       [customColor]="
         activeTab === 'inactive' ? 'bg-slate-500 text-white' : 'text-text-muted'
       "
@@ -86,10 +87,10 @@
       (onEdit)="editAssignment(assignment)"
       (onDelete)="deleteAssignment(assignment)"
       (onToggleStatus)="toggleAssignmentStatus(assignment)"
-    >
-    </app-assignment-card>
+    ></app-assignment-card>
   </div>
 
+  <!-- Modal -->
   <app-assignment-modal
     *ngIf="showModal"
     [show]="showModal"

@@ -30,4 +30,5 @@ export interface PaginatedAssignmentsResponse {
   total: number;
   page: number;
   limit: number;
+  results: Assignment[];
 }

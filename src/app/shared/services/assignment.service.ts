@@ -47,7 +47,7 @@ export class AssignmentService {
     });
 
     return this.http.get<PaginatedAssignmentsResponse>(
-      `${ENDPOINTS.ASSIGNMENTS.BASE}`,
+      `${ENDPOINTS.ASSIGNMENTS.BASE}/`,
       { params: httpParams },
     );
   }

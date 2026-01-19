@@ -74,20 +74,6 @@ export class GenerateAssignmentsComponent implements OnInit {
     this.loadTeacherContext();
   }
 
-  private showSuccess(message: string): void {
-    this.successMessage = message;
-    this.errorMessage = null;
-
-    setTimeout(() => (this.successMessage = null), 3000);
-  }
-
-  private showError(message: string): void {
-    this.errorMessage = message;
-    this.successMessage = null;
-
-    setTimeout(() => (this.errorMessage = null), 4000);
-  }
-
   /** Load teacher profile */
   loadTeacherContext(): void {
     this.loading = true;
@@ -132,15 +118,14 @@ export class GenerateAssignmentsComponent implements OnInit {
     // console.log('[Assignments] Fetching assignments...');
     this.assignmentService
       .getAssignments({
-        tenantId: this.tenantId,
-        teacherId: this.teacherId,
         sortBy: 'uploadedAt',
         order: -1,
       })
       .subscribe({
         next: (res) => {
-          console.log('[Assignments] Loaded', res.data);
-          this.assignments = res.data || [];
+          console.log('[Assignments API Response]', res);
+          console.log('[Assignments] Loaded', res.results);
+          this.assignments = res.results || [];
           this.filteredAssignments = [...this.assignments];
           this.updateAssignmentStatus();
           this.loadSubmissionStatus(this.assignments);
@@ -243,6 +228,20 @@ export class GenerateAssignmentsComponent implements OnInit {
     this.editingAssignmentId = null;
   }
 
+  private showSuccess(message: string): void {
+    this.successMessage = message;
+    this.errorMessage = null;
+
+    setTimeout(() => (this.successMessage = null), 3000);
+  }
+
+  private showError(message: string): void {
+    this.errorMessage = message;
+    this.successMessage = null;
+
+    setTimeout(() => (this.errorMessage = null), 4000);
+  }
+
   /** Submit assignment create/edit */
   handleSubmit(payload: AssignmentCreatePayload): void {
     console.log('[Submit] Payload received:', payload);
@@ -318,7 +317,7 @@ export class GenerateAssignmentsComponent implements OnInit {
         this.assignments.unshift(newAssignment);
         this.applyFilter();
 
-        this.closeModal();
+        this.showModal = false;
         this.showSuccess('Assignment created successfully');
       },
       error: (err) => {
