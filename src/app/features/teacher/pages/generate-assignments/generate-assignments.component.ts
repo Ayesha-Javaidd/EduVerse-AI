@@ -1,27 +1,671 @@
+// import { Component, OnInit } from '@angular/core';
+// import { CommonModule } from '@angular/common';
+// import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
+// import { AssignmentSubmission } from '../../../../shared/models/assignment-submission.model';
+// import { Course } from '../../../../shared/models/course.model';
+// import { AssignmentService } from '../../../../shared/services/assignment.service';
+// import {
+//   TeacherProfileService,
+//   TeacherProfile,
+// } from '../../services/teacher-profile.service';
+// import { CourseService } from '../../../../shared/services/course.service';
+// import {
+//   Assignment,
+//   AssignmentCreatePayload,
+//   AssignmentUpdatePayload,
+// } from '../../../../shared/models/assignment.model';
+// import { AssignmentCardComponent } from '../../components/assignment-card/assignment-card.component';
+// import { AssignmentModalComponent } from '../../components/assignment-modal/assignment-modal.component';
+// import { ButtonComponent } from '../../../../shared/components/button/button.component';
+// import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+// import { HeaderComponent } from '../../../../shared/components/header/header.component';
+// import { EmptyStateComponent } from '../../components/empty-state/empty-state.component';
+// import { ModalShellComponent } from '../../../../shared/components/modal-shell/modal-shell.component';
+
+// @Component({
+//   selector: 'app-generate-assignments',
+//   standalone: true,
+//   imports: [
+//     CommonModule,
+//     FormsModule,
+//     ReactiveFormsModule,
+//     AssignmentCardComponent,
+//     AssignmentModalComponent,
+//     ButtonComponent,
+//     StatCardComponent,
+//     HeaderComponent,
+//     EmptyStateComponent,
+//   ],
+//   templateUrl: './generate-assignments.component.html',
+//   styleUrls: ['./generate-assignments.component.css'],
+// })
+// export class GenerateAssignmentsComponent implements OnInit {
+//   loading = false;
+//   error: string | null = null;
+
+//   teacherProfile!: TeacherProfile;
+//   teacherId = '';
+//   tenantId = '';
+
+//   courses: Course[] = [];
+//   assignments: Assignment[] = [];
+//   filteredAssignments: Assignment[] = [];
+
+//   assignmentSubmissionStatus = new Map<string, boolean>();
+
+//   activeTab: 'active' | 'inactive' | 'completed' = 'active';
+//   selectedAssignment: Assignment | null = null;
+//   showModal = false;
+//   formData: Partial<AssignmentCreatePayload> = {};
+//   editingAssignmentId: string | null = null;
+
+//   successMessage: string | null = null;
+//   errorMessage: string | null = null;
+
+//   constructor(
+//     private teacherProfileService: TeacherProfileService,
+//     private assignmentService: AssignmentService,
+//     private courseService: CourseService,
+//   ) {}
+
+//   ngOnInit(): void {
+//     // console.log('[Init] Loading teacher context...');
+//     this.loadTeacherContext();
+//   }
+
+//   /** Load teacher profile */
+//   loadTeacherContext(): void {
+//     this.loading = true;
+//     this.error = null;
+//     // console.log('[Profile] Fetching teacher profile...');
+//     this.teacherProfileService.getMyProfile().subscribe({
+//       next: (profile) => {
+//         console.log('[Profile] Loaded', profile);
+//         this.teacherProfile = profile;
+//         this.teacherId = profile.id;
+//         this.tenantId = profile.tenantId || '';
+
+//         this.loadCourses();
+//         this.loadAssignments();
+//       },
+//       error: (err) => {
+//         console.error('[Profile] Failed to load:', err);
+//         this.error = 'Failed to load teacher profile. Please try again.';
+//         this.loading = false;
+//       },
+//     });
+//   }
+
+//   /** Load courses for dropdown */
+//   loadCourses(): void {
+//     if (!this.teacherId || !this.tenantId) return;
+//     // console.log('[Courses] Fetching courses...');
+//     this.courseService
+//       .getCourses({ teacher_id: this.teacherId, tenantId: this.tenantId })
+//       .subscribe({
+//         next: (courses) => {
+//           console.log('[Courses] Loaded', courses);
+//           this.courses = courses;
+//         },
+//         error: (err) => console.error('[Courses] Failed to load:', err),
+//       });
+//   }
+
+//   /** Load assignments */
+//   loadAssignments(): void {
+//     this.loading = true;
+//     // console.log('[Assignments] Fetching assignments...');
+//     this.assignmentService
+//       .getAssignments({
+//         sortBy: 'uploadedAt',
+//         order: -1,
+//       })
+//       .subscribe({
+//         next: (res) => {
+//           console.log('[Assignments API Response]', res);
+//           console.log('[Assignments] Loaded', res.results);
+//           this.assignments = res.results || [];
+//           this.filteredAssignments = [...this.assignments];
+//           this.updateAssignmentStatus();
+//           this.loadSubmissionStatus(this.assignments);
+//           this.loading = false;
+//         },
+//         error: (err) => {
+//           console.error('[Assignments] Failed to load:', err);
+//           this.error = 'Failed to load assignments. Please try again.';
+//           this.loading = false;
+//         },
+//       });
+//   }
+
+//   /** Load submission status per assignment */
+//   loadSubmissionStatus(assignments: Assignment[]): void {
+//     console.log('[Submissions] Loading submission status...');
+//     assignments.forEach((assignment) => {
+//       this.assignmentService
+//         .getSubmissionsByAssignment(assignment.id)
+//         .subscribe({
+//           next: (subs: AssignmentSubmission[]) => {
+//             console.log(
+//               `[Submissions] Assignment ${assignment.id}:`,
+//               subs.length,
+//               'submissions',
+//             );
+//             this.assignmentSubmissionStatus.set(assignment.id, subs.length > 0);
+//           },
+//           error: () => {
+//             console.warn(
+//               `[Submissions] Assignment ${assignment.id} failed to load submissions`,
+//             );
+//             this.assignmentSubmissionStatus.set(assignment.id, false);
+//           },
+//         });
+//     });
+//   }
+
+//   hasSubmissions(assignmentId: string): boolean {
+//     return this.assignmentSubmissionStatus.get(assignmentId) ?? false;
+//   }
+
+//   /** Update assignment status if past due */
+//   updateAssignmentStatus(): void {
+//     const now = new Date().toISOString();
+//     console.log('[Status] Updating assignment status...');
+//     (this.assignments || []).forEach((assignment) => {
+//       if (assignment.dueDate < now && assignment.status === 'active') {
+//         console.log(`[Status] Assignment ${assignment.id} marked inactive`);
+//         assignment.status = 'inactive';
+//       }
+//     });
+//     this.applyFilter();
+//   }
+
+//   /** Filter assignments by activeTab */
+//   applyFilter(): void {
+//     console.log('[Filter] Filtering assignments by tab:', this.activeTab);
+//     this.filteredAssignments = (this.assignments || []).filter((a) =>
+//       this.activeTab === 'completed'
+//         ? a.status === 'inactive'
+//         : a.status === this.activeTab,
+//     );
+//     console.log('[Filter] Filtered assignments:', this.filteredAssignments);
+//   }
+
+//   /** Modal controls */
+//   openCreateModal(): void {
+//     console.log('[Modal] Opening create assignment modal');
+//     this.selectedAssignment = null;
+//     this.showModal = true;
+//     this.formData = {};
+//     this.editingAssignmentId = null;
+//   }
+
+//   openEditModal(assignment: Assignment): void {
+//     console.log('[Modal] Opening edit modal for assignment', assignment.id);
+//     this.selectedAssignment = assignment;
+//     this.showModal = true;
+//     this.editingAssignmentId = assignment.id;
+//     this.formData = {
+//       title: assignment.title,
+//       courseId: assignment.courseId,
+//       description: assignment.description,
+//       dueDate: assignment.dueDate.split('T')[0],
+//       dueTime: assignment.dueDate.split('T')[1]?.slice(0, 5) || undefined,
+//       totalMarks: assignment.totalMarks,
+//       passingMarks: assignment.passingMarks,
+//       allowedFormats: assignment.allowedFormats,
+//       fileUrl: assignment.fileUrl ?? undefined,
+//     };
+//     console.log('[Modal] Form data set', this.formData);
+//   }
+
+//   closeModal(): void {
+//     console.log('[Modal] Closing modal');
+//     this.selectedAssignment = null;
+//     this.showModal = false;
+//     this.formData = {};
+//     this.editingAssignmentId = null;
+//   }
+
+//   private showSuccess(message: string): void {
+//     this.successMessage = message;
+//     this.errorMessage = null;
+
+//     setTimeout(() => (this.successMessage = null), 3000);
+//   }
+//   private showError(message: string): void {
+//     this.errorMessage = message;
+//     this.successMessage = null;
+
+//     // Close modal if open
+//     if (this.showModal) {
+//       this.closeModal();
+//     }
+
+//     setTimeout(() => (this.errorMessage = null), 4000);
+//   }
+
+//   /** Submit assignment create/edit */
+//   handleSubmit(payload: AssignmentCreatePayload): void {
+//     console.log('[Submit] Payload received:', payload);
+//     const normalizedPayload: Partial<Assignment> = {
+//       ...payload,
+//       dueTime: payload.dueTime ?? undefined,
+//       fileUrl: payload.fileUrl ?? undefined,
+//     };
+//     // console.log('[Submit] Normalized payload:', normalizedPayload);
+
+//     if (this.editingAssignmentId) {
+//       console.log('[Submit] Updating assignment:', this.editingAssignmentId);
+//       this.updateAssignment(this.editingAssignmentId, normalizedPayload);
+//     } else {
+//       console.log('[Submit] Creating new assignment');
+//       this.createAssignment(payload);
+//     }
+//   }
+
+//   /** Assignment actions */
+//   viewAssignment(assignment: Assignment): void {
+//     console.log('[Action] View assignment', assignment);
+//   }
+
+//   editAssignment(assignment: Assignment): void {
+//     console.log('[Action] Edit assignment', assignment.id);
+//     this.openEditModal(assignment);
+//   }
+
+//   deleteAssignment(assignment: Assignment): void {
+//     console.log('[Action] Delete assignment', assignment.id);
+//     this.assignmentService.deleteAssignment(assignment.id).subscribe({
+//       next: () => {
+//         console.log('[Delete] Assignment deleted:', assignment.id);
+//         this.assignments = (this.assignments || []).filter(
+//           (a) => a.id !== assignment.id,
+//         );
+//         this.applyFilter();
+//         this.showSuccess('Assignment deleted successfully'); // ADD THIS
+//       },
+//       error: (err) => {
+//         console.error('[Delete] Failed to delete assignment', err);
+//         this.showError('Failed to delete assignment. Please try again.'); // ADD THIS
+//       },
+//     });
+//   }
+
+//   toggleAssignmentStatus(assignment: Assignment): void {
+//     const newStatus = assignment.status === 'active' ? 'inactive' : 'active';
+//     console.log(`[Action] Toggle status for ${assignment.id} -> ${newStatus}`);
+//     this.updateAssignment(assignment.id, { status: newStatus });
+//   }
+
+//   updateAssignment(id: string, payload: Partial<Assignment>): void {
+//     console.log('[Update] Updating assignment', id, payload);
+
+//     this.assignmentService.updateAssignment(id, payload).subscribe({
+//       next: (updated) => {
+//         const idx = this.assignments.findIndex((a) => a.id === id);
+//         if (idx > -1) this.assignments[idx] = updated;
+
+//         this.applyFilter();
+//         this.closeModal();
+//         this.showSuccess('Assignment updated successfully');
+//       },
+//       error: (err) => {
+//         console.error('[Update] Failed to update assignment', err);
+//         this.showError('Failed to update assignment.');
+//       },
+//     });
+//   }
+
+//   createAssignment(payload: AssignmentCreatePayload): void {
+//     console.log('[Create] Creating assignment with payload', payload);
+
+//     this.assignmentService.createAssignment(payload).subscribe({
+//       next: (newAssignment) => {
+//         console.log('[Create] Assignment created', newAssignment);
+
+//         this.assignments.unshift(newAssignment);
+//         this.applyFilter();
+
+//         this.showModal = false;
+//         this.showSuccess('Assignment created successfully');
+//       },
+//       error: (err) => {
+//         console.error('[Create] Failed to create assignment', err);
+//         this.showError('Failed to create assignment. Please try again.');
+//       },
+//     });
+//   }
+
+//   /** Computed properties */
+//   get totalAssignmentsCount(): number {
+//     return (this.assignments || []).length;
+//   }
+
+//   get totalSubmissionsCount(): number {
+//     return (this.assignments || []).reduce(
+//       (count, a) =>
+//         count + ((this.assignmentSubmissionStatus.get(a.id) ?? false) ? 1 : 0),
+//       0,
+//     );
+//   }
+
+//   get activeCount(): number {
+//     return (this.assignments || []).filter((a) => a.status === 'active').length;
+//   }
+
+//   get completedCount(): number {
+//     return (this.assignments || []).filter((a) => a.status === 'inactive')
+//       .length;
+//   }
+// }
+
+// import { Component, OnInit } from '@angular/core';
+// import { CommonModule } from '@angular/common';
+// import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
+// import { Assignment } from '../../../../shared/models/assignment.model';
+// import { AssignmentSubmission } from '../../../../shared/models/assignment-submission.model';
+// import { Course } from '../../../../shared/models/course.model';
+
+// import { AssignmentService } from '../../../../shared/services/assignment.service';
+// import { CourseService } from '../../../../shared/services/course.service';
+// import {
+//   TeacherProfileService,
+//   TeacherProfile,
+// } from '../../services/teacher-profile.service';
+
+// import { AssignmentCardComponent } from '../../components/assignment-card/assignment-card.component';
+// import { AssignmentModalComponent } from '../../components/assignment-modal/assignment-modal.component';
+// import { ButtonComponent } from '../../../../shared/components/button/button.component';
+// import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+// import { HeaderComponent } from '../../../../shared/components/header/header.component';
+// import { EmptyStateComponent } from '../../components/empty-state/empty-state.component';
+
+// @Component({
+//   selector: 'app-generate-assignments',
+//   standalone: true,
+//   imports: [
+//     CommonModule,
+//     FormsModule,
+//     ReactiveFormsModule,
+//     AssignmentCardComponent,
+//     AssignmentModalComponent,
+//     ButtonComponent,
+//     StatCardComponent,
+//     HeaderComponent,
+//     EmptyStateComponent,
+//   ],
+//   templateUrl: './generate-assignments.component.html',
+//   styleUrls: ['./generate-assignments.component.css'],
+// })
+// export class GenerateAssignmentsComponent implements OnInit {
+//   /* ================= STATE ================= */
+
+//   loading = false;
+//   errorMessage: string | null = null;
+//   successMessage: string | null = null;
+
+//   teacherProfile!: TeacherProfile;
+//   teacherId = '';
+//   tenantId = '';
+
+//   courses: Course[] = [];
+//   assignments: Assignment[] = [];
+
+//   /** assignmentId -> submissions[] */
+//   assignmentSubmissions = new Map<string, AssignmentSubmission[]>();
+
+//   activeTab: 'active' | 'completed' = 'active';
+
+//   showModal = false;
+//   editingAssignmentId: string | null = null;
+//   formData: any = {};
+
+//   constructor(
+//     private teacherProfileService: TeacherProfileService,
+//     private assignmentService: AssignmentService,
+//     private courseService: CourseService,
+//   ) {}
+
+//   /* ================= INIT ================= */
+
+//   ngOnInit(): void {
+//     this.loadTeacherContext();
+//   }
+
+//   private loadTeacherContext(): void {
+//     this.loading = true;
+
+//     this.teacherProfileService.getMyProfile().subscribe({
+//       next: (profile) => {
+//         this.teacherProfile = profile;
+//         this.teacherId = profile.id;
+//         this.tenantId = profile.tenantId ?? '';
+
+//         this.loadCourses();
+//       },
+//       error: () => {
+//         this.loading = false;
+//         this.showError('Failed to create assignment');
+//       },
+//     });
+//   }
+
+//   /* ================= COURSES ================= */
+
+//   private loadCourses(): void {
+//     this.courseService
+//       .getCourses({
+//         teacher_id: this.teacherId,
+//         tenantId: this.tenantId,
+//       })
+//       .subscribe({
+//         next: (courses) => {
+//           this.courses = courses;
+//           this.loadAssignments();
+//         },
+//         error: () => {
+//           this.loading = false;
+//           this.showError('Failed to create assignment');
+//         },
+//       });
+//   }
+
+//   /* ================= ASSIGNMENTS ================= */
+
+//   private loadAssignments(): void {
+//     this.assignmentService
+//       .getAssignments({ sortBy: 'uploadedAt', order: -1 })
+//       .subscribe({
+//         next: (res) => {
+//           const teacherCourseIds = this.courses.map((c) => c.id);
+
+//           this.assignments = (res.results ?? []).filter((a) =>
+//             teacherCourseIds.includes(a.courseId),
+//           );
+
+//           this.loadAllSubmissions();
+//           this.loading = false;
+//         },
+//         error: () => {
+//           this.loading = false;
+//           this.showError('Failed to create assignment');
+//         },
+//       });
+//   }
+
+//   /* ================= SUBMISSIONS ================= */
+
+//   private loadAllSubmissions(): void {
+//     this.assignments.forEach((assignment) => {
+//       this.assignmentService
+//         .getSubmissionsByAssignment(assignment.id)
+//         .subscribe({
+//           next: (subs) => {
+//             this.assignmentSubmissions.set(assignment.id, subs);
+//           },
+//           error: () => {
+//             this.assignmentSubmissions.set(assignment.id, []);
+//           },
+//         });
+//     });
+//   }
+
+//   getSubmissions(assignmentId: string): AssignmentSubmission[] {
+//     return this.assignmentSubmissions.get(assignmentId) ?? [];
+//   }
+
+//   /* ================= FILTERING ================= */
+
+//   get activeAssignments(): Assignment[] {
+//     const now = new Date();
+//     return this.assignments.filter((a) => new Date(a.dueDate) > now);
+//   }
+
+//   get completedAssignments(): Assignment[] {
+//     const now = new Date();
+//     return this.assignments.filter((a) => new Date(a.dueDate) <= now);
+//   }
+
+//   get filteredAssignments(): Assignment[] {
+//     return this.assignments.filter((a) =>
+//       this.activeTab === 'completed'
+//         ? a.status === 'inactive'
+//         : a.status === 'active',
+//     );
+//   }
+
+//   /* ================= MODAL ================= */
+
+//   openCreateModal(): void {
+//     this.formData = {};
+//     this.editingAssignmentId = null;
+//     this.showModal = true;
+//   }
+
+//   openEditModal(assignment: Assignment): void {
+//     this.editingAssignmentId = assignment.id;
+//     this.formData = {
+//       title: assignment.title,
+//       description: assignment.description,
+//       courseId: assignment.courseId,
+//       dueDate: assignment.dueDate.split('T')[0],
+//       dueTime: assignment.dueDate.split('T')[1]?.slice(0, 5),
+//       totalMarks: assignment.totalMarks,
+//       passingMarks: assignment.passingMarks,
+//     };
+//     this.showModal = true;
+//   }
+
+//   closeModal(): void {
+//     this.showModal = false;
+//     this.formData = {};
+//     this.editingAssignmentId = null;
+//   }
+
+//   /* ================= CRUD ================= */
+
+//   handleSubmit(payload: any): void {
+//     if (this.editingAssignmentId) {
+//       this.assignmentService
+//         .updateAssignment(this.editingAssignmentId, payload)
+//         .subscribe(() => {
+//           this.showSuccess('Assignment created successfully');
+
+//           this.loadAssignments();
+//           this.closeModal();
+//         });
+//     } else {
+//       this.assignmentService.createAssignment(payload).subscribe(() => {
+//         this.showSuccess('Assignment created successfully');
+
+//         this.loadAssignments();
+//         this.closeModal();
+//       });
+//     }
+//   }
+
+//   deleteAssignment(assignment: Assignment): void {
+//     this.assignmentService.deleteAssignment(assignment.id).subscribe({
+//       next: () => {
+//         this.showSuccess('Assignment created successfully');
+
+//         this.assignments = this.assignments.filter(
+//           (a) => a.id !== assignment.id,
+//         );
+//       },
+//       error: () => {
+//         this.showError('Failed to create assignment');
+//       },
+//     });
+//   }
+
+//   /* ================= STATS ================= */
+
+//   get totalAssignmentsCount(): number {
+//     return this.assignments.length;
+//   }
+
+//   get totalSubmissionsCount(): number {
+//     return Array.from(this.assignmentSubmissions.values()).reduce(
+//       (sum, subs) => sum + subs.length,
+//       0,
+//     );
+//   }
+
+//   showSuccess(message: string, duration: number = 3000) {
+//     this.successMessage = message;
+
+//     setTimeout(() => {
+//       this.successMessage = '';
+//     }, duration);
+//   }
+
+//   showError(message: string, duration: number = 3000) {
+//     this.errorMessage = message;
+
+//     setTimeout(() => {
+//       this.errorMessage = '';
+//     }, duration);
+//   }
+
+//   get activeCount(): number {
+//     return this.activeAssignments.length;
+//   }
+
+//   get completedCount(): number {
+//     return this.completedAssignments.length;
+//   }
+// }
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
+import { Assignment } from '../../../../shared/models/assignment.model';
 import { AssignmentSubmission } from '../../../../shared/models/assignment-submission.model';
 import { Course } from '../../../../shared/models/course.model';
+
 import { AssignmentService } from '../../../../shared/services/assignment.service';
+import { CourseService } from '../../../../shared/services/course.service';
 import {
   TeacherProfileService,
   TeacherProfile,
 } from '../../services/teacher-profile.service';
-import { CourseService } from '../../../../shared/services/course.service';
-import {
-  Assignment,
-  AssignmentCreatePayload,
-  AssignmentUpdatePayload,
-} from '../../../../shared/models/assignment.model';
+
 import { AssignmentCardComponent } from '../../components/assignment-card/assignment-card.component';
 import { AssignmentModalComponent } from '../../components/assignment-modal/assignment-modal.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { EmptyStateComponent } from '../../components/empty-state/empty-state.component';
-import { ModalShellComponent } from '../../../../shared/components/modal-shell/modal-shell.component';
+
+interface SubmittedAssignmentView {
+  assignment: Assignment;
+  submission: AssignmentSubmission;
+}
 
 @Component({
   selector: 'app-generate-assignments',
@@ -42,7 +686,8 @@ import { ModalShellComponent } from '../../../../shared/components/modal-shell/m
 })
 export class GenerateAssignmentsComponent implements OnInit {
   loading = false;
-  error: string | null = null;
+  errorMessage: string | null = null;
+  successMessage: string | null = null;
 
   teacherProfile!: TeacherProfile;
   teacherId = '';
@@ -50,18 +695,13 @@ export class GenerateAssignmentsComponent implements OnInit {
 
   courses: Course[] = [];
   assignments: Assignment[] = [];
-  filteredAssignments: Assignment[] = [];
+  assignmentSubmissions = new Map<string, AssignmentSubmission[]>();
 
-  assignmentSubmissionStatus = new Map<string, boolean>();
+  activeTab: 'active' | 'completed' = 'active';
 
-  activeTab: 'active' | 'inactive' | 'completed' = 'active';
-  selectedAssignment: Assignment | null = null;
   showModal = false;
-  formData: Partial<AssignmentCreatePayload> = {};
   editingAssignmentId: string | null = null;
-
-  successMessage: string | null = null;
-  errorMessage: string | null = null;
+  formData: any = {};
 
   constructor(
     private teacherProfileService: TeacherProfileService,
@@ -70,293 +710,204 @@ export class GenerateAssignmentsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // console.log('[Init] Loading teacher context...');
     this.loadTeacherContext();
   }
 
-  /** Load teacher profile */
-  loadTeacherContext(): void {
+  private loadTeacherContext(): void {
     this.loading = true;
-    this.error = null;
-    // console.log('[Profile] Fetching teacher profile...');
     this.teacherProfileService.getMyProfile().subscribe({
       next: (profile) => {
-        console.log('[Profile] Loaded', profile);
         this.teacherProfile = profile;
         this.teacherId = profile.id;
-        this.tenantId = profile.tenantId || '';
-
+        this.tenantId = profile.tenantId ?? '';
         this.loadCourses();
-        this.loadAssignments();
       },
-      error: (err) => {
-        console.error('[Profile] Failed to load:', err);
-        this.error = 'Failed to load teacher profile. Please try again.';
+      error: () => {
         this.loading = false;
+        this.showError('Failed to load teacher profile');
       },
     });
   }
 
-  /** Load courses for dropdown */
-  loadCourses(): void {
-    if (!this.teacherId || !this.tenantId) return;
-    // console.log('[Courses] Fetching courses...');
+  private loadCourses(): void {
     this.courseService
       .getCourses({ teacher_id: this.teacherId, tenantId: this.tenantId })
       .subscribe({
         next: (courses) => {
-          console.log('[Courses] Loaded', courses);
           this.courses = courses;
+          this.loadAssignments();
         },
-        error: (err) => console.error('[Courses] Failed to load:', err),
+        error: () => {
+          this.loading = false;
+          this.showError('Failed to load courses');
+        },
       });
   }
 
-  /** Load assignments */
-  loadAssignments(): void {
+  private loadAssignments(): void {
     this.loading = true;
-    // console.log('[Assignments] Fetching assignments...');
     this.assignmentService
-      .getAssignments({
-        sortBy: 'uploadedAt',
-        order: -1,
-      })
+      .getAssignments({ sortBy: 'uploadedAt', order: -1 })
       .subscribe({
         next: (res) => {
-          console.log('[Assignments API Response]', res);
-          console.log('[Assignments] Loaded', res.results);
-          this.assignments = res.results || [];
-          this.filteredAssignments = [...this.assignments];
-          this.updateAssignmentStatus();
-          this.loadSubmissionStatus(this.assignments);
+          const teacherCourseIds = this.courses.map((c) => c.id);
+          this.assignments = (res.results ?? []).filter((a) =>
+            teacherCourseIds.includes(a.courseId),
+          );
+
+          this.updateAssignmentStatuses();
+          this.loadAllSubmissions();
           this.loading = false;
         },
-        error: (err) => {
-          console.error('[Assignments] Failed to load:', err);
-          this.error = 'Failed to load assignments. Please try again.';
+        error: () => {
           this.loading = false;
+          this.showError('Failed to load assignments');
         },
       });
   }
 
-  /** Load submission status per assignment */
-  loadSubmissionStatus(assignments: Assignment[]): void {
-    console.log('[Submissions] Loading submission status...');
-    assignments.forEach((assignment) => {
+  private loadAllSubmissions(): void {
+    this.assignments.forEach((assignment) => {
       this.assignmentService
         .getSubmissionsByAssignment(assignment.id)
         .subscribe({
-          next: (subs: AssignmentSubmission[]) => {
-            console.log(
-              `[Submissions] Assignment ${assignment.id}:`,
-              subs.length,
-              'submissions',
-            );
-            this.assignmentSubmissionStatus.set(assignment.id, subs.length > 0);
-          },
-          error: () => {
-            console.warn(
-              `[Submissions] Assignment ${assignment.id} failed to load submissions`,
-            );
-            this.assignmentSubmissionStatus.set(assignment.id, false);
-          },
+          next: (subs) => this.assignmentSubmissions.set(assignment.id, subs),
+          error: () => this.assignmentSubmissions.set(assignment.id, []),
         });
     });
   }
 
-  hasSubmissions(assignmentId: string): boolean {
-    return this.assignmentSubmissionStatus.get(assignmentId) ?? false;
-  }
-
-  /** Update assignment status if past due */
-  updateAssignmentStatus(): void {
-    const now = new Date().toISOString();
-    console.log('[Status] Updating assignment status...');
-    (this.assignments || []).forEach((assignment) => {
-      if (assignment.dueDate < now && assignment.status === 'active') {
-        console.log(`[Status] Assignment ${assignment.id} marked inactive`);
-        assignment.status = 'inactive';
+  /** Automatically mark past-due assignments as inactive */
+  private updateAssignmentStatuses(): void {
+    const now = new Date();
+    this.assignments.forEach((a) => {
+      if (new Date(a.dueDate) < now && a.status === 'active') {
+        a.status = 'inactive';
       }
     });
-    this.applyFilter();
   }
 
-  /** Filter assignments by activeTab */
-  applyFilter(): void {
-    console.log('[Filter] Filtering assignments by tab:', this.activeTab);
-    this.filteredAssignments = (this.assignments || []).filter((a) =>
-      this.activeTab === 'completed'
-        ? a.status === 'inactive'
-        : a.status === this.activeTab,
-    );
-    console.log('[Filter] Filtered assignments:', this.filteredAssignments);
+  /** All assignments for display (active + inactive) */
+  get filteredAssignments(): Assignment[] {
+    return this.assignments;
   }
 
-  /** Modal controls */
+  /** Submitted assignments view */
+  get submittedAssignments(): SubmittedAssignmentView[] {
+    const views: SubmittedAssignmentView[] = [];
+    this.assignments.forEach((assignment) => {
+      const submissions = this.assignmentSubmissions.get(assignment.id) ?? [];
+      submissions.forEach((submission) => {
+        views.push({ assignment, submission });
+      });
+    });
+    return views;
+  }
+
+  get filteredSubmissions(): SubmittedAssignmentView[] {
+    return this.activeTab === 'completed' ? this.submittedAssignments : [];
+  }
+
+  /** Modal and Editing */
   openCreateModal(): void {
-    console.log('[Modal] Opening create assignment modal');
-    this.selectedAssignment = null;
-    this.showModal = true;
     this.formData = {};
     this.editingAssignmentId = null;
+    this.showModal = true;
   }
 
   openEditModal(assignment: Assignment): void {
-    console.log('[Modal] Opening edit modal for assignment', assignment.id);
-    this.selectedAssignment = assignment;
-    this.showModal = true;
+    if (assignment.status === 'inactive') {
+      this.showError('This assignment is inactive and cannot be updated', 4000);
+      return;
+    }
+
     this.editingAssignmentId = assignment.id;
     this.formData = {
       title: assignment.title,
-      courseId: assignment.courseId,
       description: assignment.description,
+      courseId: assignment.courseId,
       dueDate: assignment.dueDate.split('T')[0],
-      dueTime: assignment.dueDate.split('T')[1]?.slice(0, 5) || undefined,
+      dueTime: assignment.dueDate.split('T')[1]?.slice(0, 5),
       totalMarks: assignment.totalMarks,
       passingMarks: assignment.passingMarks,
-      allowedFormats: assignment.allowedFormats,
-      fileUrl: assignment.fileUrl ?? undefined,
     };
-    console.log('[Modal] Form data set', this.formData);
+    this.showModal = true;
   }
 
   closeModal(): void {
-    console.log('[Modal] Closing modal');
-    this.selectedAssignment = null;
     this.showModal = false;
     this.formData = {};
     this.editingAssignmentId = null;
   }
 
-  private showSuccess(message: string): void {
-    this.successMessage = message;
-    this.errorMessage = null;
+  handleSubmit(payload: any): void {
+    // --- VALIDATIONS ---
+    if (!payload.title || payload.title.trim().length < 3) {
+      this.showError('Assignment title must be at least 3 characters long');
+      return; // stops submission
+    }
 
-    setTimeout(() => (this.successMessage = null), 3000);
-  }
-  private showError(message: string): void {
-    this.errorMessage = message;
-    this.successMessage = null;
+    if (payload.passingMarks > payload.totalMarks) {
+      this.showError('Passing marks cannot be greater than total marks');
+      return; // stops submission
+    }
+    const request$ = this.editingAssignmentId
+      ? this.assignmentService.updateAssignment(
+          this.editingAssignmentId,
+          payload,
+        )
+      : this.assignmentService.createAssignment(payload);
 
-    // Close modal if open
-    if (this.showModal) {
+    request$.subscribe(() => {
+      this.showSuccess('Assignment saved successfully');
+      this.loadAssignments();
       this.closeModal();
-    }
-
-    setTimeout(() => (this.errorMessage = null), 4000);
-  }
-
-  /** Submit assignment create/edit */
-  handleSubmit(payload: AssignmentCreatePayload): void {
-    console.log('[Submit] Payload received:', payload);
-    const normalizedPayload: Partial<Assignment> = {
-      ...payload,
-      dueTime: payload.dueTime ?? undefined,
-      fileUrl: payload.fileUrl ?? undefined,
-    };
-    // console.log('[Submit] Normalized payload:', normalizedPayload);
-
-    if (this.editingAssignmentId) {
-      console.log('[Submit] Updating assignment:', this.editingAssignmentId);
-      this.updateAssignment(this.editingAssignmentId, normalizedPayload);
-    } else {
-      console.log('[Submit] Creating new assignment');
-      this.createAssignment(payload);
-    }
-  }
-
-  /** Assignment actions */
-  viewAssignment(assignment: Assignment): void {
-    console.log('[Action] View assignment', assignment);
-  }
-
-  editAssignment(assignment: Assignment): void {
-    console.log('[Action] Edit assignment', assignment.id);
-    this.openEditModal(assignment);
+    });
   }
 
   deleteAssignment(assignment: Assignment): void {
-    console.log('[Action] Delete assignment', assignment.id);
     this.assignmentService.deleteAssignment(assignment.id).subscribe({
       next: () => {
-        console.log('[Delete] Assignment deleted:', assignment.id);
-        this.assignments = (this.assignments || []).filter(
+        this.assignments = this.assignments.filter(
           (a) => a.id !== assignment.id,
         );
-        this.applyFilter();
-        this.showSuccess('Assignment deleted successfully'); // ADD THIS
+        this.showSuccess('Assignment deleted successfully');
       },
-      error: (err) => {
-        console.error('[Delete] Failed to delete assignment', err);
-        this.showError('Failed to delete assignment. Please try again.'); // ADD THIS
-      },
+      error: () => this.showError('Failed to delete assignment'),
     });
   }
 
-  toggleAssignmentStatus(assignment: Assignment): void {
-    const newStatus = assignment.status === 'active' ? 'inactive' : 'active';
-    console.log(`[Action] Toggle status for ${assignment.id} -> ${newStatus}`);
-    this.updateAssignment(assignment.id, { status: newStatus });
+  /** STATS */
+  get activeCount(): number {
+    return this.assignments.filter((a) => a.status === 'active').length;
   }
 
-  updateAssignment(id: string, payload: Partial<Assignment>): void {
-    console.log('[Update] Updating assignment', id, payload);
-
-    this.assignmentService.updateAssignment(id, payload).subscribe({
-      next: (updated) => {
-        const idx = this.assignments.findIndex((a) => a.id === id);
-        if (idx > -1) this.assignments[idx] = updated;
-
-        this.applyFilter();
-        this.closeModal();
-        this.showSuccess('Assignment updated successfully');
-      },
-      error: (err) => {
-        console.error('[Update] Failed to update assignment', err);
-        this.showError('Failed to update assignment.');
-      },
-    });
+  get completedCount(): number {
+    return this.submittedAssignments.length;
   }
 
-  createAssignment(payload: AssignmentCreatePayload): void {
-    console.log('[Create] Creating assignment with payload', payload);
-
-    this.assignmentService.createAssignment(payload).subscribe({
-      next: (newAssignment) => {
-        console.log('[Create] Assignment created', newAssignment);
-
-        this.assignments.unshift(newAssignment);
-        this.applyFilter();
-
-        this.showModal = false;
-        this.showSuccess('Assignment created successfully');
-      },
-      error: (err) => {
-        console.error('[Create] Failed to create assignment', err);
-        this.showError('Failed to create assignment. Please try again.');
-      },
-    });
-  }
-
-  /** Computed properties */
   get totalAssignmentsCount(): number {
-    return (this.assignments || []).length;
+    return this.assignments.length;
   }
 
   get totalSubmissionsCount(): number {
-    return (this.assignments || []).reduce(
-      (count, a) =>
-        count + ((this.assignmentSubmissionStatus.get(a.id) ?? false) ? 1 : 0),
+    return Array.from(this.assignmentSubmissions.values()).reduce(
+      (sum, subs) => sum + subs.length,
       0,
     );
   }
 
-  get activeCount(): number {
-    return (this.assignments || []).filter((a) => a.status === 'active').length;
+  /** FEEDBACK */
+  showSuccess(message: string, duration = 3000): void {
+    this.successMessage = message;
+    setTimeout(() => (this.successMessage = null), duration);
   }
 
-  get completedCount(): number {
-    return (this.assignments || []).filter((a) => a.status === 'inactive')
-      .length;
+  showError(message: string, duration = 3000, closeModalOnError = true): void {
+    this.errorMessage = message;
+    if (closeModalOnError && this.showModal) {
+      this.closeModal();
+    }
+    setTimeout(() => (this.errorMessage = null), duration);
   }
 }

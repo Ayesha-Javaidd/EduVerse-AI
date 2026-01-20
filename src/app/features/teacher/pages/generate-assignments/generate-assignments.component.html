@@ -26,8 +26,8 @@
     *ngIf="errorMessage"
     class="alert alert-danger"
     style="
-      background-color: #f8d7da;
-      color: #842029;
+      background-color: #fbe3e5;
+      color: #b3303b;
       padding: 10px;
       border-radius: 5px;
       margin-bottom: 10px;
@@ -41,8 +41,8 @@
     *ngIf="successMessage"
     class="alert alert-success"
     style="
-      background-color: #d1e7dd;
-      color: #0f5132;
+      background-color: #ddf6eb;
+      color: #14643f;
       padding: 10px;
       border-radius: 5px;
       margin-bottom: 10px;
@@ -77,7 +77,7 @@
     class="bg-white rounded-2xl shadow-sm border border-border-light p-2 mb-6 inline-flex"
   >
     <app-button
-      (buttonClick)="activeTab = 'active'; applyFilter()"
+      (buttonClick)="activeTab = 'active'"
       [customColor]="
         activeTab === 'active' ? 'bg-slate-500 text-white' : 'text-text-muted'
       "
@@ -86,9 +86,11 @@
     </app-button>
 
     <app-button
-      (buttonClick)="activeTab = 'inactive'; applyFilter()"
+      (buttonClick)="activeTab = 'completed'"
       [customColor]="
-        activeTab === 'inactive' ? 'bg-slate-500 text-white' : 'text-text-muted'
+        activeTab === 'completed'
+          ? 'bg-slate-500 text-white'
+          : 'text-text-muted'
       "
     >
       Completed ({{ completedCount }})
@@ -106,10 +108,11 @@
     <app-assignment-card
       *ngFor="let assignment of filteredAssignments"
       [assignment]="assignment"
-      (onView)="viewAssignment(assignment)"
-      (onEdit)="editAssignment(assignment)"
+      (onEdit)="openEditModal(assignment)"
       (onDelete)="deleteAssignment(assignment)"
-      (onToggleStatus)="toggleAssignmentStatus(assignment)"
+      (onInactive)="
+        showError('This assignment is inactive and cannot be updated')
+      "
     ></app-assignment-card>
   </div>
 

@@ -35,26 +35,37 @@
 
     <!-- Action Buttons -->
     <div class="flex gap-2 ml-4">
-      <app-button
-        (buttonClick)="onEdit.emit(assignment.id)"
-        title="Edit"
-        customColor="bg-blue-100 text-blue-700 hover:bg-blue-100"
-      >
-        <i class="fa-solid fa-pen"></i>
-      </app-button>
+      <!-- Action Buttons -->
+      <div class="flex gap-2 ml-4">
+        <app-button
+          (buttonClick)="
+            assignment.status === 'inactive'
+              ? onInactiveClick()
+              : onEdit.emit(assignment)
+          "
+          title="Edit"
+          [disabled]="assignment.status === 'inactive'"
+          [ngClass]="{
+            'cursor-not-allowed text-red-600': assignment.status === 'inactive',
+          }"
+          customColor="bg-blue-100 text-blue-700 hover:bg-blue-100"
+        >
+          <i class="fa-solid fa-pen"></i>
+        </app-button>
 
-      <app-button
-        (buttonClick)="onDelete.emit(assignment.id)"
-        title="Delete"
-        customColor="bg-red-50 text-red-600 hover:bg-red-100"
-      >
-        <i class="fa-solid fa-trash"></i>
-      </app-button>
+        <app-button
+          (buttonClick)="onDelete.emit(assignment)"
+          title="Delete"
+          customColor="bg-red-50 text-red-600 hover:bg-red-100"
+        >
+          <i class="fa-solid fa-trash"></i>
+        </app-button>
+      </div>
     </div>
   </div>
 
   <!-- Description -->
-  <p class="text-gray-400 text-sm leading-relaxed">
+  <p class="text-gray-400 text-sm leading-relaxed my-3">
     {{ assignment.description }}
   </p>
 
@@ -65,6 +76,12 @@
       class="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-full text-xs font-semibold uppercase tracking-wide"
     >
       <i class="fa-solid fa-circle-check"></i> Active
+    </span>
+    <span
+      *ngIf="assignment.status === 'inactive'"
+      class="flex items-center gap-2 px-3 py-2 bg-red-100 text-red-600 rounded-full text-xs font-semibold uppercase tracking-wide"
+    >
+      <i class="fa-solid fa-circle-xmark"></i> Inactive
     </span>
     <span
       *ngIf="assignment.status === 'completed'"
