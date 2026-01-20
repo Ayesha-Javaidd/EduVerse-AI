@@ -1,76 +1,40 @@
 <div
-  class="flex items-center justify-between px-6 py-2 rounded-xl border-l-4 shadow-sm hover:shadow-md transition-all"
+  class="flex justify-between px-6 py-3 rounded-xl border-l-4 shadow-sm"
   [ngClass]="{
-    'bg-blue-50 border-blue-400': assignment.status === 'submitted',
-    'bg-green-50 border-green-400': assignment.status === 'graded',
-    'bg-purple-50 border-purple-400': assignment.status === 'pending'
+    'border-purple-400 bg-purple-50': assignment.status === 'active',
+    'border-blue-400 bg-blue-50': submitted,
+    'border-green-400 bg-green-50': assignment.status === 'graded',
   }"
 >
-  <!-- Left Section -->
-  <div class="flex flex-col w-3/5">
-    <h2 class="text-lg font-semibold text-slate-900 flex items-center">
-      <i class="my-3 fa-solid fa-hourglass-half text-amber-600 mr-3"></i>
-      {{ assignment.title }}
-    </h2>
-    <p class="text-xs text-gray-500">Course: {{ assignment.course }}</p>
-    <p class="text-xs text-gray-500 mt-1">
-      Due Date:
-      <span class="font-medium text-gray-700">{{ assignment.dueDate }}</span>
-    </p>
+  <div>
+    <h2 class="font-semibold">{{ assignment.title }}</h2>
+    <p class="text-xs text-gray-500">{{ courseName }}</p>
+    <p class="text-xs">Due: {{ assignment.dueDate }}</p>
   </div>
 
-  <!-- Middle Section -->
-  <div class="flex flex-col text-right w-1/5">
-    <p
-      *ngIf="assignment.status === 'submitted'"
-      class="text-blue-800 mt-1 font-bold text-xs"
-    >
-      <i class="fa-solid fa-check mr-1"></i> Submitted:
-      {{ assignment.submittedDate }}
-    </p>
-
-    <p
-      *ngIf="assignment.status === 'graded'"
-      class="text-green-800 mt-1 font-bold text-xs"
-    >
-      <i class="fa-solid fa-star mr-1"></i> Grade:
-      {{ assignment.grade }}
-    </p>
-  </div>
-
-  <!-- Right Section -->
-  <div class="flex items-center justify-end space-x-3 w-1/5">
+  <div class="flex gap-2 items-center">
     <button
-      *ngIf="assignment.status === 'pending'"
-      (click)="handleViewSubmit()"
-      class="px-4 py-2 text-sm font-semibold text-purple-800 bg-purple-200 hover:bg-purple-100 rounded-md transition"
+      *ngIf="assignment.status === 'active'"
+      (click)="openModal()"
+      class="px-3 py-1 bg-purple-200 rounded"
     >
       Submit
     </button>
 
     <button
-      *ngIf="assignment.status === 'submitted'"
-      disabled
-      class="px-4 py-2 text-sm font-semibold text-gray-500 bg-gray-200 rounded-md transition cursor-not-allowed opacity-70"
-    >
-      Submitted
-    </button>
-
-    <button
-      *ngIf="assignment.status === 'graded' && assignment.feedback"
+      *ngIf="assignment.status === 'graded'"
       (click)="handleViewFeedback()"
-      [disabled]="!assignment.feedback"
-      class="px-4 py-2 text-sm font-semibold text-green-700 bg-green-200 rounded-md hover:bg-green-100 transition disabled:opacity-70 disabled:cursor-not-allowed"
+      class="px-3 py-1 bg-green-200 rounded"
     >
       View Feedback
     </button>
   </div>
 </div>
 
-<!-- Modal -->
 <app-student-assignment-modal
   [show]="isModalOpen"
+  [tenantId]="tenantId"
   [assignment]="assignment"
-  (onClose)="closeModal()"
-  (onSubmit)="handleAssignmentSubmit($event)"
+  (close)="closeModal()"
+  (submit)="handleSubmit($event)"
 ></app-student-assignment-modal>

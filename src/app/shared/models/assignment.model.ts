@@ -1,8 +1,11 @@
 /* ================================
    Assignment Core Models
 ================================ */
-
-export type AssignmentStatus = 'active' | 'inactive';
+export type AssignmentStatus =
+  | 'active'
+  | 'submitted'
+  | 'graded'
+  | 'inactive';
 
 export interface Assignment {
   id: string;

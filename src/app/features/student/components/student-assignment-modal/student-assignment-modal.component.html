@@ -12,27 +12,24 @@
       <h2 class="text-2xl font-bold text-gray-900 mb-2">
         {{ assignment?.title }}
       </h2>
-      <p class="text-gray-600">{{ assignment?.course }}</p>
+      <p class="text-gray-600">
+        Course: {{ courseName || assignment?.courseId }}
+      </p>
       <p class="text-sm text-gray-500 mt-1">Due: {{ assignment?.dueDate }}</p>
     </div>
 
-    <!-- Assignment Description -->
+    <!-- Assignment Description and Marks -->
     <div class="mb-6">
       <h3 class="text-lg font-semibold text-gray-900 mb-3">
         Assignment Details
       </h3>
-
       <div class="bg-gray-50 rounded-lg p-4 text-gray-800">
-        <p class="font-medium text-gray-700">
-          Complete the final essay on the history of art movements...
-        </p>
-
+        <p class="font-medium text-gray-700">{{ assignment?.description }}</p>
         <p class="text-sm py-1 text-gray-500">
-          Total marks : {{ assignment?.totalMarks }}
+          Total marks: {{ assignment?.totalMarks }}
         </p>
-
         <p class="text-sm py-1 text-gray-500">
-          Passing marks : {{ assignment?.passingMarks }}
+          Passing marks: {{ assignment?.passingMarks }}
         </p>
       </div>
     </div>

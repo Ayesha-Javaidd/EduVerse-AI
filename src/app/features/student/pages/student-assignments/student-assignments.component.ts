@@ -1,11 +1,26 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from '../../../../shared/components/header/header.component';
+
+import { AssignmentService } from '../../../../shared/services/assignment.service';
 import {
-  AssignmentDetailComponent,
-  AssignmentDetail,
-} from '../../components/assignment-detail/assignment-detail.component';
+  StudentProfileService,
+  StudentProfile,
+} from '../../services/student-profile.service';
+
+import {
+  AssignmentSubmission,
+  AssignmentSubmissionCreatePayload,
+} from '../../../../shared/models/assignment-submission.model';
+
+import { Assignment } from '../../../../shared/models/assignment.model';
+import { AssignmentQueryParams } from '../../../../shared/models/assignment-query.model';
+
+import { HeaderComponent } from '../../../../shared/components/header/header.component';
+import { EmptyStateComponent } from '../../../teacher/components/empty-state/empty-state.component';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
+import { AssignmentDetailComponent } from '../../components/assignment-detail/assignment-detail.component';
+import { CourseService } from '../../../../shared/services/course.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-student-assignments',
@@ -13,118 +28,225 @@ import { FiltersComponent } from '../../../../shared/components/filters/filters.
   imports: [
     CommonModule,
     HeaderComponent,
-    AssignmentDetailComponent,
     FiltersComponent,
+    AssignmentDetailComponent,
   ],
   templateUrl: './student-assignments.component.html',
   styleUrls: ['./student-assignments.component.css'],
 })
 export class StudentAssignmentsComponent implements OnInit {
-  assignments: AssignmentDetail[] = [
-    {
-      id: 1,
-      title: 'Final Essay',
-      course: 'History of Art',
-      dueDate: 'October 29, 2023',
-      status: 'pending',
-      description:
-        'Write a comprehensive essay on the history of art movements from Renaissance to Modern Art. Your essay should be 2000-2500 words and include at least 5 references.',
-      totalMarks: 100,
-      passingMarks: 40,
-      attachments: ['Essay_Guidelines.pdf', 'Reference_Material.zip'],
-    },
-    {
-      id: 2,
-      title: 'Problem Set 5',
-      course: 'Advanced Mathematics',
-      dueDate: 'November 5, 2023',
-      status: 'pending',
-      description:
-        'Solve the following problems related to calculus and linear algebra. Show all your work and reasoning.',
-      totalMarks: 50,
-      passingMarks: 25,
-      attachments: ['Problem_Set_5.pdf', 'Formulas_Sheet.pdf'],
-    },
-    {
-      id: 3,
-      title: 'Case Study Analysis',
-      course: 'Intro to Marketing',
-      dueDate: 'October 20, 2023',
-      status: 'submitted',
-      submittedDate: 'October 18, 2023',
-      description:
-        'Analyze the marketing strategy of a successful brand and provide recommendations for improvement.',
-      totalMarks: 100,
-      passingMarks: 50,
-    },
-    {
-      id: 4,
-      title: 'Character Design',
-      course: 'Digital Illustration',
-      dueDate: 'October 15, 2023',
-      status: 'graded',
-      submittedDate: 'October 14, 2023',
-      grade: 'A-',
-      feedback:
-        'Excellent character design with strong personality. Good use of color theory.',
-      description:
-        'Create an original character design with front, side, and back views. Include color palette and personality description.',
-      totalMarks: 100,
-      passingMarks: 60,
-    },
-  ];
+  loading = false;
+  errorMessage: string | null = null;
+  successMessage: string | null = null;
 
-  filteredAssignments: AssignmentDetail[] = [];
+  studentProfile!: StudentProfile;
+  tenantId = '';
+  filterDropdowns: { key: string; label: string; options: string[] }[] = [];
 
-  // Dropdowns for FiltersComponent
-  filterDropdowns = [
-    {
-      key: 'status',
-      label: 'Status',
-      options: ['pending', 'submitted', 'graded'],
-    },
-    {
-      key: 'course',
-      label: 'Course',
-      options: [
-        'History of Art',
-        'Advanced Mathematics',
-        'Intro to Marketing',
-        'Digital Illustration',
-      ],
-    },
-  ];
+  enrolledCourses: { id: string; name: string }[] = [];
+  assignments: Assignment[] = [];
+  filteredAssignments: Assignment[] = [];
+  submissions = new Map<string, AssignmentSubmission>();
 
-  ngOnInit() {
-    this.filteredAssignments = [...this.assignments];
+  activeTab: 'active' | 'completed' = 'active';
+
+  constructor(
+    private studentProfileService: StudentProfileService,
+    private assignmentService: AssignmentService,
+    private courseService: CourseService,
+  ) {}
+
+  ngOnInit(): void {
+    this.loadStudentProfile();
   }
 
-  // Called when FiltersComponent emits new values
-  onFiltersChange(filters: { [key: string]: string }) {
-    const { search, status, course } = filters;
+  // loadStudentProfile(): void {
+  //   this.loading = true;
 
-    this.filteredAssignments = this.assignments.filter((a) => {
-      const matchesSearch =
-        !search ||
-        a.title.toLowerCase().includes(search.toLowerCase()) ||
-        a.course.toLowerCase().includes(search.toLowerCase()) ||
-        (a.description &&
-          a.description.toLowerCase().includes(search.toLowerCase()));
+  //   this.studentProfileService.getMyProfile().subscribe({
+  //     next: (profile) => {
+  //       this.studentProfile = profile;
+  //       this.tenantId = profile.tenantId || '';
+  //       this.loadAssignments();
+  //     },
+  //     error: () => {
+  //       this.loading = false;
+  //       this.showError('Failed to load student profile.');
+  //     },
+  //   });
+  // }
 
-      const matchesStatus = !status || a.status === status;
-      const matchesCourse = !course || a.course === course;
+  loadStudentProfile(): void {
+    this.loading = true;
 
-      return matchesSearch && matchesStatus && matchesCourse;
+    this.studentProfileService.getMyProfile().subscribe({
+      next: (profile) => {
+        this.studentProfile = profile;
+        this.tenantId = profile.tenantId || '';
+
+        // Fetch full course info for enrolledCourses
+        const courseRequests = profile.enrolledCourses.map((courseId) =>
+          this.courseService.getCourseById(courseId, this.tenantId),
+        );
+
+        forkJoin(courseRequests).subscribe({
+          next: (courses) => {
+            this.enrolledCourses = courses.map((c) => ({
+              id: c.id,
+              name: c.title || c.courseName || 'Unknown',
+            }));
+            this.setupFilters(); // only if you implement this function
+            this.loadAssignments();
+          },
+          error: (err) => {
+            console.error('Failed to load courses', err);
+            this.showError('Failed to load courses.');
+            this.loadAssignments(); // still load assignments without filter
+          },
+        });
+      },
+      error: () => {
+        this.loading = false;
+        this.showError('Failed to load student profile.');
+      },
     });
   }
 
-  handleViewSubmit(assignmentId: number) {
-    console.log('View/Submit assignment:', assignmentId);
-    // Open submission modal logic here
+  loadAssignments(): void {
+    const params: AssignmentQueryParams = {
+      tenantId: this.tenantId,
+      sortBy: 'uploadedAt',
+      order: -1,
+      status: 'active',
+    };
+
+    this.assignmentService.getAssignments(params).subscribe({
+      next: (res) => {
+        this.assignments = res.results || [];
+        this.filteredAssignments = [...this.assignments];
+        this.loadSubmissions();
+      },
+      error: () => {
+        this.showError('Failed to load assignments.');
+      },
+    });
   }
 
-  handleViewFeedback(assignmentId: number) {
-    console.log('View feedback for assignment:', assignmentId);
-    // Open feedback modal logic here
+  loadSubmissions(): void {
+    this.assignmentService.getMySubmissions().subscribe({
+      next: (subs) => {
+        subs.forEach((s) => this.submissions.set(s.assignmentId, s));
+        this.applyFilter();
+      },
+      error: () => {
+        this.showError('Failed to load submissions.');
+      },
+    });
+  }
+
+  hasSubmitted(assignmentId: string): boolean {
+    return this.submissions.has(assignmentId);
+  }
+
+  applyFilter(): void {
+    this.filteredAssignments = this.assignments.filter((a) =>
+      this.activeTab === 'completed'
+        ? this.hasSubmitted(a.id)
+        : !this.hasSubmitted(a.id),
+    );
+  }
+
+  setupFilters(): void {
+    this.filterDropdowns = [
+      {
+        key: 'status',
+        label: 'Status',
+        options: ['active', 'submitted', 'graded'],
+      },
+      {
+        key: 'courseId',
+        label: 'Course',
+        options: this.enrolledCourses.map((c) => c.name),
+      },
+    ];
+  }
+
+  onFiltersChange(filters: any): void {
+    this.filteredAssignments = this.assignments.filter((a) => {
+      let matches = true;
+
+      if (filters.status) {
+        matches = matches && a.status === filters.status;
+      }
+
+      if (filters.courseId) {
+        matches = matches && a.courseId === filters.courseId;
+      }
+
+      if (filters.search) {
+        const search = filters.search.toLowerCase();
+        matches =
+          matches &&
+          (a.title.toLowerCase().includes(search) ||
+            (a.description?.toLowerCase().includes(search) ?? false));
+      }
+
+      return matches;
+    });
+  }
+
+  /**  RECEIVES PAYLOAD FROM CHILD */
+  handleAssignmentSubmit(payload: AssignmentSubmissionCreatePayload): void {
+    // Add tenantId and studentId to payload
+    const fullPayload = {
+      ...payload,
+      tenantId: this.tenantId,
+      studentId: this.studentProfile.id,
+    };
+
+    console.log('Full payload sent to backend:', fullPayload);
+
+    this.assignmentService.submitAssignment(fullPayload).subscribe({
+      next: (submission) => {
+        this.submissions.set(submission.assignmentId, submission);
+        this.applyFilter();
+        this.showSuccess('Assignment submitted successfully.');
+      },
+      error: (err) => {
+        console.error('Submission failed:', err);
+        this.showError('Submission failed.');
+      },
+    });
+  }
+
+  // handleAssignmentSubmit(payload: AssignmentSubmissionCreatePayload): void {
+  //   console.log('Payload emitted to parent:', payload);
+  //   this.assignmentService.submitAssignment(payload).subscribe({
+  //     next: (submission) => {
+  //       this.submissions.set(submission.assignmentId, submission);
+  //       this.applyFilter();
+  //       this.showSuccess('Assignment submitted successfully.');
+  //     },
+  //     error: () => {
+  //       this.showError('Submission failed.');
+  //     },
+  //   });
+  // }
+
+  handleViewFeedback(assignment: Assignment): void {
+    const submission = this.submissions.get(assignment.id);
+    if (submission?.feedback) {
+      alert(submission.feedback);
+    }
+  }
+
+  private showError(msg: string): void {
+    this.errorMessage = msg;
+    setTimeout(() => (this.errorMessage = null), 4000);
+  }
+
+  private showSuccess(msg: string): void {
+    this.successMessage = msg;
+    setTimeout(() => (this.successMessage = null), 3000);
   }
 }

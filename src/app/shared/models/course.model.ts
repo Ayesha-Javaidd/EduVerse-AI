@@ -3,6 +3,7 @@
  */
 
 export interface Course {
+  courseName: string;
   id: string;
   tenantId: string;
   teacherId: string;

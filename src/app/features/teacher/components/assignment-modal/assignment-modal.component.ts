@@ -6,33 +6,40 @@ import {
   Validators,
   FormArray,
   ReactiveFormsModule,
+  FormsModule,
 } from '@angular/forms';
 import { Course } from '../../../../shared/models/course.model';
 import { ModalShellComponent } from '../../../../shared/components/modal-shell/modal-shell.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { Assignment } from '../../../../shared/models/assignment.model';
 
 @Component({
   selector: 'app-assignment-modal',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
-    ModalShellComponent,
+
     ButtonComponent,
+    ModalShellComponent,
   ],
   templateUrl: './assignment-modal.component.html',
   styleUrls: ['./assignment-modal.component.css'],
 })
 export class AssignmentModalComponent implements OnInit {
+  @Input() assignment: Assignment | null = null; // The assignment student is submitting
+  @Input() fileUrl: string | null = null; // Current uploaded file (optional)
+
   @Input() show = false;
   @Input() courses: Course[] = [];
   @Input() editingAssignmentId: string | null = null;
   @Input() formData: any = {};
   @Input() currentTeacherId!: string; // required by backend
   @Input() currentTenantId!: string; // required by backend
-
   @Output() onClose = new EventEmitter<void>();
   @Output() onSubmit = new EventEmitter<any>();
+  @Output() fileChange = new EventEmitter<string>();
 
   assignmentForm!: FormGroup;
 
@@ -123,11 +130,14 @@ export class AssignmentModalComponent implements OnInit {
 
   handleFileUpload(event: Event): void {
     const target = event.target as HTMLInputElement;
-    if (!target.files) return;
+    if (!target.files || target.files.length === 0) return;
 
-    Array.from(target.files).forEach((file) => {
-      this.attachments.push(new FormControl(file));
-    });
+    const file = target.files[0];
+    this.attachments.push(new FormControl(file));
+
+    // Emit the selected file's name or URL for parent component
+    this.fileUrl = file.name;
+    this.fileChange.emit(this.fileUrl);
 
     target.value = '';
   }
