@@ -9,7 +9,7 @@ export interface AssignmentQueryParams {
   courseId?: string;
   teacherId?: string;
   tenantId?: string;
-  status?: 'active' | 'inactive';
+  status?: 'active' | 'graded' | 'submitted';
 
   fromDate?: string; // ISO datetime
   toDate?: string; // ISO datetime

@@ -87,7 +87,9 @@
         (click)="openQuiz(quiz)"
         class="p-4 border rounded-lg bg-white shadow-sm flex justify-between items-center mb-3 hover:bg-blue-50 cursor-pointer transition"
         [class.opacity-60]="isDuePassed(quiz) && quiz.status !== 'Completed'"
-        [class.cursor-not-allowed]="isDuePassed(quiz) && quiz.status !== 'Completed'"
+        [class.cursor-not-allowed]="
+          isDuePassed(quiz) && quiz.status !== 'Completed'
+        "
       >
         <div>
           <h3 class="font-semibold text-lg">Quiz {{ quiz.quizNo }}</h3>
@@ -125,11 +127,17 @@
             [ngClass]="{
               'text-green-600': quiz.status === 'Completed',
               'text-blue-600': quiz.status === 'Pending' && !isDuePassed(quiz),
-              'text-red-600': quiz.status === 'Pending' && isDuePassed(quiz)
+              'text-red-600': quiz.status === 'Pending' && isDuePassed(quiz),
             }"
             class="font-medium"
           >
-            {{ quiz.status === "Completed" ? "Completed" : (isDuePassed(quiz) ? "Expired" : "Pending") }}
+            {{
+              quiz.status === "Completed"
+                ? "Completed"
+                : isDuePassed(quiz)
+                  ? "Expired"
+                  : "Pending"
+            }}
           </span>
         </div>
       </div>

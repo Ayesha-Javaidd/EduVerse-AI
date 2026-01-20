@@ -1,33 +1,38 @@
 <div
-  class="flex justify-between px-6 py-3 rounded-xl border-l-4 shadow-sm"
-  [ngClass]="{
-    'border-purple-400 bg-purple-50': assignment.status === 'active',
-    'border-blue-400 bg-blue-50': submitted,
-    'border-green-400 bg-green-50': assignment.status === 'graded',
-  }"
+  class="flex flex-col gap-2 px-6 py-3 rounded-xl border-l-4 shadow-sm"
+  [ngClass]="cardClasses"
 >
-  <div>
-    <h2 class="font-semibold">{{ assignment.title }}</h2>
-    <p class="text-xs text-gray-500">{{ courseName }}</p>
-    <p class="text-xs">Due: {{ assignment.dueDate }}</p>
-  </div>
+  <div class="flex justify-between items-start">
+    <div>
+      <h2 class="font-semibold">{{ assignment.title }}</h2>
+      <p class="text-xs text-gray-500">{{ assignment.courseName }}</p>
+      <p class="text-xs">Due: {{ assignment.dueDate | date: "shortDate" }}</p>
+    </div>
 
-  <div class="flex gap-2 items-center">
-    <button
-      *ngIf="assignment.status === 'active'"
-      (click)="openModal()"
-      class="px-3 py-1 bg-purple-200 rounded"
-    >
-      Submit
-    </button>
+    <div class="flex gap-2 items-center">
+      <!-- Submit / Submitted Button -->
+      <button
+        *ngIf="isActive || isSubmitted"
+        [disabled]="isSubmitted"
+        (click)="openModal()"
+        [ngClass]="{
+          'bg-purple-200': isActive,
+          'bg-blue-200 cursor-not-allowed': isSubmitted,
+        }"
+        class="px-3 py-1 rounded"
+      >
+        {{ isSubmitted ? "Submitted" : "Submit" }}
+      </button>
 
-    <button
-      *ngIf="assignment.status === 'graded'"
-      (click)="handleViewFeedback()"
-      class="px-3 py-1 bg-green-200 rounded"
-    >
-      View Feedback
-    </button>
+      <!-- View Feedback -->
+      <button
+        *ngIf="assignment.effectiveStatus === 'graded'"
+        (click)="handleViewFeedback()"
+        class="px-3 py-1 bg-green-200 rounded"
+      >
+        View Feedback
+      </button>
+    </div>
   </div>
 </div>
 

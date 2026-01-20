@@ -1,11 +1,9 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { Assignment } from '../../../../shared/models/assignment.model';
-
 import { AssignmentSubmissionCreatePayload } from '../../../../shared/models/assignment-submission.model';
 import { StudentAssignmentModalComponent } from '../student-assignment-modal/student-assignment-modal.component';
-import { CourseService } from '../../../../shared/services/course.service';
 
 @Component({
   selector: 'app-assignment-detail',
@@ -13,9 +11,12 @@ import { CourseService } from '../../../../shared/services/course.service';
   imports: [CommonModule, StudentAssignmentModalComponent],
   templateUrl: './assignment-detail.component.html',
 })
-export class AssignmentDetailComponent implements OnInit {
-  @Input() assignment!: Assignment;
-  @Input() tenantId!: string; // REQUIRED for course API
+export class AssignmentDetailComponent {
+  @Input() assignment!: Assignment & {
+    submitted?: boolean;
+    effectiveStatus?: string;
+  };
+  @Input() tenantId!: string;
   @Input() submitted = false;
 
   @Output() submitAssignment =
@@ -23,28 +24,6 @@ export class AssignmentDetailComponent implements OnInit {
   @Output() viewFeedback = new EventEmitter<Assignment>();
 
   isModalOpen = false;
-  courseName = 'Loading...';
-
-  constructor(private courseService: CourseService) {}
-
-  ngOnInit(): void {
-    this.loadCourseName();
-  }
-
-  private loadCourseName(): void {
-    if (!this.assignment?.courseId || !this.tenantId) return;
-
-    this.courseService
-      .getCourseById(this.assignment.courseId, this.tenantId)
-      .subscribe({
-        next: (course) => {
-          this.courseName = course.title ?? course.title ?? 'Unknown Course';
-        },
-        error: () => {
-          this.courseName = 'Unknown Course';
-        },
-      });
-  }
 
   openModal(): void {
     this.isModalOpen = true;
@@ -53,15 +32,6 @@ export class AssignmentDetailComponent implements OnInit {
   closeModal(): void {
     this.isModalOpen = false;
   }
-
-  // handleSubmit(fileUrl: string): void {
-  //   this.submitAssignment.emit({
-  //     assignmentId: this.assignment.id,
-  //     courseId: this.assignment.courseId,
-  //     fileUrl,
-  //   });
-  //   this.closeModal();
-  // }
 
   handleSubmit(fileUrl: string): void {
     const payload: AssignmentSubmissionCreatePayload = {
@@ -76,5 +46,23 @@ export class AssignmentDetailComponent implements OnInit {
 
   handleViewFeedback(): void {
     this.viewFeedback.emit(this.assignment);
+  }
+
+  // Computed properties for template
+  get isActive(): boolean {
+    return this.assignment.effectiveStatus === 'active';
+  }
+
+  get isSubmitted(): boolean {
+    return this.assignment.submitted === true;
+  }
+
+  get cardClasses(): string {
+    if (this.isSubmitted) return 'border-blue-400 bg-blue-50'; // Blue for submitted
+    if (this.assignment.effectiveStatus === 'active')
+      return 'border-purple-400 bg-purple-50';
+    if (this.assignment.effectiveStatus === 'graded')
+      return 'border-green-400 bg-green-50';
+    return '';
   }
 }

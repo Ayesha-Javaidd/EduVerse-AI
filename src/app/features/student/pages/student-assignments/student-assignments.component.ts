@@ -1,26 +1,24 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
 
 import { AssignmentService } from '../../../../shared/services/assignment.service';
+import { CourseService } from '../../../../shared/services/course.service';
 import {
   StudentProfileService,
   StudentProfile,
 } from '../../services/student-profile.service';
 
+import { Assignment } from '../../../../shared/models/assignment.model';
 import {
   AssignmentSubmission,
   AssignmentSubmissionCreatePayload,
 } from '../../../../shared/models/assignment-submission.model';
-
-import { Assignment } from '../../../../shared/models/assignment.model';
 import { AssignmentQueryParams } from '../../../../shared/models/assignment-query.model';
 
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
-import { EmptyStateComponent } from '../../../teacher/components/empty-state/empty-state.component';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 import { AssignmentDetailComponent } from '../../components/assignment-detail/assignment-detail.component';
-import { CourseService } from '../../../../shared/services/course.service';
-import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-student-assignments',
@@ -41,14 +39,19 @@ export class StudentAssignmentsComponent implements OnInit {
 
   studentProfile!: StudentProfile;
   tenantId = '';
+
   filterDropdowns: { key: string; label: string; options: string[] }[] = [];
-
   enrolledCourses: { id: string; name: string }[] = [];
-  assignments: Assignment[] = [];
-  filteredAssignments: Assignment[] = [];
-  submissions = new Map<string, AssignmentSubmission>();
 
-  activeTab: 'active' | 'completed' = 'active';
+  assignments: (Assignment & {
+    submitted?: boolean;
+    effectiveStatus?: string;
+  })[] = [];
+  filteredAssignments: (Assignment & {
+    submitted?: boolean;
+    effectiveStatus?: string;
+  })[] = [];
+  submissions = new Map<string, AssignmentSubmission>();
 
   constructor(
     private studentProfileService: StudentProfileService,
@@ -60,22 +63,6 @@ export class StudentAssignmentsComponent implements OnInit {
     this.loadStudentProfile();
   }
 
-  // loadStudentProfile(): void {
-  //   this.loading = true;
-
-  //   this.studentProfileService.getMyProfile().subscribe({
-  //     next: (profile) => {
-  //       this.studentProfile = profile;
-  //       this.tenantId = profile.tenantId || '';
-  //       this.loadAssignments();
-  //     },
-  //     error: () => {
-  //       this.loading = false;
-  //       this.showError('Failed to load student profile.');
-  //     },
-  //   });
-  // }
-
   loadStudentProfile(): void {
     this.loading = true;
 
@@ -84,7 +71,6 @@ export class StudentAssignmentsComponent implements OnInit {
         this.studentProfile = profile;
         this.tenantId = profile.tenantId || '';
 
-        // Fetch full course info for enrolledCourses
         const courseRequests = profile.enrolledCourses.map((courseId) =>
           this.courseService.getCourseById(courseId, this.tenantId),
         );
@@ -95,13 +81,13 @@ export class StudentAssignmentsComponent implements OnInit {
               id: c.id,
               name: c.title || c.courseName || 'Unknown',
             }));
-            this.setupFilters(); // only if you implement this function
+
+            this.setupFilters();
             this.loadAssignments();
           },
-          error: (err) => {
-            console.error('Failed to load courses', err);
+          error: () => {
             this.showError('Failed to load courses.');
-            this.loadAssignments(); // still load assignments without filter
+            this.loadAssignments();
           },
         });
       },
@@ -126,9 +112,7 @@ export class StudentAssignmentsComponent implements OnInit {
         this.filteredAssignments = [...this.assignments];
         this.loadSubmissions();
       },
-      error: () => {
-        this.showError('Failed to load assignments.');
-      },
+      error: () => this.showError('Failed to load assignments.'),
     });
   }
 
@@ -136,24 +120,25 @@ export class StudentAssignmentsComponent implements OnInit {
     this.assignmentService.getMySubmissions().subscribe({
       next: (subs) => {
         subs.forEach((s) => this.submissions.set(s.assignmentId, s));
-        this.applyFilter();
+
+        // Merge submission status into assignments
+        this.assignments = this.assignments.map((a) => ({
+          ...a,
+          submitted: this.submissions.has(a.id),
+          effectiveStatus: this.submissions.has(a.id) ? 'submitted' : a.status,
+        }));
+        this.filteredAssignments = [...this.assignments];
+        this.loading = false;
       },
       error: () => {
         this.showError('Failed to load submissions.');
+        this.loading = false;
       },
     });
   }
 
   hasSubmitted(assignmentId: string): boolean {
     return this.submissions.has(assignmentId);
-  }
-
-  applyFilter(): void {
-    this.filteredAssignments = this.assignments.filter((a) =>
-      this.activeTab === 'completed'
-        ? this.hasSubmitted(a.id)
-        : !this.hasSubmitted(a.id),
-    );
   }
 
   setupFilters(): void {
@@ -164,7 +149,7 @@ export class StudentAssignmentsComponent implements OnInit {
         options: ['active', 'submitted', 'graded'],
       },
       {
-        key: 'courseId',
+        key: 'courseName',
         label: 'Course',
         options: this.enrolledCourses.map((c) => c.name),
       },
@@ -176,11 +161,11 @@ export class StudentAssignmentsComponent implements OnInit {
       let matches = true;
 
       if (filters.status) {
-        matches = matches && a.status === filters.status;
+        matches = matches && a.effectiveStatus === filters.status;
       }
 
-      if (filters.courseId) {
-        matches = matches && a.courseId === filters.courseId;
+      if (filters.courseName) {
+        matches = matches && a.courseName === filters.courseName;
       }
 
       if (filters.search) {
@@ -188,6 +173,7 @@ export class StudentAssignmentsComponent implements OnInit {
         matches =
           matches &&
           (a.title.toLowerCase().includes(search) ||
+            a.courseName.toLowerCase().includes(search) ||
             (a.description?.toLowerCase().includes(search) ?? false));
       }
 
@@ -195,43 +181,38 @@ export class StudentAssignmentsComponent implements OnInit {
     });
   }
 
-  /**  RECEIVES PAYLOAD FROM CHILD */
   handleAssignmentSubmit(payload: AssignmentSubmissionCreatePayload): void {
-    // Add tenantId and studentId to payload
+    // Prevent multiple submissions
+    if (this.hasSubmitted(payload.assignmentId)) {
+      this.showError('You have already submitted this assignment.');
+      return;
+    }
+
     const fullPayload = {
       ...payload,
       tenantId: this.tenantId,
       studentId: this.studentProfile.id,
     };
 
-    console.log('Full payload sent to backend:', fullPayload);
-
     this.assignmentService.submitAssignment(fullPayload).subscribe({
       next: (submission) => {
         this.submissions.set(submission.assignmentId, submission);
-        this.applyFilter();
+
+        // Update assignment to mark as submitted
+        const idx = this.assignments.findIndex(
+          (a) => a.id === submission.assignmentId,
+        );
+        if (idx > -1) {
+          this.assignments[idx].submitted = true;
+          this.assignments[idx].effectiveStatus = 'submitted';
+          this.filteredAssignments = [...this.assignments];
+        }
+
         this.showSuccess('Assignment submitted successfully.');
       },
-      error: (err) => {
-        console.error('Submission failed:', err);
-        this.showError('Submission failed.');
-      },
+      error: () => this.showError('Submission failed.'),
     });
   }
-
-  // handleAssignmentSubmit(payload: AssignmentSubmissionCreatePayload): void {
-  //   console.log('Payload emitted to parent:', payload);
-  //   this.assignmentService.submitAssignment(payload).subscribe({
-  //     next: (submission) => {
-  //       this.submissions.set(submission.assignmentId, submission);
-  //       this.applyFilter();
-  //       this.showSuccess('Assignment submitted successfully.');
-  //     },
-  //     error: () => {
-  //       this.showError('Submission failed.');
-  //     },
-  //   });
-  // }
 
   handleViewFeedback(assignment: Assignment): void {
     const submission = this.submissions.get(assignment.id);
