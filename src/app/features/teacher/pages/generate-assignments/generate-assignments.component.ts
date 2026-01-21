@@ -1,5 +1,3 @@
-
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -63,7 +61,6 @@ export class GenerateAssignmentsComponent implements OnInit {
 
   assignmentDropdowns = [
     { key: 'status', label: 'Status', options: ['active', 'inactive'] },
-    { key: 'course', label: 'Course', options: [] }, // we'll populate course names dynamically
   ];
 
   filters: { [key: string]: string } = {
@@ -107,15 +104,39 @@ export class GenerateAssignmentsComponent implements OnInit {
     });
   }
 
+  // private loadCourses(): void {
+  //   this.courseService
+  //     .getCourses({ teacher_id: this.teacherId, tenantId: this.tenantId })
+  //     .subscribe({
+  //       next: (courses) => {
+  //         this.courses = courses;
+  //         // Populate course dropdown options
+  //         this.assignmentDropdowns.find((d) => d.key === 'course')!.options =
+  //           courses.map((c) => c.courseName);
+  //         this.loadAssignments();
+  //       },
+  //       error: () => {
+  //         this.loading = false;
+  //         this.showError('Failed to load courses');
+  //       },
+  //     });
+  // }
+
   private loadCourses(): void {
     this.courseService
       .getCourses({ teacher_id: this.teacherId, tenantId: this.tenantId })
       .subscribe({
         next: (courses) => {
           this.courses = courses;
-          // Populate course dropdown options
-          this.assignmentDropdowns.find((d) => d.key === 'course')!.options =
-            courses.map((c) => c.courseName);
+
+          // Only teacher's courses for the filter dropdown
+          const courseDropdown = this.assignmentDropdowns.find(
+            (d) => d.key === 'course',
+          );
+          if (courseDropdown) {
+            courseDropdown.options = courses.map((c) => c.courseName);
+          }
+
           this.loadAssignments();
         },
         error: () => {
@@ -239,14 +260,6 @@ export class GenerateAssignmentsComponent implements OnInit {
       assignments = assignments.filter(
         (a) => a.status === this.filters['status'],
       );
-    }
-
-    if (this.filters['course']) {
-      const course = this.courses.find(
-        (c) => c.courseName === this.filters['course'],
-      );
-      if (course)
-        assignments = assignments.filter((a) => a.courseId === course.id);
     }
 
     if (this.filters['search']) {

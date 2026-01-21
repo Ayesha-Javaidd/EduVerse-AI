@@ -15,6 +15,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 })
 export class GradeAssignmentModalComponent {
   @Input({ required: true }) submission!: AssignmentSubmission;
+  @Input({ required: true }) totalMarks!: number; // <-- total marks of assignment
 
   @Output() close = new EventEmitter<void>();
   @Output() graded = new EventEmitter<AssignmentSubmission>();
@@ -29,6 +30,13 @@ export class GradeAssignmentModalComponent {
   submitGrade(): void {
     if (this.obtainedMarks === null || this.obtainedMarks < 0) {
       this.errorMessage = 'Please enter valid marks';
+      console.log('Grading failed: invalid marks entered');
+      return;
+    }
+
+    if (this.obtainedMarks > this.totalMarks) {
+      this.errorMessage = `Obtained marks cannot exceed total marks (${this.totalMarks})`;
+      console.log('Grading failed: obtained marks exceed total marks');
       return;
     }
 
@@ -44,10 +52,17 @@ export class GradeAssignmentModalComponent {
         next: (updatedSubmission) => {
           this.loading = false;
           this.graded.emit(updatedSubmission);
+          console.log(
+            `Grading successful: Submission ${this.submission.id} graded with ${this.obtainedMarks}/${this.totalMarks}`,
+          );
         },
-        error: () => {
+        error: (err) => {
           this.loading = false;
           this.errorMessage = 'Failed to grade submission';
+          console.log(
+            `Grading failed: Submission ${this.submission.id} could not be graded`,
+            err,
+          );
         },
       });
   }

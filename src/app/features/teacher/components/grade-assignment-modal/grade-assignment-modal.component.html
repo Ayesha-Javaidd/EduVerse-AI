@@ -5,12 +5,15 @@
     <h2 class="text-xl font-semibold mb-4">Grade Assignment</h2>
 
     <div class="mb-4">
-      <label class="block text-sm font-medium mb-1">Obtained Marks</label>
+      <label class="block text-sm font-medium mb-1"
+        >Obtained Marks (Max: {{ totalMarks }})</label
+      >
       <input
         type="number"
         class="w-full border rounded-lg px-3 py-2"
         [(ngModel)]="obtainedMarks"
         min="0"
+        [max]="totalMarks"
       />
     </div>
 
