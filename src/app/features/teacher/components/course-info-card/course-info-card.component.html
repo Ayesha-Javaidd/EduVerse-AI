@@ -1,0 +1,60 @@
+<div class="bg-white rounded-lg shadow-sm p-6">
+  <div class="flex items-start justify-between">
+    <div class="flex-1">
+      <!-- Current Course Label -->
+      <span class="text-xs font-semibold text-blue-600 uppercase tracking-wide">
+        Current Course
+      </span>
+      
+      <!-- Course Title -->
+      <h2 class="text-xl font-bold text-slate-800 mt-1">
+        {{ course.title || 'Untitled Course' }}
+      </h2>
+      
+      <!-- Module, Lesson Count & Duration -->
+      <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+        <span>{{ moduleCount }} Modules</span>
+        <span>{{ lessonCount }} Lessons</span>
+        <span *ngIf="course.totalDuration && course.totalDuration !== '0m'">
+          <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {{ course.totalDuration }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Edit Button -->
+    <button
+      (click)="onEditClick()"
+      class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+      title="Edit course info"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Status Badge & Price -->
+  <div class="mt-4 flex items-center gap-3">
+    <span
+      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+      [ngClass]="{
+        'bg-green-100 text-green-800': course.status === 'published',
+        'bg-yellow-100 text-yellow-800': course.status === 'draft'
+      }"
+    >
+      {{ course.status === 'published' ? 'Published' : 'Draft' }}
+    </span>
+    <span
+      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+      [ngClass]="{
+        'bg-blue-100 text-blue-800': course.isFree,
+        'bg-purple-100 text-purple-800': !course.isFree
+      }"
+    >
+      {{ course.isFree ? 'Free' : (course.price ? (course.currency || '$') + ' ' + course.price : 'Paid') }}
+    </span>
+  </div>
+</div>

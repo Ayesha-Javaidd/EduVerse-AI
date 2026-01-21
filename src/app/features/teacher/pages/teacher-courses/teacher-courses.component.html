@@ -2,17 +2,32 @@
   <app-header [pageTitle]="'Courses'"></app-header>
 
   <main class="p-6">
-    <app-filters
-      [dropdowns]="filterConfig.dropdowns"
-      [searchPlaceholder]="filterConfig.searchPlaceholder"
-      (filtersChange)="onFiltersChange($event)"
-    ></app-filters>
+    <!-- Filters and Create Course Button -->
+    <div class="flex items-center justify-between mb-4">
+      <app-filters
+        class="flex-grow mr-4"
+        [dropdowns]="filterConfig.dropdowns"
+        [searchPlaceholder]="filterConfig.searchPlaceholder"
+        (filtersChange)="onFiltersChange($event)"
+      ></app-filters>
+
+      <app-button
+        customColor="bg-blue-950 text-white hover:bg-blue-900"
+        (buttonClick)="onCreateCourse()"
+      >
+        + Create Course
+      </app-button>
+    </div>
 
     <app-data-table
-      [title]="'Course List'"
+      [title]="'My Courses'"
       [columns]="columns"
       [rows]="courses"
-      [enableActions]="false"
+      [enableActions]="true"
+      [visibleActions]="visibleActions"
+      [rowClickable]="true"
+      (view)="onEditCourse($event)"
+      (delete)="onDeleteCourse($event)"
     ></app-data-table>
   </main>
 </div>

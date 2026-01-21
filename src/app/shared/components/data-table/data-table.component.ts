@@ -39,6 +39,7 @@ export class DataTableComponent {
 
   /** Emits when an action is triggered */
   @Output() edit = new EventEmitter();
+  @Output() view = new EventEmitter();
   @Output() delete = new EventEmitter();
 
   @Input() pageSize: number = 5; // how many rows per page → how many rows per page.

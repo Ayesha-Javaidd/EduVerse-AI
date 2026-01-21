@@ -32,6 +32,7 @@ import { SuperAdminSettingsComponent } from './features/super-admin/pages/super-
 import { StudentDetailsComponent } from './features/teacher/pages/student-details/student-details.component';
 import { SuperAdminTenantSettingsComponent } from './features/super-admin/pages/super-admin-tenant-settings/super-admin-tenant-settings.component';
 import { SignupComponent } from './features/auth/pages/signup/signup.component';
+import { CourseBuilderComponent } from './features/teacher/pages/course-builder/course-builder.component';
 import { AuthGuard } from './features/auth/guards/auth.guard';
 import { RoleGuard } from './features/auth/guards/role.guard';
 import { StudentSignupComponent } from './features/auth/pages/student-signup/student-signup.component';
@@ -76,6 +77,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: TeacherDashboardComponent },
       { path: 'courses', component: TeacherCoursesComponent },
+      { path: 'courses/builder/:id', component: CourseBuilderComponent },
       { path: 'quizzes', component: QuizzesComponent },
       { path: 'assignments', component: GenerateAssignmentsComponent },
       { path: 'trackstudent', component: TrackStudentComponent },

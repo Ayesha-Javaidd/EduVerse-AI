@@ -1,0 +1,561 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b border-gray-200">
+    <div class="flex items-center justify-between p-4">
+      <!-- Left: Back button and title -->
+      <div class="flex items-center space-x-4">
+        <button
+          (click)="goBack()"
+          class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1 class="text-xl font-bold text-blue-950">Course Builder</h1>
+      </div>
+
+      <!-- Right: Publish button -->
+      <div class="flex items-center space-x-3">
+        <span *ngIf="isSaving" class="text-sm text-gray-500">Saving...</span>
+        <button
+          *ngIf="course"
+          (click)="onPublish()"
+          [disabled]="isSaving"
+          class="px-4 py-2 rounded-lg font-medium transition-colors"
+          [ngClass]="{
+            'bg-blue-950 text-white hover:bg-blue-900': course.status !== 'published',
+            'bg-gray-200 text-gray-700 hover:bg-gray-300': course.status === 'published'
+          }"
+        >
+          {{ course.status === 'published' ? 'Unpublish' : 'Publish' }}
+        </button>
+        <!-- Profile avatar -->
+        <div class="h-10 w-10 rounded-full bg-blue-950 flex items-center justify-center" [title]="teacherName">
+          <span class="text-white text-sm font-semibold">{{ teacherInitial }}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tabs Navigation -->
+  <app-course-builder-tabs
+    *ngIf="course"
+    [activeTab]="activeTab"
+    (tabChange)="onTabChange($event)"
+  ></app-course-builder-tabs>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex items-center justify-center py-20">
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-950"></div>
+      <p class="mt-2 text-gray-600">Loading course...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="p-6">
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+      {{ error }}
+      <button (click)="loadTeacherContext()" class="ml-4 underline">Retry</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main *ngIf="course && !isLoading && !error" class="p-6">
+    <!-- Content Builder Tab -->
+    <div *ngIf="activeTab === 'content'" class="space-y-6">
+      <!-- Course Info Card -->
+      <app-course-info-card
+        [course]="course"
+        (editClick)="onEditCourseInfo()"
+      ></app-course-info-card>
+
+      <!-- Curriculum Section -->
+      <div class="bg-white rounded-lg shadow-sm">
+        <!-- Curriculum Header -->
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+          <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Curriculum</h2>
+          <button
+            (click)="onCollapseAll()"
+            class="text-sm text-blue-950 hover:text-blue-800 font-medium"
+          >
+            ⋮ Collapse All
+          </button>
+        </div>
+
+        <!-- Modules List -->
+        <div class="p-4 space-y-4">
+          <div
+            *ngFor="let module of course.modules; let i = index"
+            draggable="true"
+            (dragstart)="onModuleDragStart($event, i)"
+            (dragover)="onModuleDragOver($event, i)"
+            (drop)="onModuleDrop($event, i)"
+            (dragend)="onModuleDragEnd()"
+            class="transition-all duration-200"
+            [class.opacity-50]="draggedModuleIndex === i"
+            [class.ring-2]="draggedModuleIndex !== null && draggedModuleIndex !== i"
+            [class.ring-blue-400]="draggedModuleIndex !== null && draggedModuleIndex !== i"
+            [class.rounded-lg]="draggedModuleIndex !== null && draggedModuleIndex !== i"
+          >
+            <app-curriculum-module
+              [module]="module"
+              [moduleIndex]="i"
+              (toggleExpand)="onToggleModule(module.id)"
+              (editModule)="openAddModuleModal(module)"
+              (deleteModule)="onDeleteModule(module.id)"
+              (addLesson)="openAddLessonModal(module.id)"
+              (editLesson)="openAddLessonModal(module.id, $event)"
+              (deleteLesson)="onDeleteLesson(module.id, $event)"
+              (lessonReorder)="onLessonReorder(module.id, $event)"
+            ></app-curriculum-module>
+          </div>
+
+          <!-- Empty State -->
+          <div
+            *ngIf="course.modules.length === 0"
+            class="text-center py-12 text-gray-500"
+          >
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No modules yet</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by adding your first module.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Add Module Button -->
+        <button
+          (click)="openAddModuleModal()"
+          class="flex items-center justify-center gap-2 py-3 px-6 bg-blue-950 text-white rounded-lg hover:bg-blue-900 transition-colors font-medium"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+          </svg>
+          ADD MODULE
+        </button>
+        <!-- Bulk Upload Button -->
+        <button
+          (click)="openBulkUploadModal()"
+          class="flex items-center justify-center gap-2 py-3 px-6 bg-white text-blue-950 border-2 border-blue-950 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          BULK UPLOAD
+        </button>
+      </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div *ngIf="activeTab === 'settings'" class="bg-white rounded-lg shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-6">Course Settings</h2>
+      
+      <div class="space-y-4 max-w-2xl">
+        <!-- Title -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Course Title</label>
+          <input
+            type="text"
+            [(ngModel)]="course.title"
+            (blur)="saveCourse()"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+            placeholder="Enter course title"
+          />
+        </div>
+
+        <!-- Course Code -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Course Code</label>
+          <input
+            type="text"
+            [(ngModel)]="course.courseCode"
+            (blur)="saveCourse()"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+            placeholder="e.g., CS-101 (auto-generated if empty)"
+          />
+          <p class="text-xs text-gray-400 mt-1">Unique identifier for the course. Leave empty to auto-generate.</p>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea
+            [(ngModel)]="course.description"
+            (blur)="saveCourse()"
+            rows="4"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-white"
+            placeholder="Enter course description"
+          ></textarea>
+        </div>
+
+        <!-- Thumbnail URL -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Thumbnail URL</label>
+          <input
+            type="text"
+            [(ngModel)]="course.thumbnailUrl"
+            (blur)="saveCourse()"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+            placeholder="https://example.com/image.jpg"
+          />
+        </div>
+
+        <!-- Category -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <select
+            [(ngModel)]="course.category"
+            (change)="saveCourse()"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+          >
+            <option *ngFor="let cat of categoryOptions" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+
+        <!-- Level -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Level</label>
+          <select
+            [(ngModel)]="course.level"
+            (change)="saveCourse()"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+          >
+            <option *ngFor="let lvl of levelOptions" [value]="lvl">{{ lvl }}</option>
+          </select>
+        </div>
+
+        <!-- Total Duration (read-only, calculated) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Total Duration</label>
+          <input
+            type="text"
+            [value]="course.totalDuration || '0m'"
+            disabled
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+          />
+          <p class="text-xs text-gray-400 mt-1">Automatically calculated from lesson durations</p>
+        </div>
+      </div>
+
+      <!-- Pricing Section -->
+      <div class="mt-8 pt-6 border-t border-gray-200">
+        <h3 class="text-md font-semibold text-gray-900 mb-4">Pricing</h3>
+        
+        <div class="space-y-4 max-w-2xl">
+          <!-- Free/Paid Toggle -->
+          <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div>
+              <h4 class="font-medium text-slate-800">Free Course</h4>
+              <p class="text-sm text-gray-500">Enable to make this course free for all students</p>
+            </div>
+            <button
+              type="button"
+              (click)="onToggleFree(!course.isFree)"
+              class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              [ngClass]="{
+                'bg-blue-950': course.isFree,
+                'bg-gray-200': !course.isFree
+              }"
+            >
+              <span
+                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                [ngClass]="{
+                  'translate-x-5': course.isFree,
+                  'translate-x-0': !course.isFree
+                }"
+              ></span>
+            </button>
+          </div>
+
+          <!-- Price Input (only if not free) -->
+          <div *ngIf="!course.isFree" class="flex gap-4">
+            <div class="flex-1">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Price</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                <input
+                  type="number"
+                  [(ngModel)]="course.price"
+                  (blur)="onPriceChange()"
+                  min="0"
+                  step="0.01"
+                  class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            <div class="w-32">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+              <select
+                [(ngModel)]="course.currency"
+                (change)="saveCourse()"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="PKR">PKR</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visibility Section - Only show when course is published -->
+      <div *ngIf="course.status === 'published'" class="mt-8 pt-6 border-t border-gray-200">
+        <h3 class="text-md font-semibold text-gray-900 mb-2">Course Visibility</h3>
+        <p class="text-sm text-gray-500 mb-4 max-w-2xl">
+          Control who can discover your course. 
+          <strong>Visibility</strong> controls whether the course appears in public listings and marketplace.
+        </p>
+        
+        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg max-w-2xl">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center"
+              [ngClass]="{
+                'bg-blue-100': course.isPublic,
+                'bg-gray-200': !course.isPublic
+              }">
+              <svg *ngIf="course.isPublic" class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+              </svg>
+              <svg *ngIf="!course.isPublic" class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-medium text-slate-800">{{ course.isPublic ? 'Public Course' : 'Private Course' }}</h4>
+              <p class="text-sm text-gray-500">
+                {{ course.isPublic 
+                  ? 'Visible in course marketplace (when published)' 
+                  : 'Hidden from marketplace' }}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="onToggleVisibility()"
+            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            [ngClass]="{
+              'bg-blue-950': course.isPublic,
+              'bg-gray-200': !course.isPublic
+            }"
+          >
+            <span
+              class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+              [ngClass]="{
+                'translate-x-5': course.isPublic,
+                'translate-x-0': !course.isPublic
+              }"
+            ></span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Draft course visibility notice -->
+      <div *ngIf="course.status !== 'published'" class="mt-8 pt-6 border-t border-gray-200">
+        <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg max-w-2xl">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h4 class="font-medium text-amber-800">Visibility Settings</h4>
+              <p class="text-sm text-amber-700 mt-1">
+                Visibility options will become available once you publish this course. 
+                Draft courses are not visible to students.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Students Tab -->
+    <div *ngIf="activeTab === 'students'" class="bg-white rounded-lg shadow-sm">
+      <!-- Header -->
+      <div class="p-6 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900">Enrolled Students</h2>
+            <p class="text-sm text-gray-500 mt-1">{{ enrolledStudents.length }} student(s) enrolled in this course</p>
+          </div>
+          <!-- Search -->
+          <div class="relative">
+            <input
+              type="text"
+              [(ngModel)]="studentSearchQuery"
+              placeholder="Search students..."
+              class="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoadingStudents" class="flex items-center justify-center py-12">
+        <div class="text-center">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-950"></div>
+          <p class="mt-2 text-gray-600">Loading students...</p>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoadingStudents && enrolledStudents.length === 0" class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No students enrolled yet</h3>
+        <p class="mt-1 text-sm text-gray-500">Students will appear here once they enroll in this course.</p>
+      </div>
+
+      <!-- No Search Results -->
+      <div *ngIf="!isLoadingStudents && enrolledStudents.length > 0 && filteredStudents.length === 0" class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No students found</h3>
+        <p class="mt-1 text-sm text-gray-500">Try adjusting your search term.</p>
+      </div>
+
+      <!-- Students List -->
+      <div *ngIf="!isLoadingStudents && filteredStudents.length > 0">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enrolled</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let student of filteredStudents" class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="h-10 w-10 flex-shrink-0">
+                    <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                      <span class="text-blue-700 font-medium">{{ student.fullName.charAt(0).toUpperCase() }}</span>
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">{{ student.fullName }}</div>
+                    <div class="text-sm text-gray-500">{{ student.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                    <div 
+                      class="h-2 rounded-full transition-all"
+                      [style.width.%]="student.progress"
+                      [ngClass]="{
+                        'bg-green-500': student.progress >= 80,
+                        'bg-blue-500': student.progress >= 40 && student.progress < 80,
+                        'bg-yellow-500': student.progress > 0 && student.progress < 40,
+                        'bg-gray-400': student.progress === 0
+                      }"
+                    ></div>
+                  </div>
+                  <span class="text-sm text-gray-600">{{ student.progress }}%</span>
+                </div>
+                <div class="text-xs text-gray-400 mt-1">{{ student.lessonsCompleted }} lessons completed</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ formatDate(student.enrolledAt) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ student.lastAccessed ? formatDate(student.lastAccessed) : 'Never' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button
+                  (click)="onUnenrollStudent(student)"
+                  class="text-red-600 hover:text-red-900"
+                >
+                  Unenroll
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Reviews Tab -->
+    <div *ngIf="activeTab === 'reviews'" class="bg-white rounded-lg shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Course Reviews</h2>
+      <div class="text-center py-12 text-gray-500">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No reviews yet</h3>
+        <p class="mt-1 text-sm text-gray-500">Reviews will appear here once students submit feedback.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation (Mobile) -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden">
+    <div class="flex justify-around py-2">
+      <a routerLink="/teacher/dashboard" class="flex flex-col items-center py-2 px-4 text-gray-600 hover:text-blue-950">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        <span class="text-xs mt-1">LMS Home</span>
+      </a>
+      <a routerLink="/teacher/courses" class="flex flex-col items-center py-2 px-4 text-blue-950 font-medium">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+        <span class="text-xs mt-1">My Courses</span>
+      </a>
+      <a routerLink="/teacher/trackstudent" class="flex flex-col items-center py-2 px-4 text-gray-600 hover:text-blue-950">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        <span class="text-xs mt-1">Users</span>
+      </a>
+      <a routerLink="/teacher/settings" class="flex flex-col items-center py-2 px-4 text-gray-600 hover:text-blue-950">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="text-xs mt-1">Settings</span>
+      </a>
+    </div>
+  </nav>
+</div>
+
+<!-- Modals -->
+<app-add-module-modal
+  *ngIf="showAddModuleModal"
+  [module]="editingModule"
+  (close)="closeAddModuleModal()"
+  (save)="onSaveModule($event)"
+></app-add-module-modal>
+
+<app-add-lesson-modal
+  *ngIf="showAddLessonModal"
+  [lesson]="editingLesson"
+  [tenantId]="tenantId"
+  [teacherId]="teacherId"
+  [courseId]="courseId"
+  (close)="closeAddLessonModal()"
+  (save)="onSaveLesson($event)"
+></app-add-lesson-modal>
+
+<app-bulk-upload-modal
+  *ngIf="showBulkUploadModal"
+  (close)="closeBulkUploadModal()"
+  (upload)="onBulkUpload($event)"
+></app-bulk-upload-modal>

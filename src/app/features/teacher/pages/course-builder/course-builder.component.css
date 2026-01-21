@@ -1,0 +1,24 @@
+/* Course Builder Component Styles */
+
+/* Ensure bottom nav doesn't overlap content on mobile */
+@media (max-width: 768px) {
+  main {
+    padding-bottom: 80px;
+  }
+}
+
+/* Drag handle cursor */
+.drag-handle {
+  cursor: grab;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Smooth transitions */
+.transition-colors {
+  transition-property: background-color, border-color, color;
+  transition-duration: 150ms;
+  transition-timing-function: ease-in-out;
+}
