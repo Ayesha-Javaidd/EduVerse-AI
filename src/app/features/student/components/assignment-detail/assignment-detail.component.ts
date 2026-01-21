@@ -2,7 +2,10 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { Assignment } from '../../../../shared/models/assignment.model';
-import { AssignmentSubmissionCreatePayload } from '../../../../shared/models/assignment-submission.model';
+import {
+  AssignmentSubmission,
+  AssignmentSubmissionCreatePayload,
+} from '../../../../shared/models/assignment-submission.model';
 import { StudentAssignmentModalComponent } from '../student-assignment-modal/student-assignment-modal.component';
 
 @Component({
@@ -17,13 +20,18 @@ export class AssignmentDetailComponent {
     effectiveStatus?: string;
   };
   @Input() tenantId!: string;
-  @Input() submitted = false;
+  @Input() submission?: AssignmentSubmission;
 
   @Output() submitAssignment =
     new EventEmitter<AssignmentSubmissionCreatePayload>();
-  @Output() viewFeedback = new EventEmitter<Assignment>();
 
   isModalOpen = false;
+  feedbackModalOpen = false;
+
+  // Feedback message from submission
+  get feedbackMessage(): string {
+    return this.submission?.feedback || 'No feedback provided.';
+  }
 
   openModal(): void {
     this.isModalOpen = true;
@@ -39,30 +47,41 @@ export class AssignmentDetailComponent {
       courseId: this.assignment.courseId,
       fileUrl,
     };
-
     this.submitAssignment.emit(payload);
     this.closeModal();
   }
 
   handleViewFeedback(): void {
-    this.viewFeedback.emit(this.assignment);
+    if (this.submission) {
+      this.feedbackModalOpen = true;
+    } else {
+      console.error('No submission found for this assignment.');
+    }
   }
 
-  // Computed properties for template
+  closeFeedbackModal(): void {
+    this.feedbackModalOpen = false;
+  }
+
+  get cardClasses(): string {
+    if (!this.assignment.effectiveStatus) return 'bg-white border-gray-200';
+
+    switch (this.assignment.effectiveStatus) {
+      case 'graded':
+        return 'bg-green-50 border-green-400 text-green-900';
+      case 'submitted':
+        return 'bg-blue-50 border-blue-400 text-blue-900';
+      case 'active':
+      default:
+        return 'bg-purple-50 border-purple-400 text-purple-900';
+    }
+  }
+
   get isActive(): boolean {
     return this.assignment.effectiveStatus === 'active';
   }
 
   get isSubmitted(): boolean {
-    return this.assignment.submitted === true;
-  }
-
-  get cardClasses(): string {
-    if (this.isSubmitted) return 'border-blue-400 bg-blue-50'; // Blue for submitted
-    if (this.assignment.effectiveStatus === 'active')
-      return 'border-purple-400 bg-purple-50';
-    if (this.assignment.effectiveStatus === 'graded')
-      return 'border-green-400 bg-green-50';
-    return '';
+    return this.assignment.effectiveStatus === 'submitted';
   }
 }

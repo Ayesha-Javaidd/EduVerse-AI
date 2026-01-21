@@ -38,9 +38,8 @@
           *ngFor="let assignment of filteredAssignments"
           [tenantId]="tenantId"
           [assignment]="assignment"
-          [submitted]="hasSubmitted(assignment.id)"
+          [submission]="submissions.get(assignment.id)"
           (submitAssignment)="handleAssignmentSubmit($event)"
-          (viewFeedback)="handleViewFeedback($event)"
         ></app-assignment-detail>
       </div>
 
