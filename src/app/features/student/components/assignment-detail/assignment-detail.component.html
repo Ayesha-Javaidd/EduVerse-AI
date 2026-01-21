@@ -12,22 +12,29 @@
     <div class="flex gap-2 items-center">
       <!-- Submit / Submitted Button -->
       <button
-        *ngIf="isActive || isSubmitted"
-        [disabled]="isSubmitted"
+        *ngIf="assignment.effectiveStatus === 'active' || isSubmitted"
+        [disabled]="isSubmitted || isDueDatePassed"
         (click)="openModal()"
         [ngClass]="{
           'bg-purple-200 text-purple-950': isActive,
           'bg-blue-200 cursor-not-allowed text-blue-950': isSubmitted,
+          'bg-red-100 text-red-700 cursor-not-allowed': isDueDatePassed,
         }"
         class="px-3 py-1 rounded"
       >
-        {{ isSubmitted ? "Submitted" : "Submit" }}
+        {{
+          isSubmitted
+            ? "Submitted"
+            : isDueDatePassed
+              ? "Due date passed"
+              : "Submit"
+        }}
       </button>
 
       <!-- Graded badge -->
       <button
         *ngIf="assignment.effectiveStatus === 'graded'"
-        class="px-3 py-1 bg-green-200 rounded cursor-default text-green-900"
+        class="px-3 py-1 bg-green-200 rounded cursor-not-allowed text-green-900"
       >
         Graded
       </button>

@@ -34,6 +34,9 @@ export class AssignmentDetailComponent {
   }
 
   openModal(): void {
+    if (this.isDueDatePassed) {
+      return;
+    }
     this.isModalOpen = true;
   }
 
@@ -78,10 +81,17 @@ export class AssignmentDetailComponent {
   }
 
   get isActive(): boolean {
-    return this.assignment.effectiveStatus === 'active';
+    return (
+      this.assignment.effectiveStatus === 'active' && !this.isDueDatePassed
+    );
   }
 
   get isSubmitted(): boolean {
     return this.assignment.effectiveStatus === 'submitted';
+  }
+
+  get isDueDatePassed(): boolean {
+    if (!this.assignment?.dueDate) return false;
+    return new Date(this.assignment.dueDate).getTime() < Date.now();
   }
 }

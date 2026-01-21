@@ -116,26 +116,6 @@ export class StudentAssignmentsComponent implements OnInit {
     });
   }
 
-  // loadSubmissions(): void {
-  //   this.assignmentService.getMySubmissions().subscribe({
-  //     next: (subs) => {
-  //       subs.forEach((s) => this.submissions.set(s.assignmentId, s));
-
-  //       // Merge submission status into assignments
-  //       this.assignments = this.assignments.map((a) => ({
-  //         ...a,
-  //         submitted: this.submissions.has(a.id),
-  //         effectiveStatus: this.submissions.has(a.id) ? 'submitted' : a.status,
-  //       }));
-  //       this.filteredAssignments = [...this.assignments];
-  //       this.loading = false;
-  //     },
-  //     error: () => {
-  //       this.showError('Failed to load submissions.');
-  //       this.loading = false;
-  //     },
-  //   });
-  // }
   loadSubmissions(): void {
     this.assignmentService.getMySubmissions().subscribe({
       next: (subs) => {

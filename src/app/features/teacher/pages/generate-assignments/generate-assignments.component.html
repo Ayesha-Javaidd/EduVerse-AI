@@ -7,7 +7,7 @@
     class="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-50"
   >
     <div
-      class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-b-4 border-gray-200"
+      class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-b-4"
     ></div>
   </div>
   <!-- Top section -->
@@ -89,7 +89,7 @@
     (filtersChange)="onFiltersChange($event)"
   ></app-filters>
 
-  <div class="mt-4"></div>
+  <div class="mt-8"></div>
   <!-- Empty state -->
   <app-empty-state
     *ngIf="filteredAssignments.length === 0"
@@ -101,15 +101,6 @@
     *ngIf="filteredAssignments.length > 0"
     class="grid gap-6 md:grid-cols-2 mb-10"
   >
-    <!-- <app-assignment-card
-      *ngFor="let assignment of filteredAssignments"
-      [assignment]="assignment"
-      (onEdit)="openEditModal(assignment)"
-      (onDelete)="deleteAssignment(assignment)"
-      (onInactive)="
-        showError('This assignment is inactive and cannot be updated')
-      "
-    ></app-assignment-card> -->
     <app-assignment-card
       *ngFor="let assignment of filteredAssignments"
       [assignment]="assignment"
