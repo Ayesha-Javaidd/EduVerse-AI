@@ -146,7 +146,7 @@
 //   }
 
 //   /** All assignments for display (active + inactive) */
-//   get filteredAssignments(): Assignment[] {
+//   get (): Assignment[] {
 //     return this.assignments;
 //   }
 
@@ -292,6 +292,7 @@ import { StatCardComponent } from '../../../../shared/components/stat-card/stat-
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { EmptyStateComponent } from '../../components/empty-state/empty-state.component';
 import { Router, RouterLink, RouterModule } from '@angular/router';
+import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 
 interface SubmittedAssignmentView {
   assignment: Assignment;
@@ -302,18 +303,19 @@ interface SubmittedAssignmentView {
   selector: 'app-generate-assignments',
   standalone: true,
   imports: [
-    RouterModule,
-
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
     AssignmentCardComponent,
     AssignmentModalComponent,
     ButtonComponent,
     StatCardComponent,
     HeaderComponent,
     EmptyStateComponent,
+    FiltersComponent,
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterModule,
   ],
+
   templateUrl: './generate-assignments.component.html',
   styleUrls: ['./generate-assignments.component.css'],
 })
@@ -328,6 +330,18 @@ export class GenerateAssignmentsComponent implements OnInit {
 
   courses: Course[] = [];
   assignments: Assignment[] = [];
+
+  assignmentDropdowns = [
+    { key: 'status', label: 'Status', options: ['active', 'inactive'] },
+    { key: 'course', label: 'Course', options: [] }, // we'll populate course names dynamically
+  ];
+
+  filters: { [key: string]: string } = {
+    search: '',
+    status: '',
+    course: '',
+  };
+
   assignmentSubmissions = new Map<string, AssignmentSubmission[]>();
 
   activeTab: 'active' | 'completed' = 'active';
@@ -369,6 +383,9 @@ export class GenerateAssignmentsComponent implements OnInit {
       .subscribe({
         next: (courses) => {
           this.courses = courses;
+          // Populate course dropdown options
+          this.assignmentDropdowns.find((d) => d.key === 'course')!.options =
+            courses.map((c) => c.courseName);
           this.loadAssignments();
         },
         error: () => {
@@ -421,14 +438,14 @@ export class GenerateAssignmentsComponent implements OnInit {
     });
   }
 
-  /** Active / Inactive assignments */
-  get filteredAssignments(): Assignment[] {
-    return this.assignments.filter((a) =>
-      this.activeTab === 'active'
-        ? a.status === 'active'
-        : a.status === 'inactive',
-    );
-  }
+  // /** Active / Inactive assignments */
+  // get filteredAssignments(): Assignment[] {
+  //   return this.assignments.filter((a) =>
+  //     this.activeTab === 'active'
+  //       ? a.status === 'active'
+  //       : a.status === 'inactive',
+  //   );
+  // }
 
   /** All submissions for completed tab */
   get submittedAssignments(): SubmittedAssignmentView[] {
@@ -479,6 +496,39 @@ export class GenerateAssignmentsComponent implements OnInit {
     this.editingAssignmentId = null;
   }
 
+  onFiltersChange(updatedFilters: { [key: string]: string }) {
+    this.filters = updatedFilters;
+  }
+
+  // Filtered assignments using the filters
+  get filteredAssignments(): Assignment[] {
+    let assignments = [...this.assignments];
+
+    // Status filter
+    if (this.filters['status']) {
+      assignments = assignments.filter(
+        (a) => a.status === this.filters['status'],
+      );
+    }
+
+    if (this.filters['course']) {
+      const course = this.courses.find(
+        (c) => c.courseName === this.filters['course'],
+      );
+      if (course)
+        assignments = assignments.filter((a) => a.courseId === course.id);
+    }
+
+    if (this.filters['search']) {
+      const searchLower = this.filters['search'].toLowerCase();
+      assignments = assignments.filter((a) =>
+        a.title.toLowerCase().includes(searchLower),
+      );
+    }
+
+    return assignments;
+  }
+
   handleSubmit(payload: any): void {
     // Validation
     if (!payload.title || payload.title.trim().length < 3) {
@@ -498,9 +548,21 @@ export class GenerateAssignmentsComponent implements OnInit {
         )
       : this.assignmentService.createAssignment(payload);
 
-    request$.subscribe(() => {
+    request$.subscribe((newAssignment: Assignment) => {
       this.showSuccess('Assignment saved successfully');
-      this.loadAssignments();
+
+      if (this.editingAssignmentId) {
+        // Update existing assignment in the array
+        const index = this.assignments.findIndex(
+          (a) => a.id === this.editingAssignmentId,
+        );
+        if (index !== -1) this.assignments[index] = newAssignment;
+      } else {
+        // New assignment, push it immediately
+        this.assignments.unshift(newAssignment);
+        this.assignmentSubmissions.set(newAssignment.id, []); // no submissions yet
+      }
+
       this.closeModal();
     });
   }
@@ -583,9 +645,15 @@ export class GenerateAssignmentsComponent implements OnInit {
     },
   ];
 
-  getCardStyle(index: number) {
+  getCardStyle(index: number, assignment: Assignment) {
+    // Override background based on assignment status
+    const isInactive = assignment.status === 'inactive';
+
     const color = this.cardColors[index % this.cardColors.length];
-    return `${color.bg} ${color.text} ${color.border}`;
+
+    const bgColor = isInactive ? 'bg-green-50' : color.bg; // green for inactive, original color for active
+
+    return `${bgColor} ${color.text} ${color.border}`;
   }
 
   getButtonStyle(index: number) {

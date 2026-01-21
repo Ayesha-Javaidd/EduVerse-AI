@@ -12,10 +12,20 @@
   </div>
   <!-- Top section -->
   <div class="flex justify-between items-center mb-4">
-    <p class="text-blue-950 text-xl">Create and manage student assignments</p>
+    <app-button
+      [routerLink]="'/teacher/grade-assignment'"
+      customColor="bg-green-600  p-3 text-white hover:bg-green-700"
+    >
+      <i class="fa-solid fa-pen-to-square mr-2"></i>
+      Grade Assignments
+    </app-button>
+
+    <p class="text-blue-700 px-8 bg-blue-50 p-2 rounded-md">
+      Create and manage student assignments
+    </p>
     <app-button
       (buttonClick)="openCreateModal()"
-      customColor="bg-blue-950 text-white hover:bg-gray-500"
+      customColor="bg-blue-950 p-3 text-white hover:bg-gray-500"
     >
       <i class="fa-solid fa-plus mr-2"></i> Create Assignment
     </app-button>
@@ -72,31 +82,14 @@
     ></app-stat-card>
   </div>
 
-  <!-- Tabs -->
-  <div
-    class="bg-white rounded-2xl shadow-sm border border-border-light p-2 mb-6 inline-flex"
-  >
-    <app-button
-      (buttonClick)="activeTab = 'active'"
-      [customColor]="
-        activeTab === 'active' ? 'bg-slate-500 text-white' : 'text-text-muted'
-      "
-    >
-      Active ({{ activeCount }})
-    </app-button>
+  <!-- Filters Component -->
+  <app-filters
+    [dropdowns]="assignmentDropdowns"
+    [searchPlaceholder]="'Search assignments...'"
+    (filtersChange)="onFiltersChange($event)"
+  ></app-filters>
 
-    <app-button
-      (buttonClick)="activeTab = 'completed'"
-      [customColor]="
-        activeTab === 'completed'
-          ? 'bg-slate-500 text-white'
-          : 'text-text-muted'
-      "
-    >
-      Inactive({{ completedCount }})
-    </app-button>
-  </div>
-
+  <div class="mt-4"></div>
   <!-- Empty state -->
   <app-empty-state
     *ngIf="filteredAssignments.length === 0"
@@ -108,9 +101,20 @@
     *ngIf="filteredAssignments.length > 0"
     class="grid gap-6 md:grid-cols-2 mb-10"
   >
-    <app-assignment-card
+    <!-- <app-assignment-card
       *ngFor="let assignment of filteredAssignments"
       [assignment]="assignment"
+      (onEdit)="openEditModal(assignment)"
+      (onDelete)="deleteAssignment(assignment)"
+      (onInactive)="
+        showError('This assignment is inactive and cannot be updated')
+      "
+    ></app-assignment-card> -->
+
+    <app-assignment-card
+      *ngFor="let assignment of filteredAssignments; let i = index"
+      [assignment]="assignment"
+      [ngClass]="getCardStyle(i, assignment)"
       (onEdit)="openEditModal(assignment)"
       (onDelete)="deleteAssignment(assignment)"
       (onInactive)="
