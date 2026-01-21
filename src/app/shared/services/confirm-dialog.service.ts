@@ -64,9 +64,22 @@ export class ConfirmDialogService {
   }
 
   /**
+   * Convenience method for custom confirmations
+   */
+  confirm(title: string, message: string): Promise<boolean> {
+    return this.show({
+      title,
+      message,
+      confirmText: 'Confirm',
+      cancelText: 'Cancel',
+      type: 'warning',
+    });
+  }
+
+  /**
    * Called when user clicks confirm
    */
-  confirm(): void {
+  onConfirm(): void {
     this.hide();
     this.responseSubject.next(true);
   }

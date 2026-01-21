@@ -4,28 +4,37 @@ import { Observable } from 'rxjs';
 
 /**
  * Teacher Profile Response from GET /teachers/me
+ * Note: User data is returned at the root level (merged), not nested in a 'user' object
  */
 export interface TeacherProfile {
   id: string;                    // Teacher's MongoDB _id
-  userId: string;                // User's MongoDB _id
-  tenantId: string | null;       // Tenant ID at root level (from teachers collection)
-  user: {
+  userId?: string;               // User's MongoDB _id (if available)
+  tenantId: string;              // Tenant ID
+  fullName: string;              // User's full name (at root level)
+  email: string;                 // User's email
+  role: string;                  // 'teacher'
+  status: string;                // 'active' | 'inactive'
+  profileImageURL?: string;      // Profile image URL
+  contactNo?: string;            // Contact number
+  country?: string;              // Country
+  assignedCourses: string[];     // Array of course IDs
+  qualifications: string[];
+  subjects: string[];
+  createdAt: string;
+  updatedAt?: string;
+  lastLogin?: string;
+  // Legacy nested structure (for backwards compatibility)
+  user?: {
     id: string;
     email: string;
     fullName: string;
     role: string;
-    tenant_id?: string | null;   // May be null in users collection
+    tenant_id?: string | null;
     contactNo?: string;
     country?: string;
     profileImageURL?: string;
     status: string;
   };
-  assignedCourses: string[];     // Array of course IDs
-  qualifications: string[];
-  subjects: string[];
-  status: string;
-  createdAt: string;
-  updatedAt?: string;
 }
 
 /**

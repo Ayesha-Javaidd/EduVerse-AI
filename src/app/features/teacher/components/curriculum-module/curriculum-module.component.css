@@ -1,0 +1,15 @@
+/* Curriculum Module Styles */
+
+/* Rotate animation for expand/collapse icon */
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+/* Drag styles */
+[draggable="true"] {
+  cursor: grab;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
+}

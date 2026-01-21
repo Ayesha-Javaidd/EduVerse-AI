@@ -18,6 +18,10 @@ export interface BackendCourse {
     teacherId: string;
     tenantId: string;
     enrolledStudents: number;
+    isPublic?: boolean;
+    isFree?: boolean;
+    price?: number;
+    currency?: string;
     createdAt: string;
     updatedAt: string;
     progress?: number;
@@ -37,13 +41,15 @@ export interface CourseFilters {
 
 export interface CourseCreate {
     title: string;
-    description: string;
+    description?: string;
     category: string;
     level: string;
-    courseCode: string;
+    status?: string;
+    courseCode?: string;
     teacherId: string;
     tenantId: string;
     thumbnailUrl?: string;
+    modules?: any[];
 }
 
 @Injectable({

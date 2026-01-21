@@ -75,7 +75,7 @@
 
             <!-- Default text -->
             <ng-container *ngIf="!col.type || col.type === 'text'">
-              {{ row[col.key] || "" }}
+              {{ row[col.key] !== null && row[col.key] !== undefined ? row[col.key] : "" }}
             </ng-container>
 
             <!-- Action as button (default for other tables) -->
@@ -95,13 +95,17 @@
           </td>
 
           <td class="px-6 py-4 text-center" *ngIf="enableActions">
+            <button *ngIf="visibleActions.includes('view')" class="text-blue-900 hover:text-blue-600 mr-3"
+              (click)="view.emit(row)" title="View">
+              <i class="fas fa-eye"></i>
+            </button>
             <button *ngIf="visibleActions.includes('edit')" class="text-blue-900 hover:text-blue-600 mr-3"
-              (click)="onEdit(row)">
+              (click)="onEdit(row)" title="Edit">
               <i class="fas fa-edit"></i>
             </button>
 
             <button *ngIf="visibleActions.includes('delete')" class="text-red-600 hover:text-red-800"
-              (click)="onDelete(row)">
+              (click)="onDelete(row)" title="Delete">
               <i class="fas fa-trash"></i>
             </button>
           </td>

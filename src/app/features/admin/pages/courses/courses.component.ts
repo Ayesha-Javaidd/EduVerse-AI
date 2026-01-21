@@ -6,13 +6,12 @@ import { FiltersComponent } from '../../../../shared/components/filters/filters.
 import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { BackendCourse } from '../../../../core/services/course.service';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { EntityModalComponent, FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
 
 @Component({
   selector: 'app-courses',
   standalone: true,
-  imports: [HeaderComponent, DataTableComponent, FiltersComponent, CommonModule, ButtonComponent, EntityModalComponent],
+  imports: [HeaderComponent, DataTableComponent, FiltersComponent, CommonModule, EntityModalComponent],
   templateUrl: './courses.component.html',
   styleUrl: './courses.component.css',
 })
@@ -52,32 +51,20 @@ export class CoursesComponent implements OnInit {
 
   // Modal state
   isModalOpen = false;
-  isEditMode = false;
-  modalTitle = 'Add Course';
+  isEditMode = true; // Admin can only edit, not create
+  modalTitle = 'Edit Course';
   selectedCourse: any = null;
 
+  // Admin can only edit status - simplified fields
   courseFields: FormField[] = [
-    { name: 'title', label: 'Course Title', type: 'text', required: true, placeholder: 'Enter course title' },
-    { name: 'courseCode', label: 'Course Code', type: 'text', required: true, placeholder: 'e.g., CS101' },
-    { name: 'category', label: 'Category', type: 'text', required: true, placeholder: 'e.g., Computer Science' },
-    {
-      name: 'level', label: 'Level', type: 'select', options: [
-        { value: 'Beginner', label: 'Beginner' },
-        { value: 'Intermediate', label: 'Intermediate' },
-        { value: 'Advanced', label: 'Advanced' }
-      ]
-    },
-    { name: 'teacherId', label: 'Instructor', type: 'select', required: true, options: [] },
-    { name: 'duration', label: 'Duration', type: 'text', placeholder: 'e.g., 10 weeks' },
-    { name: 'thumbnailUrl', label: 'Thumbnail URL', type: 'text', placeholder: 'https://example.com/image.jpg' },
-    { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter course description' },
-    { name: 'modules', label: 'Modules', type: 'array', placeholder: 'e.g., Week 1: Introduction' },
+    { name: 'title', label: 'Course Title', type: 'text', required: false, placeholder: 'Course title (read-only)' },
+    { name: 'instructorName', label: 'Instructor', type: 'text', required: false, placeholder: 'Instructor name' },
     {
       name: 'status', label: 'Status', type: 'select', options: [
-        { value: 'active', label: 'Active' },
-        { value: 'inactive', label: 'Inactive' },
-        { value: 'upcoming', label: 'Upcoming' },
-        { value: 'completed', label: 'Completed' }
+        { value: 'draft', label: 'Draft' },
+        { value: 'published', label: 'Published' },
+        { value: 'Active', label: 'Active' },
+        { value: 'Inactive', label: 'Inactive' }
       ]
     },
   ];
@@ -139,24 +126,11 @@ export class CoursesComponent implements OnInit {
     });
   }
 
-  onAddCourse() {
-    if (this.teachers.length === 0) {
-      alert('Please add at least one teacher before creating a course.');
-      return;
-    }
-    this.isEditMode = false;
-    this.modalTitle = 'Add Course';
-    this.selectedCourse = null;
-    this.isModalOpen = true;
-  }
-
   onEditCourse(course: BackendCourse) {
     this.isEditMode = true;
-    this.modalTitle = 'Edit Course';
-    // Deep copy and transform modules if necessary
+    this.modalTitle = 'Edit Course Status';
     this.selectedCourse = {
       ...course,
-      modules: (course.modules || []).map((m: any) => typeof m === 'object' ? m.title : m)
     };
     this.isModalOpen = true;
   }
@@ -180,32 +154,15 @@ export class CoursesComponent implements OnInit {
   }
 
   onModalSubmit(formData: any) {
-    const tenantId = this.authService.getTenantId();
-    if (!tenantId) {
-      alert('Tenant ID not found. Please log in again.');
-      return;
-    }
-
+    // Admin can only update status
     const courseData = {
-      ...formData,
-      tenantId,
-      // Ensure status is lowercase for backend consistency
-      status: formData.status ? formData.status.charAt(0).toUpperCase() + formData.status.slice(1).toLowerCase() : 'Active'
+      status: formData.status
     };
 
-    // Remove immutable fields if editing
-    if (this.isEditMode) {
-      delete courseData.tenantId;
-    }
-
-    // Transform modules array of strings to array of objects
-    if (courseData.modules && Array.isArray(courseData.modules)) {
-      courseData.modules = courseData.modules.map((title: string) => ({ title }));
-    }
-
-    const request = this.isEditMode
-      ? this.adminService.updateCourse((this.selectedCourse as any).id || (this.selectedCourse as any)._id, courseData)
-      : this.adminService.createCourse(courseData);
+    const request = this.adminService.updateCourse(
+      (this.selectedCourse as any).id || (this.selectedCourse as any)._id, 
+      courseData
+    );
 
     request.subscribe({
       next: () => {
@@ -213,8 +170,8 @@ export class CoursesComponent implements OnInit {
         this.loadCourses();
       },
       error: (err) => {
-        console.error('Update/Create validation error:', err);
-        alert(`Failed to ${this.isEditMode ? 'update' : 'create'} course: ${err.error?.detail || JSON.stringify(err.error) || 'Unknown error'}`);
+        console.error('Update error:', err);
+        alert(`Failed to update course status: ${err.error?.detail || JSON.stringify(err.error) || 'Unknown error'}`);
       }
     });
   }
