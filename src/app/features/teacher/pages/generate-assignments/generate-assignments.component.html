@@ -93,7 +93,7 @@
           : 'text-text-muted'
       "
     >
-      Completed ({{ completedCount }})
+      Inactive({{ completedCount }})
     </app-button>
   </div>
 
@@ -104,7 +104,10 @@
   ></app-empty-state>
 
   <!-- Assignment cards -->
-  <div *ngIf="filteredAssignments.length > 0" class="flex flex-col gap-4 mb-10">
+  <div
+    *ngIf="filteredAssignments.length > 0"
+    class="grid gap-6 md:grid-cols-2 mb-10"
+  >
     <app-assignment-card
       *ngFor="let assignment of filteredAssignments"
       [assignment]="assignment"
