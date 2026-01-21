@@ -110,16 +110,13 @@
         showError('This assignment is inactive and cannot be updated')
       "
     ></app-assignment-card> -->
-
     <app-assignment-card
-      *ngFor="let assignment of filteredAssignments; let i = index"
+      *ngFor="let assignment of filteredAssignments"
       [assignment]="assignment"
-      [ngClass]="getCardStyle(i, assignment)"
+      [bgColorClass]="getCardStyle(assignment)"
+      [buttonClass]="getButtonStyle(assignment)"
       (onEdit)="openEditModal(assignment)"
       (onDelete)="deleteAssignment(assignment)"
-      (onInactive)="
-        showError('This assignment is inactive and cannot be updated')
-      "
     ></app-assignment-card>
   </div>
 
