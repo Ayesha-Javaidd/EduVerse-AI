@@ -1,4 +1,5 @@
 <app-modal-shell
+  *ngIf="assignmentForm"
   [show]="show"
   [title]="editingAssignmentId ? 'Edit Assignment' : 'Create New Assignment'"
   [actionLabel]="
@@ -9,6 +10,7 @@
   (submit)="submitForm()"
 >
   <form
+    *ngIf="assignmentForm"
     [formGroup]="assignmentForm"
     (ngSubmit)="submitForm()"
     class="p-6 space-y-6"
@@ -41,18 +43,18 @@
         >Select Course *</label
       >
       <select
-        formControlName="course"
+        formControlName="courseId"
         class="w-full px-4 py-3 border border-border-light rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-light-blue"
       >
         <option value="">Choose a course</option>
-        <option *ngFor="let course of courses" [value]="course">
-          {{ course }}
+        <option *ngFor="let course of courses" [value]="course.id">
+          {{ course.title }}
         </option>
       </select>
       <p
         *ngIf="
-          assignmentForm.get('course')?.touched &&
-          assignmentForm.get('course')?.invalid
+          assignmentForm.get('courseId')?.touched &&
+          assignmentForm.get('courseId')?.invalid
         "
         class="text-red-500 text-sm mt-1"
       >
@@ -82,9 +84,8 @@
       </p>
     </div>
 
-    <!-- Date & Time -->
+    <!-- Due Date & Time -->
     <div class="grid md:grid-cols-2 gap-4">
-      <!-- Due Date -->
       <div>
         <label class="block text-sm font-semibold text-primary-navy mb-2"
           >Due Date *</label
@@ -101,13 +102,9 @@
           "
           class="text-red-500 text-sm mt-1"
         >
-          <span *ngIf="assignmentForm.get('dueDate')?.errors?.['required']"
-            >Due date is required.</span
-          >
+          Due date is required.
         </p>
       </div>
-
-      <!-- Due Time -->
       <div>
         <label class="block text-sm font-semibold text-primary-navy mb-2"
           >Due Time *</label
@@ -124,16 +121,13 @@
           "
           class="text-red-500 text-sm mt-1"
         >
-          <span *ngIf="assignmentForm.get('dueTime')?.errors?.['required']"
-            >Due time is required.</span
-          >
+          Due time is required.
         </p>
       </div>
     </div>
 
     <!-- Marks -->
     <div class="grid md:grid-cols-2 gap-4">
-      <!-- Total Marks -->
       <div>
         <label class="block text-sm font-semibold text-primary-navy mb-2"
           >Total Marks *</label
@@ -144,7 +138,6 @@
           min="1"
           max="100"
           class="w-full px-4 py-3 border border-border-light rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-light-blue"
-          placeholder="100"
         />
         <p
           *ngIf="
@@ -153,19 +146,9 @@
           "
           class="text-red-500 text-sm mt-1"
         >
-          <span *ngIf="assignmentForm.get('totalMarks')?.errors?.['required']"
-            >Total marks is required.</span
-          >
-          <span *ngIf="assignmentForm.get('totalMarks')?.errors?.['min']"
-            >Must be at least 1.</span
-          >
-          <span *ngIf="assignmentForm.get('totalMarks')?.errors?.['max']"
-            >Cannot exceed 100.</span
-          >
+          Total marks is required and must be between 1-100.
         </p>
       </div>
-
-      <!-- Passing Marks -->
       <div>
         <label class="block text-sm font-semibold text-primary-navy mb-2"
           >Passing Marks *</label
@@ -176,7 +159,6 @@
           min="1"
           max="100"
           class="w-full px-4 py-3 border border-border-light rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-light-blue"
-          placeholder="40"
         />
         <p
           *ngIf="
@@ -185,19 +167,7 @@
           "
           class="text-red-500 text-sm mt-1"
         >
-          <span *ngIf="assignmentForm.get('passingMarks')?.errors?.['required']"
-            >Passing marks is required.</span
-          >
-          <span *ngIf="assignmentForm.get('passingMarks')?.errors?.['min']"
-            >Must be at least 1.</span
-          >
-          <span *ngIf="assignmentForm.get('passingMarks')?.errors?.['max']"
-            >Cannot exceed 100.</span
-          >
-          <span
-            *ngIf="assignmentForm.get('passingMarks')?.errors?.['passingGreaterThanTotal']"
-            >Cannot be greater than total marks.</span
-          >
+          Passing marks is required and cannot exceed total marks.
         </p>
       </div>
     </div>
@@ -224,7 +194,6 @@
           </p>
         </label>
       </div>
-
       <div *ngIf="attachments.controls.length > 0" class="mt-3 space-y-2">
         <div
           *ngFor="let fileCtrl of attachments.controls; let i = index"

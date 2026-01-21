@@ -1,42 +1,50 @@
+<div
+  class="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 p-6 bg-blue-50 rounded-xl shadow-md"
+>
+  <!-- Search box -->
+  <div class="relative flex-1">
+    <i
+      class="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 z-10"
+    ></i>
+    <input
+      type="text"
+      class="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-950 focus:border-blue-950 transition-all duration-300"
+      [placeholder]="searchPlaceholder"
+      [(ngModel)]="filters['search']"
+      (ngModelChange)="updateFilter('search', $event)"
+    />
+  </div>
 
-<div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 p-6 bg-blue-50 rounded-xl shadow-md">
-    
-    <!-- Search box -->
-    <div class="relative flex-1">
-        <i class="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 z-10"></i>
-        <input 
-            type="text" 
-            class="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-950 focus:border-blue-950 transition-all duration-300"
-            [placeholder]="searchPlaceholder" 
-            [(ngModel)]="filters['search']"
-            (ngModelChange)="updateFilter('search', $event)" />
-    </div>
+  <!-- Dropdown filters -->
+  <div
+    class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:gap-4"
+    *ngFor="let d of dropdowns"
+  >
+    <label class="text-gray-700 font-semibold text-sm whitespace-nowrap">
+      {{ d.label }}:
+    </label>
 
-    <!-- Dropdown filters -->
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:gap-4" *ngFor="let d of dropdowns">
-        <label class="text-gray-700 font-semibold text-sm whitespace-nowrap">
-            {{d.label}}:
-        </label>
+    <select
+      class="px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-950 focus:border-blue-950 bg-white text-gray-700 font-medium cursor-pointer transition-all duration-300 hover:border-blue-950"
+      [(ngModel)]="filters[d.key]"
+      (ngModelChange)="updateFilter(d.key, $event)"
+    >
+      <option value="" class="font-medium hover:bg-blue-950">All</option>
+      <option *ngFor="let opt of d.options" [value]="opt" class="font-medium">
+        {{ opt }}
+      </option>
+    </select>
+  </div>
 
-        <select 
-            class="px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-950 focus:border-blue-950 bg-white text-gray-700 font-medium cursor-pointer transition-all duration-300 hover:border-blue-950" 
-            [(ngModel)]="filters[d.key]"
-            (ngModelChange)="updateFilter(d.key, $event)">
-            <option value="" class="font-medium hover:bg-blue-950">All</option>
-            <option *ngFor="let opt of d.options" [value]="opt" class="font-medium">
-                {{opt}}
-            </option>
-        </select>
-    </div>
-
-    <!-- Reset button -->
-    <div class="sm:self-center">
-        <app-button
-            customColor="bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-950 focus:border-blue-950  border-gray-300 transition-all duration-300"
-            [size]="'md'"
-            (buttonClick)="resetFilters()">
-            <i class="fa-solid fa-rotate-right mr-2"></i>
-            Reset
-        </app-button>
-    </div>
+  <!-- Reset button -->
+  <div class="sm:self-center">
+    <app-button
+      customColor="bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-950 focus:border-blue-950  border-gray-300 transition-all duration-300"
+      [size]="'md'"
+      (buttonClick)="resetFilters()"
+    >
+      <i class="fa-solid fa-rotate-right mr-2"></i>
+      Reset
+    </app-button>
+  </div>
 </div>

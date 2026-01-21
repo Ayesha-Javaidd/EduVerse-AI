@@ -38,6 +38,7 @@ import { RoleGuard } from './features/auth/guards/role.guard';
 import { StudentSignupComponent } from './features/auth/pages/student-signup/student-signup.component';
 import { TeacherSignupComponent } from './features/auth/pages/teacher-signup/teacher-signup.component';
 import { AdminSignupComponent } from './features/auth/pages/admin-signup/admin-signup.component';
+import { GradeAssignmentsComponent } from './features/teacher/pages/grade-assignments/grade-assignments.component';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -80,8 +81,9 @@ export const routes: Routes = [
       { path: 'courses/builder/:id', component: CourseBuilderComponent },
       { path: 'quizzes', component: QuizzesComponent },
       { path: 'assignments', component: GenerateAssignmentsComponent },
+      { path: 'grade-assignment', component: GradeAssignmentsComponent },
       { path: 'trackstudent', component: TrackStudentComponent },
-      { path: 'student-details/:id', component: StudentDetailsComponent }, // ✅ new route
+      { path: 'student-details/:id', component: StudentDetailsComponent }, // new route
       { path: 'settings', component: TeacherSettingsComponent },
     ],
   },

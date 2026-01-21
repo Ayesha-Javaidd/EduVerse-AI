@@ -3,36 +3,51 @@
 
   <main class="p-6 max-w-7xl mx-auto">
     <div class="bg-white p-5 rounded-2xl">
-      <!-- <app-filters
-        [dropdowns]="filterDropdowns"
-        [searchPlaceholder]="'Search assignments...'"
-        (filtersChange)="onFiltersChange($event)"
-      ></app-filters> -->
+      <!-- Success Message -->
+      <div
+        *ngIf="successMessage"
+        class="mb-4 p-4 rounded-lg bg-green-100 text-green-800 border border-green-400"
+      >
+        {{ successMessage }}
+      </div>
+
+      <!-- Error Message -->
+      <div
+        *ngIf="errorMessage"
+        class="mb-4 p-4 rounded-lg bg-red-100 text-red-800 border border-red-400"
+      >
+        {{ errorMessage }}
+      </div>
 
       <div class="mb-6">
-        <app-filters [dropdowns]="filterDropdowns" [searchPlaceholder]="'Search assignments...'"
-          (filtersChange)="onFiltersChange($event)"></app-filters>
+        <app-filters
+          [dropdowns]="filterDropdowns"
+          [searchPlaceholder]="'Search assignments...'"
+          (filtersChange)="onFiltersChange($event)"
+        ></app-filters>
       </div>
 
-      <!-- Assignment Grid (3 cards per row) -->
+      <div *ngIf="loading" class="flex justify-center items-center py-12">
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-t-4 border-gray-500 border-b-4"
+        ></div>
+      </div>
+
       <div class="flex flex-col gap-4">
-        <app-assignment-detail *ngFor="let assignment of filteredAssignments" [assignment]="assignment"
-          (onViewSubmit)="handleViewSubmit($event)"
-          (onViewFeedback)="handleViewFeedback($event)"></app-assignment-detail>
+        <app-assignment-detail
+          *ngFor="let assignment of filteredAssignments"
+          [tenantId]="tenantId"
+          [assignment]="assignment"
+          [submission]="submissions.get(assignment.id)"
+          (submitAssignment)="handleAssignmentSubmit($event)"
+        ></app-assignment-detail>
       </div>
 
-      <!-- Empty State -->
-      <div *ngIf="filteredAssignments.length === 0"
-        class="text-center py-12 bg-white/70 rounded-2xl border border-gray-200 shadow-sm mt-6">
-        <div class="text-gray-400 mb-4">
-          <i class="fa-solid fa-file-lines text-4xl"></i>
-        </div>
-        <h3 class="text-base font-semibold text-gray-800 mb-1">
-          No assignments found
-        </h3>
-        <p class="text-sm text-gray-500">
-          There are no assignments in this category.
-        </p>
+      <div
+        *ngIf="filteredAssignments.length === 0"
+        class="text-center py-12 mt-6 border rounded-xl"
+      >
+        No assignments found.
       </div>
     </div>
   </main>

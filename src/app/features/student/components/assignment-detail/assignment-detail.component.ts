@@ -1,5 +1,11 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
+import { Assignment } from '../../../../shared/models/assignment.model';
+import {
+  AssignmentSubmission,
+  AssignmentSubmissionCreatePayload,
+} from '../../../../shared/models/assignment-submission.model';
 import { StudentAssignmentModalComponent } from '../student-assignment-modal/student-assignment-modal.component';
 
 @Component({
@@ -7,62 +13,85 @@ import { StudentAssignmentModalComponent } from '../student-assignment-modal/stu
   standalone: true,
   imports: [CommonModule, StudentAssignmentModalComponent],
   templateUrl: './assignment-detail.component.html',
-  styleUrls: ['./assignment-detail.component.css'],
 })
 export class AssignmentDetailComponent {
-  @Input() assignment!: any;
-  @Output() onViewSubmit = new EventEmitter<number>();
-  @Output() onViewFeedback = new EventEmitter<number>();
+  @Input() assignment!: Assignment & {
+    submitted?: boolean;
+    effectiveStatus?: string;
+  };
+  @Input() tenantId!: string;
+  @Input() submission?: AssignmentSubmission;
+
+  @Output() submitAssignment =
+    new EventEmitter<AssignmentSubmissionCreatePayload>();
 
   isModalOpen = false;
+  feedbackModalOpen = false;
 
-  handleViewSubmit() {
+  // Feedback message from submission
+  get feedbackMessage(): string {
+    return this.submission?.feedback || 'No feedback provided.';
+  }
+
+  openModal(): void {
+    if (this.isDueDatePassed) {
+      return;
+    }
     this.isModalOpen = true;
   }
 
-  closeModal() {
+  closeModal(): void {
     this.isModalOpen = false;
   }
 
-  handleViewFeedback() {
-    alert('You did a good effort.');
-    this.onViewFeedback.emit(this.assignment.id);
+  handleSubmit(fileUrl: string): void {
+    const payload: AssignmentSubmissionCreatePayload = {
+      assignmentId: this.assignment.id,
+      courseId: this.assignment.courseId,
+      fileUrl,
+    };
+    this.submitAssignment.emit(payload);
+    this.closeModal();
   }
 
-  handleAssignmentSubmit(event: any) {
-    this.assignment.status = 'submitted';
-    this.assignment.submittedDate = new Date().toLocaleDateString();
-    console.log('Assignment submitted:', event);
-    this.isModalOpen = false;
+  handleViewFeedback(): void {
+    if (this.submission) {
+      this.feedbackModalOpen = true;
+    } else {
+      console.error('No submission found for this assignment.');
+    }
   }
 
-  get daysLeft(): number {
-    const dueDate = new Date(this.assignment.dueDate);
-    const today = new Date();
-    const timeDiff = dueDate.getTime() - today.getTime();
-    return Math.ceil(timeDiff / (1000 * 3600 * 24));
+  closeFeedbackModal(): void {
+    this.feedbackModalOpen = false;
   }
 
-  get daysLeftText(): string {
-    if (this.assignment.status !== 'pending') return '';
-    if (this.daysLeft === 0) return 'Due Today';
-    if (this.daysLeft === 1) return '1 day left';
-    if (this.daysLeft > 1) return `${this.daysLeft} days left`;
-    return 'Overdue';
-  }
-}
+  get cardClasses(): string {
+    if (!this.assignment.effectiveStatus) return 'bg-white border-gray-200';
 
-export interface AssignmentDetail {
-  id: number;
-  title: string;
-  course: string;
-  dueDate: string;
-  status: 'pending' | 'submitted' | 'graded';
-  submittedDate?: string;
-  grade?: string;
-  feedback?: string;
-  description?: string;
-  totalMarks?: number;
-  passingMarks?: number;
-  attachments?: any;
+    switch (this.assignment.effectiveStatus) {
+      case 'graded':
+        return 'bg-green-50 border-green-400 text-green-900';
+      case 'submitted':
+        return 'bg-blue-50 border-blue-400 text-blue-900';
+      case 'active':
+      default:
+        return 'bg-purple-50 border-purple-400 text-purple-900';
+    }
+  }
+
+  get isActive(): boolean {
+    return (
+      this.assignment.effectiveStatus === 'active' && !this.isDueDatePassed
+    );
+  }
+
+  get isSubmitted(): boolean {
+    return this.assignment.effectiveStatus === 'submitted';
+  }
+
+  get isDueDatePassed(): boolean {
+    if (!this.assignment?.dueDate) return false;
+    return new Date(this.assignment.dueDate).getTime() < Date.now();
+  }
 }

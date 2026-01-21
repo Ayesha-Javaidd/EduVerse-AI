@@ -1,29 +1,37 @@
 <div
-  class="bg-slate-100 rounded-2xl shadow-sm border border-gray-200 px-6 py-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+  [ngClass]="
+    bgColorClass +
+    ' ' +
+    textColorClass +
+    ' ' +
+    borderClass +
+    ' rounded-2xl shadow-sm px-6 py-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1'
+  "
 >
   <div class="flex justify-between items-start mb-5">
     <div class="flex-1">
-      <h3 class="text-2xl font-semibold text-gray-900 mb-1 tracking-tight">
+      <h3
+        class="text-2xl font-semibold py-2 mb-1 tracking-tight"
+        [ngClass]="textColorClass"
+      >
         {{ assignment.title }}
       </h3>
-      <p class="text-sm text-gray-700 mb-3 flex items-center gap-1">
-        <i class="fa-solid fa-book text-blue-500"></i> {{ assignment.course }}
+      <p
+        class="text-sm mb-3 flex items-center gap-1"
+        [ngClass]="textColorClass"
+      >
+        <i class="fa-solid fa-book" [ngClass]="textColorClass"></i>
+        {{ assignment.courseName }}
       </p>
 
       <!-- Details Row -->
       <div
-        class="flex flex-wrap gap-6 text-sm text-gray-600 font-medium bg-gray-50 p-3 rounded-xl"
+        class="flex flex-wrap gap-6 text-sm font-medium p-3 rounded-xl"
+        [ngClass]="bgColorClass + ' ' + textColorClass"
       >
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-calendar-days text-purple-500"></i>
-          <span>Due: {{ assignment.dueDate }} at {{ assignment.dueTime }}</span>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-users text-green-600"></i>
-          <span>
-            {{ assignment.submitted }}/{{ assignment.totalStudents }} Submitted
-          </span>
+          <span>Due: {{ assignment.dueDate }}</span>
         </div>
 
         <div class="flex items-center gap-2">
@@ -36,15 +44,23 @@
     <!-- Action Buttons -->
     <div class="flex gap-2 ml-4">
       <app-button
-        (buttonClick)="onEdit.emit(assignment.id)"
+        (buttonClick)="
+          assignment.status === 'inactive'
+            ? onInactiveClick()
+            : onEdit.emit(assignment)
+        "
         title="Edit"
-        customColor="bg-blue-100 text-blue-700 hover:bg-blue-100"
+        [disabled]="assignment.status === 'inactive'"
+        [ngClass]="{
+          'cursor-not-allowed': assignment.status === 'inactive',
+        }"
+        [customColor]="buttonClass"
       >
         <i class="fa-solid fa-pen"></i>
       </app-button>
 
       <app-button
-        (buttonClick)="onDelete.emit(assignment.id)"
+        (buttonClick)="onDelete.emit(assignment)"
         title="Delete"
         customColor="bg-red-50 text-red-600 hover:bg-red-100"
       >
@@ -54,49 +70,32 @@
   </div>
 
   <!-- Description -->
-  <p class="text-gray-400 text-sm leading-relaxed">
+  <p class="text-sm leading-relaxed my-3" [ngClass]="textColorClass">
     {{ assignment.description }}
   </p>
 
-  <div class="mb-2">
-    <div class="flex justify-between text-sm mb-2 font-medium text-gray-700">
-      <span>Submission Progress</span>
-      <span class="font-semibold text-blue-600">
-        {{ getSubmissionPercentage(assignment) }}%
-      </span>
-    </div>
-    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-      <div
-        class="bg-gradient-to-r from-blue-500 to-blue-700 h-3 rounded-full transition-all duration-500"
-        [style.width.%]="getSubmissionPercentage(assignment)"
-      ></div>
-    </div>
-  </div>
-
+  <!-- Status badge -->
   <div class="flex justify-between items-center">
-    <!-- Status badge -->
     <span
       *ngIf="assignment.status === 'active'"
-      class="flex items-center gap-2 px-2 py-1.5 bg-green-100 text-green-700 rounded-full text-xs font-semibold uppercase tracking-wide"
+      class="flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold uppercase tracking-wide"
+      [ngClass]="'bg-green-100 text-green-700'"
     >
       <i class="fa-solid fa-circle-check"></i> Active
     </span>
     <span
+      *ngIf="assignment.status === 'inactive'"
+      class="flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold uppercase tracking-wide"
+      [ngClass]="'bg-red-100 text-red-600'"
+    >
+      <i class="fa-solid fa-circle-xmark"></i> Inactive
+    </span>
+    <span
       *ngIf="assignment.status === 'completed'"
-      class="flex items-center gap-2 px-3 py-1.5 bg-gray-200 text-gray-700 rounded-full text-xs font-semibold uppercase tracking-wide"
+      class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide"
+      [ngClass]="'bg-gray-200 text-gray-700'"
     >
       <i class="fa-solid fa-check-double"></i> Completed
     </span>
-
-    <button
-      (click)="onToggleStatus.emit(assignment.id)"
-      [class]="
-        assignment.status === 'active'
-          ? 'bg-slate-600 hover:bg-slate-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-colors duration-300'
-          : 'bg-amber-500 hover:bg-amber-400 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-colors duration-300'
-      "
-    >
-      {{ assignment.status === "active" ? "Mark Complete" : "Reactivate" }}
-    </button>
   </div>
 </div>

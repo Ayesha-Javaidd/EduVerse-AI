@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../button/button.component';
 
@@ -8,11 +8,11 @@ import { ButtonComponent } from '../button/button.component';
   standalone: true,
   imports: [FormsModule, CommonModule, ButtonComponent],
   templateUrl: './filters.component.html',
-  styleUrl: './filters.component.css'
+  styleUrl: './filters.component.css',
 })
-export class FiltersComponent implements OnInit, OnChanges {
+export class FiltersComponent {
   /** Config for dropdowns */
-  @Input() dropdowns: { key: string, label: string, options: string[] }[] = [];
+  @Input() dropdowns: { key: string; label: string; options: string[] }[] = [];
 
   /** Config for search */
   @Input() searchPlaceholder = 'Search...';
@@ -24,22 +24,12 @@ export class FiltersComponent implements OnInit, OnChanges {
   @Output() filtersChange = new EventEmitter<{ [key: string]: string }>();
 
   ngOnInit() {
-    this.initializeFilters();
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    // Re-initialize filters when dropdowns input changes
-    if (changes['dropdowns'] && !changes['dropdowns'].firstChange) {
-      this.initializeFilters();
-    }
-  }
-
-  private initializeFilters() {
-    // Reset filters to empty (which corresponds to "All")
-    this.filters = { search: '' };
-    this.dropdowns.forEach(d => {
-      this.filters[d.key] = '';
+    this.dropdowns.forEach((d) => {
+      if (!(d.key in this.filters)) {
+        this.filters[d.key] = '';
+      }
     });
+
     this.filtersChange.emit({ ...this.filters });
   }
 
@@ -53,11 +43,10 @@ export class FiltersComponent implements OnInit, OnChanges {
     // Reset search
     this.filters['search'] = '';
 
-    this.dropdowns.forEach(dropdown => {
+    this.dropdowns.forEach((dropdown) => {
       this.filters[dropdown.key] = '';
     });
 
     this.filtersChange.emit({ ...this.filters });
   }
-
 }

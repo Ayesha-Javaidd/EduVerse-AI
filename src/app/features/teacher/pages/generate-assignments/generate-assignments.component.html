@@ -1,47 +1,126 @@
 <app-header pageTitle="Assignments"></app-header>
 
 <div class="min-h-screen bg-white p-6 max-w-7xl mx-auto">
+  <!-- Loading overlay -->
+  <div
+    *ngIf="loading"
+    class="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-50"
+  >
+    <div
+      class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-b-4"
+    ></div>
+  </div>
+  <!-- Top section -->
   <div class="flex justify-between items-center mb-4">
-    <p class="text-blue-950 text-xl">Create and manage student assignments</p>
-    <app-button (buttonClick)="openCreateModal()" customColor="bg-blue-950 text-white hover:bg-gray-500">
+    <app-button
+      [routerLink]="'/teacher/grade-assignment'"
+      customColor="bg-green-600  p-3 text-white hover:bg-green-700"
+    >
+      <i class="fa-solid fa-pen-to-square mr-2"></i>
+      Grade Assignments
+    </app-button>
+
+    <p class="text-blue-700 px-8 bg-blue-50 p-2 rounded-md">
+      Create and manage student assignments
+    </p>
+    <app-button
+      (buttonClick)="openCreateModal()"
+      customColor="bg-blue-950 p-3 text-white hover:bg-gray-500"
+    >
       <i class="fa-solid fa-plus mr-2"></i> Create Assignment
     </app-button>
   </div>
 
-  <div class="grid md:grid-cols-2 gap-10 mb-4 px-20">
-    <app-stat-card icon="fa-solid fa-file-alt" [value]="totalAssignmentsCount" title="Total Assignments"
-      bgColor="bg-purple-50" iconBgClass="bg-purple-100" iconColorClass="text-purple-600"></app-stat-card>
-
-    <app-stat-card icon="fa-solid fa-check-circle" [value]="totalSubmissionsCount" title="Total Submissions"
-      bgColor="bg-green-50" iconBgClass="bg-green-100" iconColorClass="text-green-600"></app-stat-card>
+  <!-- Error Box (Red) -->
+  <div
+    *ngIf="errorMessage"
+    class="alert alert-danger"
+    style="
+      background-color: #fbe3e5;
+      color: #b3303b;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    "
+  >
+    {{ errorMessage }}
   </div>
 
-  <div class="bg-white rounded-2xl shadow-sm border border-border-light p-2 mb-6 inline-flex">
-    <app-button (buttonClick)="activeTab = 'active'" [customColor]="
-        activeTab === 'active' ? 'bg-slate-500 text-white' : 'text-text-muted'
-      ">
-      Active ({{ activeCount }})
-    </app-button>
-    <app-button (buttonClick)="activeTab = 'completed'" [customColor]="
-        activeTab === 'completed'
-          ? 'bg-slate-500 text-white'
-          : 'text-text-muted'
-      ">
-      Completed ({{ completedCount }})
-    </app-button>
+  <!-- Success Box (Green) -->
+  <div
+    *ngIf="successMessage"
+    class="alert alert-success"
+    style="
+      background-color: #ddf6eb;
+      color: #14643f;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    "
+  >
+    {{ successMessage }}
   </div>
 
-  <app-empty-state *ngIf="filteredAssignments.length === 0" (createClick)="openCreateModal()"></app-empty-state>
+  <!-- Stats -->
+  <div class="grid md:grid-cols-2 gap-10 mb-6 px-20">
+    <app-stat-card
+      icon="fa-solid fa-file-alt"
+      [value]="totalAssignmentsCount"
+      title="Total Assignments"
+      bgColor="bg-purple-50"
+      iconBgClass="bg-purple-100"
+      iconColorClass="text-purple-600"
+    ></app-stat-card>
 
-  <div *ngIf="filteredAssignments.length > 0" class="flex flex-col gap-4 mb-10">
-    <app-assignment-card *ngFor="let assignment of filteredAssignments" [assignment]="assignment"
-      (onView)="viewAssignment($event)" (onEdit)="editAssignment($event)" (onDelete)="deleteAssignment($event)"
-      (onToggleStatus)="toggleAssignmentStatus($event)">
-    </app-assignment-card>
+    <app-stat-card
+      icon="fa-solid fa-check-circle"
+      [value]="totalSubmissionsCount"
+      title="Total Submissions"
+      bgColor="bg-green-50"
+      iconBgClass="bg-green-100"
+      iconColorClass="text-green-600"
+    ></app-stat-card>
   </div>
 
-  <app-assignment-modal *ngIf="showCreateModal" [show]="showCreateModal" [formData]="formData"
-    [editingAssignmentId]="editingAssignmentId" [courses]="courses" (onClose)="closeCreateModal()"
-    (onSubmit)="handleSubmit($event)">
-  </app-assignment-modal>
+  <!-- Filters Component -->
+  <app-filters
+    [dropdowns]="assignmentDropdowns"
+    [searchPlaceholder]="'Search assignments...'"
+    (filtersChange)="onFiltersChange($event)"
+  ></app-filters>
+
+  <div class="mt-8"></div>
+  <!-- Empty state -->
+  <app-empty-state
+    *ngIf="filteredAssignments.length === 0"
+    (createClick)="openCreateModal()"
+  ></app-empty-state>
+
+  <!-- Assignment cards -->
+  <div
+    *ngIf="filteredAssignments.length > 0"
+    class="grid gap-6 md:grid-cols-2 mb-10"
+  >
+    <app-assignment-card
+      *ngFor="let assignment of filteredAssignments"
+      [assignment]="assignment"
+      [bgColorClass]="getCardStyle(assignment)"
+      [buttonClass]="getButtonStyle(assignment)"
+      (onEdit)="openEditModal(assignment)"
+      (onDelete)="deleteAssignment(assignment)"
+    ></app-assignment-card>
+  </div>
+
+  <!-- Modal -->
+  <app-assignment-modal
+    *ngIf="showModal"
+    [show]="showModal"
+    [formData]="formData"
+    [editingAssignmentId]="editingAssignmentId"
+    [courses]="courses"
+    [currentTeacherId]="teacherId"
+    [currentTenantId]="tenantId"
+    (onClose)="closeModal()"
+    (onSubmit)="handleSubmit($event)"
+  ></app-assignment-modal>
 </div>

@@ -1,0 +1,51 @@
+<div
+  class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+>
+  <div class="bg-white rounded-xl w-full max-w-md p-6">
+    <h2 class="text-xl font-semibold mb-4">Grade Assignment</h2>
+
+    <div class="mb-4">
+      <label class="block text-sm font-medium mb-1"
+        >Obtained Marks (Max: {{ totalMarks }})</label
+      >
+      <input
+        type="number"
+        class="w-full border rounded-lg px-3 py-2"
+        [(ngModel)]="obtainedMarks"
+        min="0"
+        [max]="totalMarks"
+      />
+    </div>
+
+    <div class="mb-4">
+      <label class="block text-sm font-medium mb-1">Feedback (optional)</label>
+      <textarea
+        rows="3"
+        class="w-full border rounded-lg px-3 py-2"
+        [(ngModel)]="feedback"
+      ></textarea>
+    </div>
+
+    <div *ngIf="errorMessage" class="text-red-600 text-sm mb-3">
+      {{ errorMessage }}
+    </div>
+
+    <div class="flex justify-end gap-3">
+      <app-button
+        variant="outline"
+        (buttonClick)="onClose()"
+        [disabled]="loading"
+      >
+        Cancel
+      </app-button>
+
+      <app-button
+        variant="success"
+        (buttonClick)="submitGrade()"
+        [loading]="loading"
+      >
+        Submit Grade
+      </app-button>
+    </div>
+  </div>
+</div>
