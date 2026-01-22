@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
     ProfileFormComponent,
   ],
   templateUrl: './student-settings.component.html',
-  styleUrl: './student-settings.component.css',
+  styleUrls: ['./student-settings.component.css'],
 })
 export class StudentSettingsComponent {
   activeTab: 'profile' | 'system' = 'profile';
