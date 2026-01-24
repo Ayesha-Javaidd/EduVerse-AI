@@ -98,9 +98,9 @@ export class ExploreCoursesComponent implements OnInit {
       category: bc.category,
       level: (bc.level as any) || 'Intermediate',
       rating: 4.5,
-      duration: bc.duration || '0h',
+      duration: (bc as any).totalDuration || bc.duration || '0m', // Prefer totalDuration from builder
       totalLessons: bc.totalLessons || 0,
-      price: 0,
+      price: bc.isFree ? 0 : (bc.price || 0), // Handle free vs paid
       enrolledStudents: bc.enrolledStudents || 0,
       description: bc.description || ''
     };
@@ -135,7 +135,7 @@ export class ExploreCoursesComponent implements OnInit {
 
   onCourseClick(course: Course | null) {
     if (!course) return;
-
+    this.router.navigate(['/student/enroll-course', course.id]);
   }
 
   onEnrollClick(course: Course) {

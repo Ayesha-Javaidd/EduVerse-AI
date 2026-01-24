@@ -54,6 +54,11 @@ export interface CourseBuilderData {
   currency?: string;
   createdAt?: string;
   updatedAt?: string;
+  // Extended Metadata
+  instructorBio?: string;
+  hasCertificate?: boolean;
+  hasBadges?: boolean;
+  hasLifetimeAccess?: boolean;
 }
 
 // Helper to generate a course code
@@ -90,7 +95,7 @@ export function calculateTotalLessons(modules: Module[]): number {
 // For document lessons: uses provided duration or estimates based on word count (~200 words/minute)
 export function calculateTotalDuration(modules: Module[]): string {
   let totalSeconds = 0;
-  
+
   modules.forEach(module => {
     module.lessons.forEach(lesson => {
       if (lesson.type === 'video' && lesson.duration) {
@@ -116,12 +121,12 @@ export function calculateTotalDuration(modules: Module[]): string {
       // Quiz lessons don't contribute to duration
     });
   });
-  
+
   if (totalSeconds === 0) return '0m';
-  
+
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
-  
+
   if (hours > 0) {
     return `${hours}h ${minutes}m`;
   }

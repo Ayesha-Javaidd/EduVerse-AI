@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component,Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 export interface Course {
   title: string;
@@ -7,6 +7,7 @@ export interface Course {
   image: string;
   instructor: string;
   level: string;
+  duration?: string;
 }
 
 @Component({
@@ -17,7 +18,7 @@ export interface Course {
 })
 export class CoursesCardComponent {
   @Input() recommendations: Course[] = [];
-  
+
 }
 
 

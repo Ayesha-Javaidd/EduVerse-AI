@@ -30,6 +30,10 @@ export interface BackendCourse {
     nextLesson?: string;
     modules?: any[];
     instructorName?: string;
+    instructorBio?: string;
+    hasCertificate?: boolean;
+    hasBadges?: boolean;
+    hasLifetimeAccess?: boolean;
 }
 
 export interface CourseFilters {

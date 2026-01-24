@@ -2,16 +2,10 @@
   <h3 class="text-xl font-bold text-blue-950 mb-5">Recommended Courses</h3>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-    <div
-      *ngFor="let course of recommendations"
-      class="bg-gray-50 rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col"
-    >
+    <div *ngFor="let course of recommendations"
+      class="bg-gray-50 rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col">
       <!-- Course Image -->
-      <img
-        [src]="course.image"
-        alt="{{ course.title }}"
-        class="w-full h-40 object-cover"
-      />
+      <img [src]="course.image" alt="{{ course.title }}" class="w-full h-40 object-cover" />
 
       <!-- Course Details -->
       <div class="p-4 flex flex-col flex-grow">
@@ -27,18 +21,17 @@
         <!-- Spacer pushes bottom row down -->
         <div class="flex-grow"></div>
 
-        <div
-          class="flex items-center justify-between text-sm text-gray-500 mt-auto"
-        >
+        <div class="flex items-center justify-between text-sm text-gray-500 mt-auto">
           <span class="font-medium"> {{ course.instructor }} </span>
-          <span
-            class="px-2 py-0.5 rounded-full text-xs font-semibold"
-            [ngClass]="{
+          <span *ngIf="course.duration"
+            class="font-medium text-xs bg-slate-100 px-2 py-1 rounded-full flex items-center gap-1">
+            <i class="fa-regular fa-clock"></i> {{ course.duration }}
+          </span>
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold" [ngClass]="{
               'bg-green-100 text-green-700': course.level === 'Beginner',
               'bg-blue-100 text-blue-700': course.level === 'Intermediate',
               'bg-purple-100 text-purple-700': course.level === 'Advanced'
-            }"
-          >
+            }">
             {{ course.level }}
           </span>
         </div>
