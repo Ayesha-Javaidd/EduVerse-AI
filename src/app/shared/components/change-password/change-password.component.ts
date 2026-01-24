@@ -7,10 +7,13 @@ import {
   Validators,
 } from '@angular/forms';
 import { ButtonComponent } from '../button/button.component';
-
 import { finalize } from 'rxjs/operators';
 import { ChangePasswordPayload } from '../../models/student-profile.models';
-import { StudentProfileService } from '../../../features/student/services/student-profile.service';
+
+import { AdminService } from '../../../features/admin/services/admin-profile.service';
+import { AuthService } from '../../../features/auth/services/auth.service';
+import { ToastService } from '../../services/toast.service';
+import { StudentProfileService } from '../../services/student-profile-service';
 
 @Component({
   selector: 'app-change-password',
@@ -27,10 +30,14 @@ export class ChangePasswordComponent implements OnInit {
   showNewPassword = false;
   showConfirmPassword = false;
   isLoading = false;
+  role: 'student' | 'admin' | null = null;
 
   constructor(
     private fb: FormBuilder,
-    private profileService: StudentProfileService,
+    private studentService: StudentProfileService,
+    private adminService: AdminService,
+    private authService: AuthService,
+    private toastService: ToastService,
   ) {
     this.changePasswordForm = this.fb.group(
       {
@@ -43,6 +50,8 @@ export class ChangePasswordComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.role = this.authService.getRole() as 'student' | 'admin';
+
     if (!this.isSuperAdmin) {
       this.changePasswordForm
         .get('oldPassword')
@@ -62,9 +71,11 @@ export class ChangePasswordComponent implements OnInit {
   toggleOldPassword() {
     this.showOldPassword = !this.showOldPassword;
   }
+
   toggleNewPassword() {
     this.showNewPassword = !this.showNewPassword;
   }
+
   toggleConfirmPassword() {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
@@ -72,30 +83,42 @@ export class ChangePasswordComponent implements OnInit {
   onSubmit() {
     if (!this.changePasswordForm.valid) {
       this.changePasswordForm.markAllAsTouched();
+      this.toastService.warning('Please fill all required fields correctly');
       return;
     }
+
+    if (!this.role) return;
 
     const payload: ChangePasswordPayload = {
       oldPassword: this.changePasswordForm.value.oldPassword,
       newPassword: this.changePasswordForm.value.password,
     };
+    if (payload.oldPassword === payload.newPassword) {
+      alert('New password must be different from old password');
+      return;
+    }
 
-    console.log('Changing password with payload:', payload);
+    console.log('payload', payload);
+    let service$;
+    if (this.role === 'student') {
+      service$ = this.studentService.changeMyPassword(payload);
+    } else if (this.role === 'admin') {
+      service$ = this.adminService.changePassword(payload);
+    } else {
+      this.toastService.error('Cannot change password for this role');
+      return;
+    }
 
     this.isLoading = true;
-    this.profileService
-      .changeMyPassword(payload)
-      .pipe(finalize(() => (this.isLoading = false)))
-      .subscribe({
-        next: () => {
-          console.log('Password changed successfully');
-          alert('Password changed successfully');
-          this.changePasswordForm.reset();
-        },
-        error: (err) => {
-          console.error('Error changing password:', err);
-          alert('Failed to change password');
-        },
-      });
+    service$.pipe(finalize(() => (this.isLoading = false))).subscribe({
+      next: () => {
+        this.toastService.success('Password changed successfully');
+        this.changePasswordForm.reset();
+      },
+      error: (err: any) => {
+        console.error('Error changing password:', err);
+        this.toastService.error('Failed to change password');
+      },
+    });
   }
 }

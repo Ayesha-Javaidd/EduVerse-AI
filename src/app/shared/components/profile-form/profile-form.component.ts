@@ -6,14 +6,22 @@ import {
   FormGroup,
   Validators,
 } from '@angular/forms';
+import { finalize, Observable } from 'rxjs';
+
 import { ButtonComponent } from '../button/button.component';
-import { finalize } from 'rxjs/operators';
-import { StudentProfileService } from '../../services/student-profile-service';
+import { ToastService } from '../../services/toast.service';
+import { AuthService } from '../../../features/auth/services/auth.service';
+
 import {
   StudentProfile,
   StudentUpdatePayload,
 } from '../../models/student-profile.models';
-import { ToastService } from '../../services/toast.service';
+import {
+  AdminProfile,
+  AdminUpdateProfilePayload,
+} from '../../../shared/models/admin-profile.models';
+import { AdminService } from '../../../features/admin/services/admin-profile.service';
+import { StudentProfileService } from '../../services/student-profile-service';
 
 @Component({
   selector: 'app-profile-form',
@@ -25,11 +33,12 @@ import { ToastService } from '../../services/toast.service';
 export class ProfileFormComponent implements OnInit {
   profileForm: FormGroup;
   profilePreview: string | ArrayBuffer | null = '';
-  defaultAvatar: string = 'assets/default-avatar.jpg';
-  isLoading: boolean = false;
+  defaultAvatar = 'assets/default-avatar.jpg';
+  isLoading = false;
+  role: 'student' | 'admin' | null = null;
 
   // Map backend country names to <select> values
-  countryMap: { [key: string]: string } = {
+  countryMap: Record<string, string> = {
     Pakistan: 'pk',
     Germany: 'ger',
     'United States': 'us',
@@ -40,7 +49,9 @@ export class ProfileFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private toastService: ToastService,
-    private profileService: StudentProfileService,
+    private authService: AuthService,
+    private studentService: StudentProfileService,
+    private adminService: AdminService,
   ) {
     this.profileForm = this.fb.group({
       fullName: ['', [Validators.required, Validators.minLength(3)]],
@@ -52,47 +63,54 @@ export class ProfileFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.role = this.authService.getRole() as 'student' | 'admin';
+    if (!this.role) {
+      this.toastService.error('Cannot determine user role');
+      return;
+    }
     this.loadProfile();
   }
 
-  loadProfile() {
-    console.log('Fetching student profile...');
+  private loadProfile(): void {
     this.isLoading = true;
 
-    this.profileService
-      .getMyProfile()
-      .pipe(finalize(() => (this.isLoading = false)))
-      .subscribe({
-        next: (profile: StudentProfile) => {
-          console.log('Profile fetched from backend:', profile);
+    // Strongly type the observable
+    let service$: Observable<StudentProfile | AdminProfile>;
+    if (this.role === 'student') {
+      service$ = this.studentService.getMyProfile();
+    } else {
+      service$ = this.adminService.getMyProfile();
+    }
 
-          const countryValue = this.countryMap[profile.country || ''] || '';
+    service$.pipe(finalize(() => (this.isLoading = false))).subscribe({
+      next: (profile) => {
+        const countryValue = profile.country
+          ? this.countryMap[profile.country]
+          : '';
 
-          this.profileForm.patchValue({
-            fullName: profile.fullName || '',
-            email: profile.email || '',
-            phone: profile.contactNo || '',
-            country: countryValue,
-          });
+        this.profileForm.patchValue({
+          fullName: profile.fullName || '',
+          email: profile.email || '',
+          phone: (profile as any).contactNo || (profile as any).phone || '',
+          country: countryValue,
+        });
 
-          console.log('Form after patchValue:', this.profileForm.value);
-
-          if (profile.profileImageURL) {
-            this.profilePreview = profile.profileImageURL;
-          }
-        },
-        error: (err) => {
-          console.error('Error fetching profile:', err);
-          this.toastService.error('Failed to load profile');
-        },
-      });
+        if ((profile as any).profileImageURL) {
+          this.profilePreview = (profile as any).profileImageURL;
+        }
+      },
+      error: (err: any) => {
+        console.error('Error fetching profile:', err);
+        this.toastService.error('Failed to load profile');
+      },
+    });
   }
 
   get profileImage(): string {
     return (this.profilePreview as string) || this.defaultAvatar;
   }
 
-  onFileChange(event: Event) {
+  onFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
@@ -111,29 +129,45 @@ export class ProfileFormComponent implements OnInit {
       return;
     }
 
-    const payload: StudentUpdatePayload = {
-      fullName: this.profileForm.value.fullName || undefined,
-      email: this.profileForm.value.email || undefined,
-      contactNo: this.profileForm.value.phone || undefined,
-      country: this.profileForm.value.country || undefined,
-      profileImageURL: this.profilePreview as string | null,
-    };
-
-    console.log('Updating profile with payload:', payload);
-
     this.isLoading = true;
-    this.profileService
-      .updateMyProfile(payload)
-      .pipe(finalize(() => (this.isLoading = false)))
-      .subscribe({
-        next: (updatedProfile) => {
-          console.log('Profile updated successfully:', updatedProfile);
-          this.toastService.success('Profile updated successfully');
-        },
-        error: (err) => {
-          console.error('Error updating profile:', err);
-          this.toastService.error('Failed to update profile');
-        },
-      });
+
+    if (this.role === 'student') {
+      const payload: StudentUpdatePayload = {
+        fullName: this.profileForm.value.fullName || undefined,
+        email: this.profileForm.value.email || undefined,
+        contactNo: this.profileForm.value.phone || undefined,
+        country: this.profileForm.value.country || undefined,
+        profileImageURL: this.profilePreview as string | null, // student allows null
+      };
+
+      this.studentService
+        .updateMyProfile(payload)
+        .pipe(finalize(() => (this.isLoading = false)))
+        .subscribe({
+          next: () => this.toastService.success('Profile updated successfully'),
+          error: (err: any) => {
+            console.error('Error updating profile:', err);
+            this.toastService.error('Failed to update profile');
+          },
+        });
+    } else if (this.role === 'admin') {
+      const payload: AdminUpdateProfilePayload = {
+        fullName: this.profileForm.value.fullName || undefined,
+        contactNo: this.profileForm.value.phone || undefined,
+        country: this.profileForm.value.country || undefined,
+        profileImageURL: (this.profilePreview as string | null) ?? undefined, // convert null to undefined
+      };
+
+      this.adminService
+        .updateMyProfile(payload)
+        .pipe(finalize(() => (this.isLoading = false)))
+        .subscribe({
+          next: () => this.toastService.success('Profile updated successfully'),
+          error: (err: any) => {
+            console.error('Error updating profile:', err);
+            this.toastService.error('Failed to update profile');
+          },
+        });
+    }
   }
 }
