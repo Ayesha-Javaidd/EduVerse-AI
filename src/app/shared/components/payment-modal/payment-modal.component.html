@@ -17,10 +17,10 @@
         <div class="p-6">
 
             <!-- Order Summary -->
-            <div class="mb-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                <p class="text-xs text-indigo-600 font-bold uppercase tracking-wider mb-1">Enrolling In</p>
-                <h4 class="text-slate-800 font-bold text-lg mb-2">{{ courseTitle }}</h4>
-                <div class="flex justify-between items-end">
+            <div class="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Enrolling In</p>
+                <h4 class="text-slate-900 font-bold text-lg mb-2">{{ courseTitle }}</h4>
+                <div class="flex justify-between items-end border-t border-slate-200 mt-2 pt-2">
                     <span class="text-sm text-slate-500">Total to pay</span>
                     <span class="text-xl font-bold text-slate-900">{{ price | currency:currency }}</span>
                 </div>
@@ -32,7 +32,7 @@
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Cardholder Name</label>
                         <input type="text" [(ngModel)]="cardName" name="cardName" required
-                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
                             placeholder="John Doe">
                     </div>
 
@@ -40,7 +40,7 @@
                         <label class="block text-sm font-medium text-slate-700 mb-1">Card Number</label>
                         <div class="relative">
                             <input type="text" [(ngModel)]="cardNumber" name="cardNumber" required
-                                class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
                                 placeholder="0000 0000 0000 0000">
                             <i
                                 class="fa-solid fa-credit-card absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
@@ -51,13 +51,13 @@
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Expiry</label>
                             <input type="text" [(ngModel)]="expiry" name="expiry" required
-                                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
                                 placeholder="MM/YY">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">CVC</label>
                             <input type="text" [(ngModel)]="cvc" name="cvc" required
-                                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
                                 placeholder="123">
                         </div>
                     </div>
@@ -65,7 +65,7 @@
 
                 <!-- Secure Badge -->
                 <div class="flex items-center justify-center gap-2 mt-6 mb-2 text-xs text-slate-500">
-                    <i class="fa-solid fa-lock text-green-500"></i>
+                    <i class="fa-solid fa-lock text-slate-400"></i>
                     Payments are secure and encrypted
                 </div>
 

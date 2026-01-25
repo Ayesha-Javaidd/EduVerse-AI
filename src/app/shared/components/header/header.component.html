@@ -1,6 +1,6 @@
-<header class="bg-white shadow-sm border-b border-gray-200">
+<header class="shadow-sm border-b" [ngClass]="isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200'">
   <div class="flex items-center justify-between p-4">
-    <h1 class="text-2xl font-bold text-blue-950" [ngClass]="{ 'ml-12': isMobile }">
+    <h1 class="text-2xl font-bold" [ngClass]="{'ml-12': isMobile, 'text-white': isDark, 'text-slate-900': !isDark}">
       {{ pageTitle }}
     </h1>
 
@@ -8,9 +8,9 @@
       <div class="flex items-center space-x-3">
         <div class="relative">
           <div *ngIf="!displayProfile.avatar; else avatarImg"
-            class="h-10 w-10 rounded-full bg-blue-950 flex items-center justify-center font-semibold text-sm cursor-pointer"
-            (click)="onProfileClick()">
-            <span class="text-white text-sm font-semibold">
+            class="h-10 w-10 rounded-full flex items-center justify-center font-semibold text-sm cursor-pointer"
+            [ngClass]="isDark ? 'bg-slate-800 text-white' : 'bg-slate-900 text-white'" (click)="onProfileClick()">
+            <span class="text-sm font-semibold">
               {{ displayProfile.initials }}
             </span>
           </div>
@@ -21,7 +21,8 @@
           </ng-template>
         </div>
 
-        <span class="text-sm font-medium text-blue-950 cursor-pointer hover:text-gray-900" (click)="onProfileClick()">
+        <span class="text-sm font-medium cursor-pointer hover:text-gray-400"
+          [ngClass]="isDark ? 'text-slate-300' : 'text-slate-900'" (click)="onProfileClick()">
           {{ displayProfile.name }}
         </span>
       </div>

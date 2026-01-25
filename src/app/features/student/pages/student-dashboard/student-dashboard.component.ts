@@ -10,6 +10,7 @@ import { CourseService } from '../../../../core/services/course.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { QuizService } from '../../../teacher/services/quiz.service';
 import { QuizSubmissionService } from '../../services/quiz-submission.service';
+import { AssignmentService } from '../../../../shared/services/assignment.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -61,7 +62,8 @@ export class StudentDashboardComponent implements OnInit {
     private courseService: CourseService,
     private authService: AuthService,
     private quizService: QuizService,
-    private submissionService: QuizSubmissionService
+    private submissionService: QuizSubmissionService,
+    private assignmentService: AssignmentService
   ) { }
 
   ngOnInit() {
@@ -102,7 +104,13 @@ export class StudentDashboardComponent implements OnInit {
         error: (err) => console.error('Error loading quiz stats', err)
       });
 
-      // Note: Assignment logic would be similar if an AssignmentService existed for students
+      // 3. Fetch Assignments to show count
+      this.assignmentService.getAssignments({ tenantId: tenantId, status: 'active' }).subscribe({
+        next: (response) => {
+          this.statsCards[1].value = response.total.toString().padStart(2, '0');
+        },
+        error: (err) => console.error('Error loading assignment stats', err)
+      });
     }
   }
 }

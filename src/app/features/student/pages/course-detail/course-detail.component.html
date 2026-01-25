@@ -1,9 +1,9 @@
 <div class="min-h-screen bg-slate-50 relative">
-    <app-header pageTitle="Course Details"></app-header>
+    <app-header pageTitle="Course Details" [isDark]="true"></app-header>
 
     <!-- Loading State -->
     <div *ngIf="loading" class="flex justify-center items-center h-[calc(100vh-80px)]">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div>
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-slate-900"></div>
     </div>
 
     <!-- Error State -->
@@ -41,7 +41,7 @@
                 <div class="flex-1">
                     <div class="flex flex-wrap gap-3 mb-4">
                         <span
-                            class="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 text-sm font-semibold backdrop-blur-sm">
+                            class="px-3 py-1 rounded-full bg-slate-700/50 text-slate-200 border border-slate-600 text-sm font-semibold backdrop-blur-sm">
                             {{ course.category }}
                         </span>
                         <span
@@ -58,7 +58,7 @@
 
                     <div class="flex items-center gap-4 mb-8">
                         <div
-                            class="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-white/20">
+                            class="h-12 w-12 rounded-full bg-slate-800 flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-white/20">
                             {{ (course.instructorName | slice:0:1) || 'T' }}
                         </div>
                         <div>
@@ -69,10 +69,14 @@
 
                     <!-- Mobile Enroll Button (Visible only on small screens) -->
                     <div class="lg:hidden mt-6">
-                        <app-button [variant]="'success'" [size]="'lg'" [fullWidth]="true"
-                            customColor="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold shadow-lg shadow-teal-500/20"
+                        <app-button *ngIf="!isEnrolled" [variant]="'primary'" [size]="'lg'" [fullWidth]="true"
+                            customColor="bg-slate-800 hover:bg-slate-900 text-white font-bold shadow-lg shadow-slate-900/20"
                             (buttonClick)="enroll()">
                             Enroll Now - {{ course.price ? (course.price | currency) : 'Free' }}
+                        </app-button>
+                        <app-button *ngIf="isEnrolled" [variant]="'primary'" [size]="'lg'" [fullWidth]="true"
+                            customColor="bg-slate-900 text-white font-bold shadow-lg" (buttonClick)="startLearning()">
+                            Start Learning
                         </app-button>
                     </div>
                 </div>
@@ -88,7 +92,7 @@
                 <!-- Description Section -->
                 <section>
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="h-10 w-1 bg-indigo-500 rounded-full"></div>
+                        <div class="h-10 w-1 bg-slate-900 rounded-full"></div>
                         <h2 class="text-2xl font-bold text-slate-900">About This Course</h2>
                     </div>
                     <p class="text-slate-600 leading-relaxed text-lg whitespace-pre-line">
@@ -99,46 +103,65 @@
                 <!-- What You'll Learn / Features -->
                 <section class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
                     <h2 class="text-xl font-bold text-slate-900 mb-6">Course Highlights</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12">
                         <div class="flex items-start gap-4">
                             <div
-                                class="h-10 w-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
-                                <i class="fa-solid fa-video text-lg"></i>
+                                class="h-12 w-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-video text-xl"></i>
                             </div>
                             <div>
-                                <h3 class="font-bold text-slate-800 mb-1">Video Lessons</h3>
-                                <p class="text-sm text-slate-500">Comprehensive video content uploaded by the
-                                    instructor.</p>
+                                <h3 class="font-bold text-slate-900 mb-1">Video Lessons</h3>
+                                <p class="text-sm text-slate-500">Full course curriculum</p>
                             </div>
                         </div>
                         <div *ngIf="course.hasCertificate" class="flex items-start gap-4">
                             <div
-                                class="h-10 w-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-                                <i class="fa-solid fa-certificate text-lg"></i>
+                                class="h-12 w-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-certificate text-xl"></i>
                             </div>
                             <div>
-                                <h3 class="font-bold text-slate-800 mb-1">Certificate</h3>
-                                <p class="text-sm text-slate-500">Earn a certificate of completion upon finishing.</p>
+                                <h3 class="font-bold text-slate-900 mb-1">Certificate</h3>
+                                <p class="text-sm text-slate-500">Official completion</p>
                             </div>
                         </div>
                         <div *ngIf="course.hasBadges" class="flex items-start gap-4">
                             <div
-                                class="h-10 w-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0">
-                                <i class="fa-solid fa-medal text-lg"></i>
+                                class="h-12 w-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-medal text-xl"></i>
                             </div>
                             <div>
-                                <h3 class="font-bold text-slate-800 mb-1">Badges</h3>
-                                <p class="text-sm text-slate-500">Unlock achievement badges as you progress.</p>
+                                <h3 class="font-bold text-slate-900 mb-1">Badges</h3>
+                                <p class="text-sm text-slate-500">Unlockable achievements</p>
+                            </div>
+                        </div>
+                        <div *ngIf="quizCount > 0" class="flex items-start gap-4">
+                            <div
+                                class="h-12 w-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-lightbulb text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 mb-1">{{ quizCount }} Quizzes</h3>
+                                <p class="text-sm text-slate-500">Test your knowledge</p>
+                            </div>
+                        </div>
+                        <div *ngIf="assignmentCount > 0" class="flex items-start gap-4">
+                            <div
+                                class="h-12 w-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-file-pen text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 mb-1">{{ assignmentCount }} Assignments</h3>
+                                <p class="text-sm text-slate-500">Build your skills</p>
                             </div>
                         </div>
                         <div *ngIf="course.hasLifetimeAccess" class="flex items-start gap-4">
                             <div
-                                class="h-10 w-10 rounded-xl bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0">
-                                <i class="fa-solid fa-infinity text-lg"></i>
+                                class="h-12 w-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-infinity text-xl"></i>
                             </div>
                             <div>
-                                <h3 class="font-bold text-slate-800 mb-1">Lifetime Access</h3>
-                                <p class="text-sm text-slate-500">Learn at your own pace with unlimited access.</p>
+                                <h3 class="font-bold text-slate-900 mb-1">Full Access</h3>
+                                <p class="text-sm text-slate-500">Lifetime learning</p>
                             </div>
                         </div>
                     </div>
@@ -147,36 +170,51 @@
                 <!-- Curriculum / Modules -->
                 <section *ngIf="course.modules && course.modules.length > 0">
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="h-10 w-1 bg-indigo-500 rounded-full"></div>
+                        <div class="h-10 w-1 bg-slate-900 rounded-full"></div>
                         <h2 class="text-2xl font-bold text-slate-900">Course Content</h2>
                     </div>
 
                     <div class="space-y-4">
+                        <!-- Module Item -->
                         <div *ngFor="let module of course.modules; let i = index"
-                            class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                            <div
-                                class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-                                <div>
-                                    <span
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 block">Module
-                                        {{ i + 1 }}</span>
-                                    <h3 class="font-bold text-slate-800 text-lg">{{ module.title }}</h3>
-                                </div>
-                                <span class="text-sm text-slate-500 font-medium">{{ module.lessons?.length || 0 }}
-                                    Lessons</span>
-                            </div>
-                            <div class="divide-y divide-slate-100">
-                                <div *ngFor="let lesson of module.lessons"
-                                    class="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors">
+                            class="border border-slate-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+                            <button [disabled]="!isEnrolled"
+                                class="w-full flex items-center justify-between p-5 bg-white hover:bg-slate-50 transition-colors text-left group"
+                                (click)="module.isExpanded = !module.isExpanded">
+                                <div class="flex items-center gap-4">
                                     <div
-                                        class="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
-                                        <i
-                                            [class]="lesson.type === 'video' ? 'fa-solid fa-play' : 'fa-solid fa-file-alt'"></i>
+                                        class="h-8 w-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-sm group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                                        {{ i + 1 }}
                                     </div>
-                                    <span class="text-slate-700 font-medium">{{ lesson.title }}</span>
-                                    <div class="flex-1"></div>
-                                    <span class="text-xs text-slate-400 font-mono bg-slate-100 px-2 py-1 rounded">{{
-                                        lesson.duration || '5:00' }}</span>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">{{ module.title }}</h4>
+                                        <p class="text-xs text-slate-500 mt-1">{{ module.lessons?.length || 0 }} lessons
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <i *ngIf="!isEnrolled" class="fa-solid fa-lock text-slate-300"></i>
+                                    <i class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-300"
+                                        [class.rotate-180]="module.isExpanded"></i>
+                                </div>
+                            </button>
+
+                            <div *ngIf="isEnrolled && module.isExpanded" class="bg-slate-50 px-5 pb-5 pt-0 space-y-3">
+                                <div *ngFor="let lesson of module.lessons"
+                                    class="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-100 hover:border-slate-200 transition-all cursor-pointer group/lesson">
+                                    <div class="flex items-center gap-3">
+                                        <i *ngIf="(lesson.type | lowercase) === 'video'"
+                                            class="fa-solid fa-circle-play text-slate-600 text-sm"></i>
+                                        <i *ngIf="(lesson.type | lowercase) === 'quiz'"
+                                            class="fa-solid fa-lightbulb text-amber-500 text-sm"></i>
+                                        <i *ngIf="(lesson.type | lowercase) === 'document' || (lesson.type | lowercase) === 'reading' || (lesson.type | lowercase) === 'assignment' || (lesson.type | lowercase) === 'file'"
+                                            class="fa-solid fa-file-lines text-slate-500 text-sm"></i>
+                                        <span
+                                            class="text-sm text-slate-700 group-hover/lesson:text-slate-900 transition-colors">{{
+                                            lesson.title }}</span>
+                                    </div>
+                                    <span *ngIf="lesson.duration" class="text-xs text-slate-400 font-medium">{{
+                                        lesson.duration }}</span>
                                 </div>
                             </div>
                         </div>
@@ -186,13 +224,13 @@
                 <!-- Instructor Bio -->
                 <section>
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="h-10 w-1 bg-indigo-500 rounded-full"></div>
+                        <div class="h-10 w-1 bg-slate-900 rounded-full"></div>
                         <h2 class="text-2xl font-bold text-slate-900">Your Instructor</h2>
                     </div>
                     <div
                         class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 flex flex-col md:flex-row gap-6 items-start">
                         <div
-                            class="h-24 w-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-3xl shadow-lg flex-shrink-0">
+                            class="h-24 w-24 rounded-full bg-slate-800 flex items-center justify-center text-white font-bold text-3xl shadow-lg flex-shrink-0">
                             {{ (course.instructorName | slice:0:1) || 'T' }}
                         </div>
                         <div>
@@ -203,7 +241,7 @@
                             </p>
                             <div class="flex gap-4">
                                 <span class="text-sm text-slate-500"><i
-                                        class="fa-solid fa-users mr-2 text-indigo-500"></i>{{ course.enrolledStudents }}
+                                        class="fa-solid fa-users mr-2 text-slate-900"></i>{{ course.enrolledStudents }}
                                     Students</span>
                                 <span class="text-sm text-slate-500"><i
                                         class="fa-solid fa-star mr-2 text-amber-500"></i>4.8 Rating</span>
@@ -222,7 +260,7 @@
                                 class="w-full rounded-xl">
                         </div>
                         <div class="p-8">
-                            <div class="flex items-baseline gap-2 mb-6">
+                            <div *ngIf="!isEnrolled" class="flex items-baseline gap-2 mb-6">
                                 <span class="text-3xl font-bold text-slate-900">{{ course.price ? (course.price |
                                     currency) : 'Free' }}</span>
                                 <span *ngIf="course.price"
@@ -232,12 +270,25 @@
                                     OFF</span>
                             </div>
 
-                            <app-button [variant]="'success'" [size]="'xl'" [fullWidth]="true"
-                                customColor="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold shadow-lg shadow-teal-500/20 transform hover:-translate-y-1 transition-all duration-300"
+                            <div *ngIf="isEnrolled" class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                                <p class="text-slate-900 font-bold flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-check text-green-600"></i>
+                                    You are enrolled!
+                                </p>
+                            </div>
+
+                            <app-button *ngIf="!isEnrolled" [variant]="'primary'" [size]="'xl'" [fullWidth]="true"
+                                customColor="bg-slate-900 hover:bg-black text-white font-bold shadow-xl shadow-slate-900/30 transform hover:-translate-y-1 transition-all duration-300"
                                 [disabled]="enrolling" (buttonClick)="enroll()">
                                 <span *ngIf="!enrolling">Enroll Now</span>
                                 <span *ngIf="enrolling"><i
                                         class="fa-solid fa-circle-notch fa-spin mr-2"></i>Enrolling...</span>
+                            </app-button>
+
+                            <app-button *ngIf="isEnrolled" [variant]="'primary'" [size]="'xl'" [fullWidth]="true"
+                                customColor="bg-slate-900 hover:bg-black text-white font-bold shadow-xl shadow-slate-900/30 transform hover:-translate-y-1 transition-all duration-300"
+                                (buttonClick)="startLearning()">
+                                Start Learning
                             </app-button>
 
                             <p class="text-xs text-center text-slate-400 mt-3 pt-3 border-t border-slate-100">30-Day
@@ -274,23 +325,22 @@
         <!-- Modal Card -->
         <div
             class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center relative z-10 animate-bounce-in overflow-hidden">
-            <!-- Confetti Effect (Pseudo) -->
-            <div class="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+            <!-- Top Accent -->
+            <div class="absolute inset-x-0 top-0 h-2 bg-slate-900"></div>
 
             <div class="mb-6 relative">
-                <div
-                    class="h-24 w-24 bg-green-100 rounded-full mx-auto flex items-center justify-center animate-pulse-slow">
-                    <i class="fa-solid fa-check text-4xl text-green-500"></i>
+                <div class="h-24 w-24 bg-slate-900 rounded-full mx-auto flex items-center justify-center">
+                    <i class="fa-solid fa-check text-4xl text-white"></i>
                 </div>
                 <!-- Decorative elements -->
-                <i class="fa-solid fa-star text-yellow-400 absolute top-0 right-10 animate-spin-slow"></i>
-                <i class="fa-solid fa-star text-blue-400 absolute bottom-0 left-10 text-sm"></i>
+                <i class="fa-solid fa-star text-slate-300 absolute top-0 right-10 animate-spin-slow"></i>
+                <i class="fa-solid fa-star text-slate-200 absolute bottom-0 left-10 text-sm"></i>
             </div>
 
             <h3 class="text-2xl font-bold text-slate-800 mb-2">Welcome Aboard!</h3>
             <p class="text-slate-600 mb-8">
                 You have successfully enrolled in <br>
-                <span class="font-semibold text-indigo-600">"{{ course?.title }}"</span>
+                <span class="font-semibold text-slate-900">"{{ course?.title }}"</span>
             </p>
 
             <app-button [variant]="'primary'" [size]="'lg'" [fullWidth]="true"

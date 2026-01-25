@@ -21,7 +21,10 @@ export class CourseDetailComponent implements OnInit {
   error: string | null = null;
   enrolling: boolean = false;
   showSuccessModal: boolean = false;
-  showPaymentModal: boolean = false; // New state for payment modal
+  showPaymentModal: boolean = false;
+  isEnrolled: boolean = false;
+  quizCount: number = 0;
+  assignmentCount: number = 0; // Currently mapping 'reading' or custom types to assignments if applicable
 
   constructor(
     private route: ActivatedRoute,
@@ -53,6 +56,8 @@ export class CourseDetailComponent implements OnInit {
       next: (course) => {
         console.log('Loaded Course:', course); // DEBUG
         this.course = course;
+        this.calculateStats();
+        this.checkEnrollment();
         this.loading = false;
       },
       error: (err) => {
@@ -61,6 +66,43 @@ export class CourseDetailComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  calculateStats() {
+    this.quizCount = 0;
+    this.assignmentCount = 0;
+    if (this.course?.modules) {
+      this.course.modules.forEach(module => {
+        if (module.lessons) {
+          module.lessons.forEach((lesson: any) => {
+            const type = (lesson.type || '').toLowerCase();
+            if (type === 'quiz') {
+              this.quizCount++;
+            } else if (type === 'document' || type === 'reading' || type === 'assignment' || type === 'file') {
+              this.assignmentCount++;
+            }
+          });
+        }
+      });
+    }
+  }
+
+  checkEnrollment() {
+    const user = this.authService.getUser();
+    const tenantId = this.authService.getTenantId();
+    if (!user || !tenantId) return;
+
+    const studentId = user.studentId || user.id;
+    this.courseService.getStudentCourses(studentId, tenantId).subscribe({
+      next: (courses) => {
+        this.isEnrolled = courses.some(c => c._id === this.courseId || c.id === this.courseId);
+      },
+      error: (err) => console.error('Error checking enrollment:', err)
+    });
+  }
+
+  startLearning() {
+    this.router.navigate(['/student/courses']);
   }
 
   enroll() {
