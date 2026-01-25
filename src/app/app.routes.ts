@@ -40,6 +40,7 @@ import { TeacherSignupComponent } from './features/auth/pages/teacher-signup/tea
 import { AdminSignupComponent } from './features/auth/pages/admin-signup/admin-signup.component';
 import { GradeAssignmentsComponent } from './features/teacher/pages/grade-assignments/grade-assignments.component';
 import { CourseDetailComponent } from './features/student/pages/course-detail/course-detail.component';
+import { CoursePlayerComponent } from './features/student/pages/course-player/course-player.component';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -107,6 +108,7 @@ export const routes: Routes = [
       { path: 'enroll-course/:id', component: CourseDetailComponent },
     ],
   },
+  { path: 'student/learn/:id', component: CoursePlayerComponent },
   {
     path: 'super-admin',
     component: SuperAdminLayoutComponent,

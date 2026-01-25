@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CourseService, BackendCourse } from '../../../../core/services/course.service';
 import { AuthService } from '../../../auth/services/auth.service';
+import { StudentProgressService } from '../../services/student-progress.service';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { PaymentModalComponent } from '../../../../shared/components/payment-modal/payment-modal.component';
@@ -23,6 +24,7 @@ export class CourseDetailComponent implements OnInit {
   showSuccessModal: boolean = false;
   showPaymentModal: boolean = false;
   isEnrolled: boolean = false;
+  progress: number = 0;
   quizCount: number = 0;
   assignmentCount: number = 0; // Currently mapping 'reading' or custom types to assignments if applicable
 
@@ -30,7 +32,8 @@ export class CourseDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private courseService: CourseService,
-    private authService: AuthService
+    private authService: AuthService,
+    private progressService: StudentProgressService
   ) { }
 
   ngOnInit() {
@@ -96,13 +99,31 @@ export class CourseDetailComponent implements OnInit {
     this.courseService.getStudentCourses(studentId, tenantId).subscribe({
       next: (courses) => {
         this.isEnrolled = courses.some(c => c._id === this.courseId || c.id === this.courseId);
+        if (this.isEnrolled) {
+          this.loadProgress(tenantId);
+        }
       },
       error: (err) => console.error('Error checking enrollment:', err)
     });
   }
 
+  loadProgress(tenantId: string) {
+    this.progressService.getCourseProgress(this.courseId, tenantId).subscribe({
+      next: (prog) => {
+        this.progress = prog.progressPercentage;
+      },
+      error: (err) => console.error('Error loading progress:', err)
+    });
+  }
+
+  get learningButtonText(): string {
+    if (this.progress === 100) return "You've Completed This Course!";
+    if (this.progress > 0) return "Continue Learning";
+    return "Start Learning";
+  }
+
   startLearning() {
-    this.router.navigate(['/student/courses']);
+    this.router.navigate(['/student/learn', this.courseId]);
   }
 
   enroll() {
@@ -149,7 +170,7 @@ export class CourseDetailComponent implements OnInit {
 
   closeModal() {
     this.showSuccessModal = false;
-    this.router.navigate(['/student/courses']);
+    this.router.navigate(['/student/learn', this.courseId]);
   }
 
   goBack() {

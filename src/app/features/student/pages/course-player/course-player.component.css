@@ -1,0 +1,79 @@
+:host {
+    display: block;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+}
+
+.prose p {
+    margin-bottom: 1.5rem;
+}
+
+.prose strong {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+}
+
+/* Fix for horizontal scroll & wide content */
+.flex-1 {
+    min-width: 0;
+}
+
+aside {
+    z-index: 20;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+main>div {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Module header font correction */
+.font-sans {
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* Specific Notes styling */
+textarea {
+    transition: all 0.2s ease-in-out;
+}
+
+textarea:focus {
+    background-color: white !important;
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+}

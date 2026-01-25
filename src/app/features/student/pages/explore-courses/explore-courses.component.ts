@@ -8,6 +8,8 @@ import { FiltersComponent } from '../../../../shared/components/filters/filters.
 import { CourseCardComponent, Course } from '../../components/course-card/course-card.component';
 import { CourseService, BackendCourse } from '../../../../core/services/course.service';
 import { AuthService } from '../../../auth/services/auth.service';
+import { StudentProgressService, CourseProgress } from '../../services/student-progress.service';
+import { forkJoin, map, catchError, of } from 'rxjs';
 
 @Component({
   selector: 'app-explore-courses',
@@ -52,8 +54,9 @@ export class ExploreCoursesComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private courseService: CourseService, // UPDATED: Injected CourseService
-    private authService: AuthService      // UPDATED: Injected AuthService
+    private courseService: CourseService,
+    private authService: AuthService,
+    private progressService: StudentProgressService
   ) { }
 
   ngOnInit() {
@@ -69,22 +72,64 @@ export class ExploreCoursesComponent implements OnInit {
       if (user) {
         this.profile.name = user.fullName || 'Student';
         this.profile.initials = this.profile.name.trim().charAt(0).toUpperCase();
-      }
 
-      // Fetch all courses for this tenant
-      this.courseService.getCourses(tenantId).subscribe({
-        next: (backendCourses) => {
-          this.availableCourses = backendCourses.map(bc => this.mapToFrontendCourse(bc));
-          this.filteredCourses = [...this.availableCourses];
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error('Error loading available courses', err);
-          this.loading = false;
-        }
-      });
+        const studentId = user.studentId || user.id;
+        const isStudent = user.role === 'student';
+
+        // Prepare observables
+        const courses$ = this.courseService.getCourses(tenantId);
+        const studentCourses$ = isStudent ? this.courseService.getStudentCourses(studentId, tenantId).pipe(catchError(() => of([]))) : of([]);
+        const progress$ = isStudent ? this.progressService.getAllProgress(tenantId).pipe(catchError(() => of([]))) : of([]);
+
+        forkJoin({
+          all: courses$,
+          enrolled: studentCourses$,
+          progress: progress$
+        }).subscribe({
+          next: ({ all, enrolled, progress }) => {
+            const enrolledMap = new Map(enrolled.map(c => [c._id, c]));
+            const progressMap = new Map<string, CourseProgress>(progress.map(p => [p.courseId, p]));
+
+            this.availableCourses = all.map(bc => {
+              const course = this.mapToFrontendCourse(bc);
+              const en = enrolledMap.get(bc._id);
+              if (en) {
+                // Mark as enrolled variant to show progress
+                course.variant = 'enrolled';
+                course.nextLesson = en.nextLesson;
+
+                const prog = progressMap.get(bc._id);
+                if (prog) {
+                  course.progress = prog.progressPercentage;
+                  course.lessonsCompleted = prog.completedLessons.length;
+                }
+              }
+              return course;
+            });
+
+            this.filteredCourses = [...this.availableCourses];
+            this.loading = false;
+          },
+          error: (err) => {
+            console.error('Error loading courses', err);
+            this.loading = false;
+          }
+        });
+
+      } else {
+        // Not logged in - just show all
+        this.courseService.getCourses(tenantId).subscribe({
+          next: (all) => {
+            this.availableCourses = all.map(bc => this.mapToFrontendCourse(bc));
+            this.filteredCourses = [...this.availableCourses];
+            this.loading = false;
+          },
+          error: (err) => {
+            this.loading = false;
+          }
+        });
+      }
     } else {
-      console.warn('Tenant ID missing');
       this.loading = false;
     }
   }

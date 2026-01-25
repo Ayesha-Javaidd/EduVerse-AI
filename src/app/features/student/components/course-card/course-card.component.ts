@@ -16,10 +16,10 @@ export interface Course {
   level: 'Beginner' | 'Intermediate' | 'Advanced';
   rating?: number;
   nextLesson?: string;
-  dueDate?: string;
   description?: string;
   price?: number;
   enrolledStudents?: number;
+  variant?: 'enrolled' | 'explore';
 }
 
 @Component({
@@ -31,9 +31,9 @@ export interface Course {
 })
 export class CourseCardComponent {
   @Input() course!: Course;
-  @Input() variant: 'enrolled' | 'explore' = 'enrolled'; 
+  @Input() variant: 'enrolled' | 'explore' = 'enrolled';
   @Input() showEnrollButton: boolean = false;
-  
+
   @Output() courseClick = new EventEmitter<Course>();
   @Output() enrollClick = new EventEmitter<Course>();
 

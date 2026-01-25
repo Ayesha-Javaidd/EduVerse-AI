@@ -1,0 +1,310 @@
+<div class="flex flex-col h-screen bg-slate-50 overflow-hidden">
+    <!-- Top Header -->
+    <header
+        class="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 flex-shrink-0 z-30">
+        <div class="flex items-center gap-4">
+            <button (click)="goBack()" class="text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-arrow-left text-lg"></i>
+            </button>
+            <div class="h-8 w-px bg-slate-700 mx-2"></div>
+            <h1 class="text-white font-bold truncate max-w-md hidden md:block">{{ course?.title }}</h1>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <div class="hidden lg:flex flex-col items-end">
+                <div class="flex items-center gap-3 mb-1">
+                    <span class="text-xs text-slate-400 font-medium">Course Progress</span>
+                    <span class="text-xs text-white font-bold">{{ progress?.progressPercentage || 0 }}%</span>
+                </div>
+                <div class="w-48 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-indigo-500 transition-all duration-500"
+                        [style.width.%]="progress?.progressPercentage || 0"></div>
+                </div>
+            </div>
+            <button class="text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-gear text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar: Curriculum Navigation -->
+        <aside class="bg-white border-r border-slate-200 transition-all duration-300 overflow-y-auto flex-shrink-0"
+            [class.w-64]="isSidebarOpen" [class.w-0]="!isSidebarOpen">
+            <div class="p-5">
+                <h2 class="text-slate-900 font-bold mb-6 flex items-center justify-between">
+                    <span class="truncate">Course Content</span>
+                    <button (click)="toggleSidebar()" class="lg:hidden text-slate-400"><i
+                            class="fa-solid fa-xmark"></i></button>
+                </h2>
+
+                <div class="space-y-4">
+                    <div *ngFor="let module of course?.modules; let mIdx = index" class="space-y-2">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Module {{ mIdx
+                                + 1 }}</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-900 mb-3 px-1 font-sans">{{ module.title }}</h3>
+
+                        <div class="space-y-1">
+                            <button *ngFor="let lesson of module.lessons" (click)="selectLesson(lesson, mIdx)"
+                                [class.bg-slate-100]="lessonsMatch(activeLesson, lesson)"
+                                class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all text-left group">
+                                <div class="relative flex-shrink-0">
+                                    <div *ngIf="isLessonCompleted(lesson.id || lesson._id)"
+                                        class="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                                        <i class="fa-solid fa-check text-[8px] text-white"></i>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-white border border-transparent group-hover:border-slate-200 shadow-sm"
+                                        [class.bg-white]="lessonsMatch(activeLesson, lesson)">
+                                        <i *ngIf="lesson.type === 'video'" class="fa-solid fa-play text-xs"></i>
+                                        <i *ngIf="lesson.type === 'quiz'" class="fa-solid fa-lightbulb text-xs"></i>
+                                        <i *ngIf="lesson.type === 'document' || lesson.type === 'reading' || lesson.type === 'file' || lesson.type === 'assignment'"
+                                            class="fa-solid fa-file-lines text-xs"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-semibold text-slate-800 truncate"
+                                        [class.text-indigo-600]="lessonsMatch(activeLesson, lesson)">{{ lesson.title }}
+                                    </p>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">{{ lesson.duration || '5 mins' }}</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto bg-slate-50 flex flex-col relative min-w-0">
+            <button *ngIf="!isSidebarOpen" (click)="toggleSidebar()"
+                class="absolute left-6 top-6 z-20 w-10 h-10 bg-white shadow-lg border border-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900 transition-all">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <!-- Content Area Wrapper -->
+            <div *ngIf="!loading && activeLesson" class="p-6 lg:p-10 max-w-5xl mx-auto w-full flex-1 min-w-0">
+                <div class="mb-8">
+                    <p class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">
+                        {{ course?.modules?.[activeModuleIndex]?.title }}
+                    </p>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-900">{{ activeLesson.title }}</h2>
+                </div>
+
+                <!-- Video Player / Content Frame -->
+                <div *ngIf="activeLesson.type === 'video'"
+                    class="aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl mb-8 border border-slate-800">
+                    <iframe *ngIf="videoUrl" [src]="videoUrl" class="w-full h-full" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                    <div *ngIf="!videoUrl"
+                        class="w-full h-full flex flex-col items-center justify-center text-slate-500 p-6 text-center">
+                        <i class="fa-solid fa-video-slash text-4xl mb-4 opacity-20"></i>
+                        <p class="text-sm">Video link not valid or not provided.</p>
+                        <p class="text-xs opacity-60 mt-2">{{ activeLesson.content }}</p>
+                    </div>
+                </div>
+
+                <!-- Text Content & Quiz Interface -->
+                <div *ngIf="activeLesson.type !== 'video'"
+                    class="bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-slate-100 mb-8 min-h-[400px]">
+
+                    <!-- Standard Text Lesson -->
+                    <div *ngIf="activeLesson.type !== 'quiz'" class="prose prose-slate max-w-none">
+                        <div class="text-slate-600 leading-relaxed text-lg"
+                            [innerHTML]="activeLesson.content || 'No content provided for this lesson.'"></div>
+                    </div>
+
+                    <!-- Interactive Quiz Lesson -->
+                    <div *ngIf="activeLesson.type === 'quiz'" class="quiz-container">
+                        <div *ngIf="loadingQuiz" class="flex flex-col items-center justify-center py-20">
+                            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-indigo-500 mb-4"></i>
+                            <p class="text-slate-500 font-medium">Loading your quiz...</p>
+                        </div>
+
+                        <div *ngIf="!loadingQuiz && activeQuiz">
+                            <!-- Quiz Header -->
+                            <div class="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                <h3 class="text-xl font-bold text-slate-800 mb-2">Quiz #{{ activeQuiz.quizNumber }}</h3>
+                                <p class="text-slate-600">{{ activeQuiz.description || 'Test your knowledge on the
+                                    current topic.' }}</p>
+                                <div class="flex gap-4 mt-4">
+                                    <span
+                                        class="px-3 py-1 bg-white rounded-lg text-xs font-bold text-slate-500 border border-slate-200">
+                                        {{ activeQuiz.questions.length }} Questions
+                                    </span>
+                                    <span
+                                        class="px-3 py-1 bg-white rounded-lg text-xs font-bold text-slate-500 border border-slate-200">
+                                        Pass score: 70%
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Quiz Questions -->
+                            <div *ngIf="!quizSubmitted" class="space-y-10">
+                                <div *ngFor="let q of activeQuiz.questions; let i = index" class="question-card">
+                                    <p class="text-lg font-bold text-slate-900 mb-6 flex items-start gap-3">
+                                        <span
+                                            class="flex-shrink-0 w-8 h-8 rounded-lg bg-indigo-50 shadow-sm text-indigo-600 flex items-center justify-center text-sm">{{
+                                            i + 1 }}</span>
+                                        {{ q.question }}
+                                    </p>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <button *ngFor="let opt of q.options" (click)="quizAnswers[i] = opt"
+                                            [class.border-indigo-500]="quizAnswers[i] === opt"
+                                            [class.bg-indigo-50]="quizAnswers[i] === opt"
+                                            class="p-4 text-left border-2 border-slate-100 rounded-xl hover:border-slate-300 transition-all font-medium text-slate-700">
+                                            <div class="flex items-center justify-between">
+                                                <span>{{ opt }}</span>
+                                                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                                                    [class.border-indigo-500]="quizAnswers[i] === opt"
+                                                    [class.border-slate-200]="quizAnswers[i] !== opt">
+                                                    <div *ngIf="quizAnswers[i] === opt"
+                                                        class="w-2.5 h-2.5 bg-indigo-500 rounded-full"></div>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="pt-6 border-t border-slate-100">
+                                    <app-button [variant]="'primary'" [size]="'xl'" [fullWidth]="true"
+                                        (buttonClick)="submitQuiz()">
+                                        Submit Quiz Answers
+                                    </app-button>
+                                </div>
+                            </div>
+
+                            <!-- Quiz Results -->
+                            <div *ngIf="quizSubmitted"
+                                class="text-center py-10 bg-indigo-50/30 rounded-3xl border-2 border-dashed border-indigo-100">
+                                <div class="mb-6">
+                                    <div class="w-24 h-24 rounded-full mx-auto flex items-center justify-center mb-4 shadow-xl"
+                                        [class.bg-green-500]="quizScore >= 70" [class.bg-amber-500]="quizScore < 70">
+                                        <i class="fa-solid text-4xl text-white" [class.fa-trophy]="quizScore >= 70"
+                                            [class.fa-rotate-right]="quizScore < 70"></i>
+                                    </div>
+                                    <h3 class="text-3xl font-black text-slate-900 mb-2">You Scored {{ quizScore }}%</h3>
+                                    <p class="text-slate-600" *ngIf="quizScore >= 70">Congratulations! You passed the
+                                        quiz.</p>
+                                    <p class="text-slate-600" *ngIf="quizScore < 70">Keep trying! You need 70% to pass.
+                                    </p>
+                                </div>
+
+                                <div class="flex gap-4 justify-center">
+                                    <app-button [variant]="'light'" [size]="'lg'" (buttonClick)="quizSubmitted = false">
+                                        Retry Quiz
+                                    </app-button>
+                                    <app-button *ngIf="quizScore >= 70" [variant]="'primary'" [size]="'lg'"
+                                        (buttonClick)="nextLesson()">
+                                        Continue to Next Lesson
+                                    </app-button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div
+                    class="flex flex-col sm:flex-row items-center justify-between gap-6 pb-12 border-t border-slate-200 pt-8 mt-12">
+                    <div class="flex items-center gap-4">
+                        <app-button [variant]="'primary'" [size]="'lg'" (buttonClick)="markComplete()">
+                            <i class="fa-solid fa-circle-check mr-2"></i>
+                            {{ isLessonCompleted(activeLesson.id || activeLesson._id) ? 'Completed' : 'Mark as Complete'
+                            }}
+                        </app-button>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button (click)="previousLesson()" [disabled]="!hasPreviousLesson()"
+                            class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 disabled:opacity-20 disabled:cursor-not-allowed transition-colors">
+                            <i class="fa-solid fa-chevron-left"></i> Prev
+                        </button>
+                        <button (click)="nextLesson()" [disabled]="!hasNextLesson()"
+                            class="flex items-center gap-2 px-6 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 disabled:opacity-20 disabled:cursor-not-allowed transition-all shadow-lg shadow-slate-900/10">
+                            Next <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- NEW NOTES SECTION: Differentiated design -->
+                <section class="mt-16 bg-slate-100/50 rounded-3xl p-8 border-2 border-dashed border-slate-200 relative">
+                    <div
+                        class="absolute -top-6 left-10 px-4 py-2 bg-indigo-600 rounded-xl text-white text-xs font-bold shadow-lg flex items-center gap-2">
+                        <i class="fa-solid fa-pen-fancy"></i>
+                        LEARNING NOTES
+                    </div>
+
+                    <div class="flex items-center justify-between mb-4 mt-2">
+                        <p class="text-sm text-slate-500 italic">Capture key takeaways from this lesson here.</p>
+                        <app-button [variant]="'primary'" [size]="'md'" (buttonClick)="saveNotes()"
+                            [disabled]="isSavingNotes">
+                            <i *ngIf="isSavingNotes" class="fa-solid fa-circle-notch fa-spin mr-2"></i>
+                            <i *ngIf="!isSavingNotes" class="fa-solid fa-floppy-disk mr-2"></i>
+                            {{ isSavingNotes ? 'Saving...' : 'Save Notes' }}
+                        </app-button>
+                    </div>
+                    <textarea [(ngModel)]="userNotes" placeholder="Write your personal study notes here..."
+                        class="w-full min-h-[250px] bg-white rounded-2xl p-8 text-slate-800 outline-none border-none shadow-inner focus:ring-2 focus:ring-indigo-100 placeholder:text-slate-300 transition-all leading-relaxed text-base">
+                    </textarea>
+                </section>
+
+                <div class="h-20"></div>
+            </div>
+        </main>
+
+        <!-- Right Sidenav: AI Chatbot (Now has more space) -->
+        <aside
+            class="w-64 bg-white border-l border-slate-200 flex flex-col hidden md:flex overflow-hidden flex-shrink-0">
+            <div class="p-5 border-b border-slate-100 bg-slate-50/50">
+                <h3 class="text-xs font-bold text-slate-900 flex items-center gap-2 uppercase tracking-widest">
+                    <i class="fa-solid fa-robot text-indigo-500"></i>
+                    AI Assistant
+                </h3>
+            </div>
+
+            <!-- Chat body -->
+            <div class="flex-1 overflow-y-auto p-5 space-y-4 min-h-0">
+                <div *ngFor="let msg of chatMessages" class="flex flex-col"
+                    [class.items-end]="msg.sender === 'Student'">
+                    <div [class.bg-slate-900]="msg.sender === 'AI'" [class.text-white]="msg.sender === 'AI'"
+                        [class.bg-slate-100]="msg.sender === 'Student'"
+                        [class.text-slate-800]="msg.sender === 'Student'"
+                        [class.rounded-tr-none]="msg.sender === 'Student'" [class.rounded-tl-none]="msg.sender === 'AI'"
+                        class="max-w-[95%] p-3 rounded-2xl text-xs leading-relaxed shadow-sm">
+                        {{ msg.text }}
+                    </div>
+                    <span class="text-[8px] text-slate-400 mt-1 uppercase px-1">{{ msg.time | date:'shortTime' }}</span>
+                </div>
+            </div>
+
+            <!-- Input area -->
+            <div class="p-4 border-t border-slate-100 mt-auto bg-white">
+                <div class="relative">
+                    <input [(ngModel)]="chatInput" (keyup.enter)="sendChatMessage()" type="text" placeholder="Ask AI..."
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-10 py-3 text-xs outline-none focus:border-indigo-500 transition-all">
+                    <button (click)="sendChatMessage()"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Context Rewards -->
+            <div class="p-5 bg-slate-900 m-4 rounded-2xl">
+                <div class="flex items-center gap-3">
+                    <div class="h-8 w-8 bg-indigo-500 text-white rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <div>
+                        <p class="text-[9px] text-indigo-200 font-bold uppercase tracking-tighter">Learning Path</p>
+                        <p class="text-xs font-bold text-white">Course Reward</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
