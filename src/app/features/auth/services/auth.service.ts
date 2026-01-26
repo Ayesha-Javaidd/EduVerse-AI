@@ -92,6 +92,10 @@ export class AuthService {
     return this.currentUserSubject.value?.role ?? null;
   }
 
+  // getRole(): 'student' | 'admin' | 'teacher' | null {
+  //   return this.currentUserSubject.value?.role ?? null;
+  // }
+
   getTenantId(): string | null {
     return this.currentUserSubject.value?.tenantId ?? null;
   }
