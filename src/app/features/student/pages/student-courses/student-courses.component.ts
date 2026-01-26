@@ -11,6 +11,8 @@ import { FiltersComponent } from '../../../../shared/components/filters/filters.
 import { CourseCardComponent, Course } from '../../components/course-card/course-card.component';
 import { CourseService, BackendCourse } from '../../../../core/services/course.service';
 import { AuthService } from '../../../auth/services/auth.service';
+import { StudentProgressService, CourseProgress } from '../../services/student-progress.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-student-courses',
@@ -59,8 +61,9 @@ export class StudentCoursesComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private courseService: CourseService, // UPDATED: Injected CourseService
-    private authService: AuthService      // UPDATED: Injected AuthService
+    private courseService: CourseService,
+    private authService: AuthService,
+    private progressService: StudentProgressService
   ) { }
 
   ngOnInit() {
@@ -76,24 +79,35 @@ export class StudentCoursesComponent implements OnInit {
       this.profile.name = user.fullName || 'Student';
       this.profile.initials = this.profile.name.trim().charAt(0).toUpperCase();
 
-      // Use studentId if available
       const studentId = user.studentId || user.id;
 
-      this.courseService.getStudentCourses(studentId, tenantId).subscribe({
-        next: (backendCourses) => {
-          // Map backend data to frontend interface
-          this.courses = backendCourses.map(bc => this.mapToFrontendCourse(bc));
+      forkJoin({
+        courses: this.courseService.getStudentCourses(studentId, tenantId),
+        progress: this.progressService.getAllProgress(tenantId)
+      }).subscribe({
+        next: ({ courses, progress }: { courses: BackendCourse[], progress: CourseProgress[] }) => {
+          const progressMap = new Map<string, CourseProgress>(progress.map(p => [p.courseId, p]));
+
+          this.courses = courses.map(bc => {
+            const prog = progressMap.get(bc._id);
+            if (prog) {
+              bc.progress = prog.progressPercentage;
+              bc.lessonsCompleted = prog.completedLessons.length;
+            }
+            return this.mapToFrontendCourse(bc);
+          });
+
           this.filteredCourses = [...this.courses];
           this.calculateStats();
           this.loading = false;
         },
         error: (err) => {
-          console.error('Error loading student courses', err);
+          console.error('Error loading data', err);
           this.loading = false;
         }
       });
+
     } else {
-      console.warn('User not logged in or tenant missing');
       this.loading = false;
     }
   }
@@ -111,9 +125,7 @@ export class StudentCoursesComponent implements OnInit {
       totalLessons: bc.totalLessons || 0,
       category: bc.category,
       level: (bc.level as any) || 'Beginner',
-      rating: 4.5,       // Placeholder
-      nextLesson: bc.nextLesson || 'Overview',
-      dueDate: 'N/A'
+      nextLesson: bc.nextLesson || 'Overview'
     };
   }
 
@@ -150,7 +162,7 @@ export class StudentCoursesComponent implements OnInit {
           filtered = filtered.filter(c => c.progress === 100);
           break;
         case 'Not Started':
-          filtered = filtered.filter(c => c.progress === 0);
+          filtered = filtered.filter(c => (c.progress ?? 0) === 0);
           break;
       }
     }
@@ -159,7 +171,7 @@ export class StudentCoursesComponent implements OnInit {
   }
 
   onCourseClick(course: Course) {
-
+    this.router.navigate(['/student/learn', course.id]);
   }
 
   navigateToExplore() {

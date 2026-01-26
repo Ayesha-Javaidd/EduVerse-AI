@@ -21,7 +21,7 @@ import {
 export class CourseBuilderService {
   private readonly API_URL = 'http://localhost:8000/courses';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Get course with full module/lesson data for the builder
@@ -188,7 +188,7 @@ export class CourseBuilderService {
         }
       });
     });
-    
+
     let totalDuration = '0m';
     if (totalSeconds > 0) {
       const hours = Math.floor(totalSeconds / 3600);
@@ -216,6 +216,11 @@ export class CourseBuilderService {
       currency: course.currency || 'USD',
       createdAt: course.createdAt,
       updatedAt: course.updatedAt,
+      // Metadata
+      instructorBio: course.instructorBio || '',
+      hasCertificate: course.hasCertificate || false,
+      hasBadges: course.hasBadges || false,
+      hasLifetimeAccess: course.hasLifetimeAccess || false,
     };
   }
 

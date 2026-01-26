@@ -5,9 +5,7 @@
     <div class="max-w-7xl mx-auto">
       <!-- Hero Section -->
       <div class="mb-8">
-        <div
-          class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6"
-        >
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
           <div>
             <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
               Explore New Courses
@@ -17,12 +15,9 @@
             </p>
           </div>
 
-          <app-button
-            [variant]="'primary'"
-            [size]="'lg'"
+          <app-button [variant]="'primary'" [size]="'lg'"
             customColor="bg-blue-950 text-white hover:bg-blue-900 transition-colors duration-300 cursor-pointer"
-            (buttonClick)="navigateToMyCourses()"
-          >
+            (buttonClick)="navigateToMyCourses()">
             <i class="fa-solid fa-book mr-2"></i>
             My Courses
           </app-button>
@@ -31,11 +26,8 @@
 
       <!-- Filters Component -->
       <div class="mb-8">
-        <app-filters
-          [searchPlaceholder]="filterConfig.searchPlaceholder"
-          [dropdowns]="filterConfig.dropdowns"
-          (filtersChange)="onFiltersChange($event)"
-        >
+        <app-filters [searchPlaceholder]="filterConfig.searchPlaceholder" [dropdowns]="filterConfig.dropdowns"
+          (filtersChange)="onFiltersChange($event)">
         </app-filters>
       </div>
 
@@ -43,31 +35,21 @@
       <div class="mb-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-6">
           {{ filteredCourses.length }} Course{{
-            filteredCourses.length !== 1 ? "s" : ""
+          filteredCourses.length !== 1 ? "s" : ""
           }}
           Available
         </h2>
 
-        <div
-          *ngIf="filteredCourses.length === 0"
-          class="text-center py-12 bg-white rounded-xl shadow-md"
-        >
+        <div *ngIf="filteredCourses.length === 0" class="text-center py-12 bg-white rounded-xl shadow-md">
           <i class="fa-solid fa-search text-6xl text-gray-300 mb-4"></i>
           <p class="text-gray-500 text-lg font-semibold">No courses found</p>
         </div>
 
         <!-- Courses Grid with variant="explore" -->
-        <div
-          *ngIf="filteredCourses.length > 0"
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          <app-course-card
-            *ngFor="let course of filteredCourses"
-            [course]="course"
-            [variant]="'explore'"
-            (courseClick)="onCourseClick($event)"
-            (enrollClick)="onEnrollClick($event)"
-          >
+        <div *ngIf="filteredCourses.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <app-course-card *ngFor="let course of filteredCourses" [course]="course"
+            [variant]="course.variant || 'explore'" (courseClick)="onCourseClick($event)"
+            (enrollClick)="onEnrollClick($event)">
           </app-course-card>
         </div>
       </div>
@@ -80,11 +62,7 @@
         <p class="text-base md:text-lg mb-6 opacity-90">
           Request a custom course or suggest new topics
         </p>
-        <app-button
-          [variant]="'light'"
-          [size]="'xl'"
-          (buttonClick)="onCourseClick(null)"
-        >
+        <app-button [variant]="'light'" [size]="'xl'" (buttonClick)="onCourseClick(null)">
           <i class="fa-solid fa-paper-plane mr-2"></i>
           Request a Course
         </app-button>

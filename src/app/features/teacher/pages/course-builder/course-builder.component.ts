@@ -58,7 +58,7 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
   courseId: string = '';
   tenantId: string = '';
   teacherId: string = '';
-  
+
   // Teacher profile for header
   teacherName: string = '';
   teacherInitial: string = 'T';
@@ -108,7 +108,7 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     private teacherProfileService: TeacherProfileService,
     private toastService: ToastService,
     private confirmDialog: ConfirmDialogService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadTeacherContext();
@@ -130,12 +130,12 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
         next: (profile: any) => {
           this.tenantId = profile.tenantId || '';
           this.teacherId = profile.id || '';
-          
+
           // Get teacher name with multiple fallbacks (root level or nested in user object)
           const fullName = profile.fullName || profile.user?.fullName || profile.email?.split('@')[0] || 'Teacher';
           this.teacherName = fullName;
           this.teacherInitial = fullName.charAt(0).toUpperCase();
-          
+
           this.courseId = this.route.snapshot.paramMap.get('id') || '';
 
           if (this.courseId && this.tenantId) {
@@ -374,7 +374,7 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
 
   onModuleDrop(event: DragEvent, targetIndex: number): void {
     event.preventDefault();
-    
+
     if (!this.course || this.draggedModuleIndex === null || this.draggedModuleIndex === targetIndex) {
       this.draggedModuleIndex = null;
       return;
@@ -579,10 +579,15 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
           order: l.order,
         })),
       })),
+      duration: this.course.totalDuration, // Save the calculated total duration
       isPublic: this.course.isPublic,
       isFree: this.course.isFree,
       price: this.course.price,
       currency: this.course.currency || 'USD',
+      instructorBio: this.course.instructorBio,
+      hasCertificate: this.course.hasCertificate,
+      hasBadges: this.course.hasBadges,
+      hasLifetimeAccess: this.course.hasLifetimeAccess,
     };
 
     this.courseBuilderService

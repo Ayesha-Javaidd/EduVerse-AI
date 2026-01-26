@@ -22,6 +22,7 @@ export class HeaderComponent implements OnInit {
   private destroy$ = new Subject<void>();
   @Input() pageTitle: string = 'Dashboard';
   @Input() notificationCount: number = 0;
+  @Input() isDark: boolean = false;
 
   // profile input remains for manual override if needed
   @Input() profile?: Profile;

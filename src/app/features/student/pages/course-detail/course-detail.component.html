@@ -1,0 +1,358 @@
+<div class="min-h-screen bg-slate-50 relative">
+    <app-header pageTitle="Course Details" [isDark]="true"></app-header>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex justify-center items-center h-[calc(100vh-80px)]">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-slate-900"></div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="flex flex-col justify-center items-center h-[calc(100vh-80px)] text-center p-6">
+        <i class="fa-solid fa-triangle-exclamation text-6xl text-red-500 mb-6"></i>
+        <p class="text-slate-800 text-2xl font-bold mb-2">Oops!</p>
+        <p class="text-slate-600 text-lg mb-8">{{ error }}</p>
+        <app-button [variant]="'primary'" (buttonClick)="goBack()">Back to Explore</app-button>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="course && !loading" class="pb-32">
+        <!-- Hero Section -->
+        <div class="relative bg-slate-900 text-white overflow-hidden">
+            <!-- Background Image with Blur -->
+            <div class="absolute inset-0 z-0">
+                <img [src]="course.thumbnailUrl || 'assets/images/default-course.jpg'"
+                    class="w-full h-full object-cover opacity-30 blur-sm transform scale-105">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
+            </div>
+
+            <div class="relative z-10 max-w-7xl mx-auto px-6 py-12 lg:py-20 flex flex-col lg:flex-row gap-12 items-end">
+                <!-- Course Thumbnail (Card Design) -->
+                <div class="w-full max-w-sm flex-shrink-0 hidden lg:block">
+                    <div class="rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 relative group">
+                        <img [src]="course.thumbnailUrl || 'assets/images/default-course.jpg'"
+                            class="w-full aspect-video object-cover">
+                        <div
+                            class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all duration-300">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Course Info -->
+                <div class="flex-1">
+                    <div class="flex flex-wrap gap-3 mb-4">
+                        <span
+                            class="px-3 py-1 rounded-full bg-slate-700/50 text-slate-200 border border-slate-600 text-sm font-semibold backdrop-blur-sm">
+                            {{ course.category }}
+                        </span>
+                        <span
+                            class="px-3 py-1 rounded-full bg-slate-700/50 text-slate-300 border border-slate-600 text-sm font-semibold backdrop-blur-sm">
+                            {{ course.level }}
+                        </span>
+                        <span *ngIf="course.duration"
+                            class="px-3 py-1 rounded-full bg-slate-700/50 text-slate-300 border border-slate-600 text-sm font-semibold backdrop-blur-sm">
+                            <i class="fa-regular fa-clock mr-1.5"></i>{{ course.duration }}
+                        </span>
+                    </div>
+
+                    <h1 class="text-3xl lg:text-5xl font-bold mb-6 leading-tight">{{ course.title }}</h1>
+
+                    <div class="flex items-center gap-4 mb-8">
+                        <div
+                            class="h-12 w-12 rounded-full bg-slate-800 flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-white/20">
+                            {{ (course.instructorName | slice:0:1) || 'T' }}
+                        </div>
+                        <div>
+                            <p class="text-sm text-slate-400 font-medium">Created by</p>
+                            <p class="text-lg font-semibold">{{ course.instructorName || 'Unknown Instructor' }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Enroll Button (Visible only on small screens) -->
+                    <div class="lg:hidden mt-6">
+                        <app-button *ngIf="!isEnrolled" [variant]="'primary'" [size]="'lg'" [fullWidth]="true"
+                            customColor="bg-slate-800 hover:bg-slate-900 text-white font-bold shadow-lg shadow-slate-900/20"
+                            (buttonClick)="enroll()">
+                            Enroll Now - {{ course.price ? (course.price | currency) : 'Free' }}
+                        </app-button>
+                        <app-button *ngIf="isEnrolled" [variant]="'primary'" [size]="'lg'" [fullWidth]="true"
+                            customColor="bg-slate-900 text-white font-bold shadow-lg" (buttonClick)="startLearning()">
+                            {{ learningButtonText }}
+                        </app-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
+
+            <!-- Left Column: Details -->
+            <div class="lg:col-span-2 space-y-12">
+
+                <!-- Description Section -->
+                <section>
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="h-10 w-1 bg-slate-900 rounded-full"></div>
+                        <h2 class="text-2xl font-bold text-slate-900">About This Course</h2>
+                    </div>
+                    <p class="text-slate-600 leading-relaxed text-lg whitespace-pre-line">
+                        {{ course.description || 'No description provided for this course.' }}
+                    </p>
+                </section>
+
+                <!-- What You'll Learn / Features -->
+                <section class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+                    <h2 class="text-xl font-bold text-slate-900 mb-6">Course Highlights</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12">
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="h-12 w-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-video text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 mb-1">Video Lessons</h3>
+                                <p class="text-sm text-slate-500">Full course curriculum</p>
+                            </div>
+                        </div>
+                        <div *ngIf="course.hasCertificate" class="flex items-start gap-4">
+                            <div
+                                class="h-12 w-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-certificate text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 mb-1">Certificate</h3>
+                                <p class="text-sm text-slate-500">Official completion</p>
+                            </div>
+                        </div>
+                        <div *ngIf="course.hasBadges" class="flex items-start gap-4">
+                            <div
+                                class="h-12 w-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-medal text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 mb-1">Badges</h3>
+                                <p class="text-sm text-slate-500">Unlockable achievements</p>
+                            </div>
+                        </div>
+                        <div *ngIf="quizCount > 0" class="flex items-start gap-4">
+                            <div
+                                class="h-12 w-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-lightbulb text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 mb-1">{{ quizCount }} Quizzes</h3>
+                                <p class="text-sm text-slate-500">Test your knowledge</p>
+                            </div>
+                        </div>
+                        <div *ngIf="assignmentCount > 0" class="flex items-start gap-4">
+                            <div
+                                class="h-12 w-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-file-pen text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 mb-1">{{ assignmentCount }} Assignments</h3>
+                                <p class="text-sm text-slate-500">Build your skills</p>
+                            </div>
+                        </div>
+                        <div *ngIf="course.hasLifetimeAccess" class="flex items-start gap-4">
+                            <div
+                                class="h-12 w-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-infinity text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 mb-1">Full Access</h3>
+                                <p class="text-sm text-slate-500">Lifetime learning</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Curriculum / Modules -->
+                <section *ngIf="course.modules && course.modules.length > 0">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="h-10 w-1 bg-slate-900 rounded-full"></div>
+                        <h2 class="text-2xl font-bold text-slate-900">Course Content</h2>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- Module Item -->
+                        <div *ngFor="let module of course.modules; let i = index"
+                            class="border border-slate-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+                            <button [disabled]="!isEnrolled"
+                                class="w-full flex items-center justify-between p-5 bg-white hover:bg-slate-50 transition-colors text-left group"
+                                (click)="module.isExpanded = !module.isExpanded">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="h-8 w-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-sm group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                                        {{ i + 1 }}
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">{{ module.title }}</h4>
+                                        <p class="text-xs text-slate-500 mt-1">{{ module.lessons?.length || 0 }} lessons
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <i *ngIf="!isEnrolled" class="fa-solid fa-lock text-slate-300"></i>
+                                    <i class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-300"
+                                        [class.rotate-180]="module.isExpanded"></i>
+                                </div>
+                            </button>
+
+                            <div *ngIf="isEnrolled && module.isExpanded" class="bg-slate-50 px-5 pb-5 pt-0 space-y-3">
+                                <div *ngFor="let lesson of module.lessons"
+                                    class="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-100 hover:border-slate-200 transition-all cursor-pointer group/lesson">
+                                    <div class="flex items-center gap-3">
+                                        <i *ngIf="(lesson.type | lowercase) === 'video'"
+                                            class="fa-solid fa-circle-play text-slate-600 text-sm"></i>
+                                        <i *ngIf="(lesson.type | lowercase) === 'quiz'"
+                                            class="fa-solid fa-lightbulb text-amber-500 text-sm"></i>
+                                        <i *ngIf="(lesson.type | lowercase) === 'document' || (lesson.type | lowercase) === 'reading' || (lesson.type | lowercase) === 'assignment' || (lesson.type | lowercase) === 'file'"
+                                            class="fa-solid fa-file-lines text-slate-500 text-sm"></i>
+                                        <span
+                                            class="text-sm text-slate-700 group-hover/lesson:text-slate-900 transition-colors">{{
+                                            lesson.title }}</span>
+                                    </div>
+                                    <span *ngIf="lesson.duration" class="text-xs text-slate-400 font-medium">{{
+                                        lesson.duration }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Instructor Bio -->
+                <section>
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="h-10 w-1 bg-slate-900 rounded-full"></div>
+                        <h2 class="text-2xl font-bold text-slate-900">Your Instructor</h2>
+                    </div>
+                    <div
+                        class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 flex flex-col md:flex-row gap-6 items-start">
+                        <div
+                            class="h-24 w-24 rounded-full bg-slate-800 flex items-center justify-center text-white font-bold text-3xl shadow-lg flex-shrink-0">
+                            {{ (course.instructorName | slice:0:1) || 'T' }}
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900 mb-2">{{ course.instructorName }}</h3>
+                            <p class="text-slate-600 mb-4 whitespace-pre-line">
+                                {{ course.instructorBio || 'Passionate educator and industry expert. Dedicated to
+                                creating high-quality learning experiences for students around the world.' }}
+                            </p>
+                            <div class="flex gap-4">
+                                <span class="text-sm text-slate-500"><i
+                                        class="fa-solid fa-users mr-2 text-slate-900"></i>{{ course.enrolledStudents }}
+                                    Students</span>
+                                <span class="text-sm text-slate-500"><i
+                                        class="fa-solid fa-star mr-2 text-amber-500"></i>4.8 Rating</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Sticky Enroll Card -->
+            <div class="hidden lg:block">
+                <div class="sticky top-24">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+                        <div class="p-1">
+                            <img [src]="course.thumbnailUrl || 'assets/images/default-course.jpg'"
+                                class="w-full rounded-xl">
+                        </div>
+                        <div class="p-8">
+                            <div *ngIf="!isEnrolled" class="flex items-baseline gap-2 mb-6">
+                                <span class="text-3xl font-bold text-slate-900">{{ course.price ? (course.price |
+                                    currency) : 'Free' }}</span>
+                                <span *ngIf="course.price"
+                                    class="text-lg text-slate-400 line-through decoration-slate-400 decoration-2">$99.99</span>
+                                <span *ngIf="course.price"
+                                    class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full ml-auto">80%
+                                    OFF</span>
+                            </div>
+
+                            <div *ngIf="isEnrolled" class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                                <p class="text-slate-900 font-bold flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-check text-green-600"></i>
+                                    You are enrolled!
+                                </p>
+                            </div>
+
+                            <app-button *ngIf="!isEnrolled" [variant]="'primary'" [size]="'xl'" [fullWidth]="true"
+                                customColor="bg-slate-900 hover:bg-black text-white font-bold shadow-xl shadow-slate-900/30 transform hover:-translate-y-1 transition-all duration-300"
+                                [disabled]="enrolling" (buttonClick)="enroll()">
+                                <span *ngIf="!enrolling">Enroll Now</span>
+                                <span *ngIf="enrolling"><i
+                                        class="fa-solid fa-circle-notch fa-spin mr-2"></i>Enrolling...</span>
+                            </app-button>
+
+                            <app-button *ngIf="isEnrolled" [variant]="'primary'" [size]="'xl'" [fullWidth]="true"
+                                customColor="bg-slate-900 hover:bg-black text-white font-bold shadow-xl shadow-slate-900/30 transform hover:-translate-y-1 transition-all duration-300"
+                                (buttonClick)="startLearning()">
+                                {{ learningButtonText }}
+                            </app-button>
+
+                            <p class="text-xs text-center text-slate-400 mt-3 pt-3 border-t border-slate-100">30-Day
+                                Money-Back Guarantee</p>
+
+                            <div class="mt-6 space-y-4">
+                                <div *ngIf="course.hasLifetimeAccess"
+                                    class="flex items-center gap-3 text-slate-600 text-sm">
+                                    <i class="fa-solid fa-check text-green-500"></i> Full Lifetime Access
+                                </div>
+                                <div class="flex items-center gap-3 text-slate-600 text-sm">
+                                    <i class="fa-solid fa-check text-green-500"></i> Access on Mobile and TV
+                                </div>
+                                <div *ngIf="course.hasCertificate"
+                                    class="flex items-center gap-3 text-slate-600 text-sm">
+                                    <i class="fa-solid fa-check text-green-500"></i> Certificate of Completion
+                                </div>
+                                <div *ngIf="course.hasBadges" class="flex items-center gap-3 text-slate-600 text-sm">
+                                    <i class="fa-solid fa-check text-green-500"></i> Exclusive Course Badges
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUCCESS MODAL -->
+    <div *ngIf="showSuccessModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" (click)="closeModal()"></div>
+
+        <!-- Modal Card -->
+        <div
+            class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center relative z-10 animate-bounce-in overflow-hidden">
+            <!-- Top Accent -->
+            <div class="absolute inset-x-0 top-0 h-2 bg-slate-900"></div>
+
+            <div class="mb-6 relative">
+                <div class="h-24 w-24 bg-slate-900 rounded-full mx-auto flex items-center justify-center">
+                    <i class="fa-solid fa-check text-4xl text-white"></i>
+                </div>
+                <!-- Decorative elements -->
+                <i class="fa-solid fa-star text-slate-300 absolute top-0 right-10 animate-spin-slow"></i>
+                <i class="fa-solid fa-star text-slate-200 absolute bottom-0 left-10 text-sm"></i>
+            </div>
+
+            <h3 class="text-2xl font-bold text-slate-800 mb-2">Welcome Aboard!</h3>
+            <p class="text-slate-600 mb-8">
+                You have successfully enrolled in <br>
+                <span class="font-semibold text-slate-900">"{{ course?.title }}"</span>
+            </p>
+
+            <app-button [variant]="'primary'" [size]="'lg'" [fullWidth]="true"
+                customColor="bg-slate-900 text-white hover:bg-slate-800" (buttonClick)="closeModal()">
+                {{ learningButtonText || 'Start Learning' }}
+            </app-button>
+        </div>
+    </div>
+
+    <!-- PAYMENT MODAL -->
+    <app-payment-modal *ngIf="showPaymentModal" [courseTitle]="course?.title || ''" [price]="course?.price || 0"
+        [currency]="course?.currency || 'USD'" (confirmPayment)="onPaymentSuccess()"
+        (cancel)="showPaymentModal = false">
+    </app-payment-modal>
+</div>
