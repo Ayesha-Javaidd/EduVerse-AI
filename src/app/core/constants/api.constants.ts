@@ -1,6 +1,4 @@
-import { environment } from '../../../environments/environment';
-
-export const API_BASE_URL = environment.apiUrl;
+export const API_BASE_URL = 'http://localhost:8000';
 
 export const ENDPOINTS = {
   AUTH: {
@@ -40,12 +38,5 @@ export const ENDPOINTS = {
       `${API_BASE_URL}/assignment-submissions/assignment/${assignmentId}`,
     SUBMISSION: (submissionId: string) =>
       `${API_BASE_URL}/assignment-submissions/${submissionId}`,
-  },
-
-  PAYMENTS: {
-    CONFIG: `${API_BASE_URL}/payments/config`,
-    CREATE_INTENT: `${API_BASE_URL}/payments/create-payment-intent`,
-    CONFIRM: (intentId: string) => `${API_BASE_URL}/payments/confirm/${intentId}`,
-    MY_PAYMENTS: `${API_BASE_URL}/payments/my-payments`,
   },
 } as const;

@@ -67,7 +67,7 @@
                                     <p class="text-xs font-semibold text-slate-800 truncate"
                                         [class.text-indigo-600]="lessonsMatch(activeLesson, lesson)">{{ lesson.title }}
                                     </p>
-                                    <p class="text-[10px] text-slate-400 mt-0.5">{{ lesson.duration || '' }}</p>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">{{ lesson.duration || '5 mins' }}</p>
                                 </div>
                             </button>
                         </div>
@@ -293,7 +293,18 @@
                 </div>
             </div>
 
-
+            <!-- Context Rewards -->
+            <div class="p-5 bg-slate-900 m-4 rounded-2xl">
+                <div class="flex items-center gap-3">
+                    <div class="h-8 w-8 bg-indigo-500 text-white rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <div>
+                        <p class="text-[9px] text-indigo-200 font-bold uppercase tracking-tighter">Learning Path</p>
+                        <p class="text-xs font-bold text-white">Course Reward</p>
+                    </div>
+                </div>
+            </div>
         </aside>
     </div>
 </div>

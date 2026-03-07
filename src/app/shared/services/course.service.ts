@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
 
 import { Course, CourseListParams } from '../models/course.model';
 
@@ -16,7 +15,7 @@ import { Course, CourseListParams } from '../models/course.model';
   providedIn: 'root',
 })
 export class CourseService {
-  private readonly API_URL = `${environment.apiUrl}/courses`;
+  private readonly API_URL = 'http://localhost:8000/courses';
 
   constructor(private http: HttpClient) {}
 

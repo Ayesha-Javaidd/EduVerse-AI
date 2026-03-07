@@ -29,9 +29,9 @@ import { AiAssistantComponent } from './features/student/pages/ai-assistant/ai-a
 import { SuperAdminLayoutComponent } from './layouts/super-admin-layout/super-admin-layout.component';
 import { SuperAdminTenantsComponent } from './features/super-admin/pages/super-admin-tenants/super-admin-tenants.component';
 import { SuperAdminSettingsComponent } from './features/super-admin/pages/super-admin-settings/super-admin-settings.component';
-import { SuperAdminSubscriptionPlansComponent } from './features/super-admin/pages/super-admin-subscription-plans/super-admin-subscription-plans.component';
 import { StudentDetailsComponent } from './features/teacher/pages/student-details/student-details.component';
 import { SuperAdminTenantSettingsComponent } from './features/super-admin/pages/super-admin-tenant-settings/super-admin-tenant-settings.component';
+import { SignupComponent } from './features/auth/pages/signup/signup.component';
 import { CourseBuilderComponent } from './features/teacher/pages/course-builder/course-builder.component';
 import { AuthGuard } from './features/auth/guards/auth.guard';
 import { RoleGuard } from './features/auth/guards/role.guard';
@@ -41,8 +41,6 @@ import { AdminSignupComponent } from './features/auth/pages/admin-signup/admin-s
 import { GradeAssignmentsComponent } from './features/teacher/pages/grade-assignments/grade-assignments.component';
 import { CourseDetailComponent } from './features/student/pages/course-detail/course-detail.component';
 import { CoursePlayerComponent } from './features/student/pages/course-player/course-player.component';
-import { PaymentSuccessComponent } from './features/student/pages/payment-success/payment-success.component';
-import { PaymentCancelComponent } from './features/student/pages/payment-cancel/payment-cancel.component';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -51,8 +49,8 @@ export const routes: Routes = [
     component: AuthLayoutComponent,
     children: [
       { path: 'login', component: LoginComponent },
-      { path: 'signup', component: StudentSignupComponent },
-      { path: 'signup/student', redirectTo: 'signup', pathMatch: 'full' },
+      { path: 'signup', component: SignupComponent },
+      { path: 'signup/student', component: StudentSignupComponent },
       { path: 'signup/teacher', component: TeacherSignupComponent },
       { path: 'signup/admin', component: AdminSignupComponent },
     ],
@@ -103,16 +101,14 @@ export const routes: Routes = [
       { path: 'courses', component: StudentCoursesComponent },
       { path: 'quizzes', component: StudentQuizzesComponent },
       { path: 'assignments', component: StudentAssignmentsComponent },
-      { path: 'ai-assistant', component: AiAssistantComponent },
+      { path: 'ai-assisstant', component: AiAssistantComponent },
       { path: 'leaderboard', component: LeaderboardComponent },
       { path: 'settings', component: StudentSettingsComponent },
       { path: 'explore-courses', component: ExploreCoursesComponent },
       { path: 'enroll-course/:id', component: CourseDetailComponent },
-      { path: 'payment-success', component: PaymentSuccessComponent },
-      { path: 'payment-cancel', component: PaymentCancelComponent },
-      { path: 'learn/:id', component: CoursePlayerComponent },
     ],
   },
+  { path: 'student/learn/:id', component: CoursePlayerComponent },
   {
     path: 'super-admin',
     component: SuperAdminLayoutComponent,
@@ -122,7 +118,6 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: SuperadminDashboardComponent },
       { path: 'tenants', component: SuperAdminTenantsComponent },
-      { path: 'subscription-plans', component: SuperAdminSubscriptionPlansComponent },
       { path: 'settings', component: SuperAdminSettingsComponent },
       {
         path: 'tenant-settings/:id',

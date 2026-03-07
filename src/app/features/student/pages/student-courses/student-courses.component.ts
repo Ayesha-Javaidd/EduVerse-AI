@@ -12,9 +12,7 @@ import { CourseCardComponent, Course } from '../../components/course-card/course
 import { CourseService, BackendCourse } from '../../../../core/services/course.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { StudentProgressService, CourseProgress } from '../../services/student-progress.service';
-import { forkJoin, of } from 'rxjs';
-import { ToastService } from '../../../../shared/services/toast.service';
-import { getApiErrorMessage } from '../../../../core/utils/api-error.util';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-student-courses',
@@ -34,8 +32,8 @@ import { getApiErrorMessage } from '../../../../core/utils/api-error.util';
 export class StudentCoursesComponent implements OnInit {
 
   profile = {
-    name: '',
-    initials: ''
+    name: 'Tayyaba Aly',
+    initials: 'T'
   };
 
   // Filter configuration
@@ -65,8 +63,7 @@ export class StudentCoursesComponent implements OnInit {
     private router: Router,
     private courseService: CourseService,
     private authService: AuthService,
-    private progressService: StudentProgressService,
-    private toastService: ToastService,
+    private progressService: StudentProgressService
   ) { }
 
   ngOnInit() {
@@ -78,17 +75,17 @@ export class StudentCoursesComponent implements OnInit {
     const user = this.authService.getUser();
     const tenantId = this.authService.getTenantId();
 
-    if (user) {
+    if (user && tenantId) {
       this.profile.name = user.fullName || 'Student';
       this.profile.initials = this.profile.name.trim().charAt(0).toUpperCase();
 
       const studentId = user.studentId || user.id;
 
       forkJoin({
-        courses: this.courseService.getStudentCourses(studentId, tenantId || undefined),
-        progress: tenantId ? this.progressService.getAllProgress(tenantId) : of([] as CourseProgress[])
+        courses: this.courseService.getStudentCourses(studentId, tenantId),
+        progress: this.progressService.getAllProgress(tenantId)
       }).subscribe({
-        next: ({ courses, progress }: { courses: BackendCourse[]; progress: CourseProgress[] }) => {
+        next: ({ courses, progress }: { courses: BackendCourse[], progress: CourseProgress[] }) => {
           const progressMap = new Map<string, CourseProgress>(progress.map(p => [p.courseId, p]));
 
           this.courses = courses.map(bc => {
@@ -106,9 +103,6 @@ export class StudentCoursesComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error loading data', err);
-          this.toastService.error(
-            getApiErrorMessage(err, 'Unable to load your courses right now.')
-          );
           this.loading = false;
         }
       });
@@ -124,7 +118,7 @@ export class StudentCoursesComponent implements OnInit {
       id: bc._id,
       title: bc.title,
       instructor: bc.instructorName || 'Instructor',
-      image: bc.thumbnailUrl || 'assets/images/default-course.jpg',
+      image: bc.thumbnailUrl || 'assets/images/Web Development.jpeg',
       progress: bc.progress || 0,
       duration: bc.duration || '0h',
       lessonsCompleted: bc.lessonsCompleted || 0,

@@ -9,7 +9,11 @@ import { StudentProgressService, CourseProgress } from '../../services/student-p
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { QuizService, Quiz } from '../../services/quiz.service';
 
-interface ChatMessage { sender: 'AI' | 'Student'; text: string; time: Date; }
+interface ChatMessage {
+    sender: 'AI' | 'Student';
+    text: string;
+    time: Date;
+}
 
 @Component({
     selector: 'app-course-player',
@@ -19,80 +23,103 @@ interface ChatMessage { sender: 'AI' | 'Student'; text: string; time: Date; }
     styleUrls: ['./course-player.component.css']
 })
 export class CoursePlayerComponent implements OnInit, OnDestroy {
-    courseId = '';
+    courseId: string = '';
     course: BackendCourse | null = null;
     progress: CourseProgress | null = null;
-    loading = true;
+    loading: boolean = true;
     activeLesson: any = null;
-    activeModuleIndex = 0;
+    activeModuleIndex: number = 0;
     allLessons: any[] = [];
     videoUrl: SafeResourceUrl | null = null;
+
+    // Quiz State
     activeQuiz: Quiz | null = null;
     quizAnswers: string[] = [];
-    quizScore = 0;
-    quizSubmitted = false;
-    loadingQuiz = false;
-    isSidebarOpen = true;
-    userNotes = '';
-    isSavingNotes = false;
-    chatInput = '';
+    quizScore: number = 0;
+    quizSubmitted: boolean = false;
+    loadingQuiz: boolean = false;
+
+    // Sidebar visibility
+    isSidebarOpen: boolean = true;
+
+    // Notes
+    userNotes: string = '';
+    isSavingNotes: boolean = false;
+
+    // Chat
+    chatInput: string = '';
     chatMessages: ChatMessage[] = [
         { sender: 'AI', text: 'Hello! I am your AI study assistant. How can I help you with this course today?', time: new Date() }
     ];
 
     constructor(
-        private route: ActivatedRoute, private router: Router,
-        private courseService: CourseService, private authService: AuthService,
+        private route: ActivatedRoute,
+        private router: Router,
+        private courseService: CourseService,
+        private authService: AuthService,
         private progressService: StudentProgressService,
-        private quizService: QuizService, private sanitizer: DomSanitizer,
+        private quizService: QuizService,
+        private sanitizer: DomSanitizer
     ) { }
 
     ngOnInit() {
         this.route.paramMap.subscribe(params => {
             this.courseId = params.get('id') || '';
-            if (this.courseId) this.loadCourseAndProgress();
+            if (this.courseId) {
+                this.loadCourseAndProgress();
+            }
         });
     }
 
     ngOnDestroy() { }
 
     loadCourseAndProgress() {
-        const user = this.authService.getUser();
         const tenantId = this.authService.getTenantId();
-        const scopedTenantId = user?.role === 'student' ? undefined : (tenantId ?? undefined);
-        if (user?.role !== 'student' && !tenantId) {
-            this.loading = false;
-            return;
-        }
-        const saved = localStorage.getItem(`notes_${this.courseId}`);
-        if (saved) this.userNotes = saved;
-        this.courseService.getCourseById(this.courseId, scopedTenantId).subscribe({
+        if (!tenantId) return;
+
+        // Load local notes
+        const savedNotes = localStorage.getItem(`notes_${this.courseId}`);
+        if (savedNotes) this.userNotes = savedNotes;
+
+        this.courseService.getCourseById(this.courseId, tenantId).subscribe({
             next: (course) => {
                 this.course = course;
                 this.flattenLessons();
-                const progressTenantId = tenantId || course.tenantId;
-                if (progressTenantId) {
-                    this.loadProgress(progressTenantId);
-                } else {
-                    this.loading = false;
+                this.loadProgress(tenantId);
+                // Set first lesson as default
+                if (course.modules?.[0]?.lessons?.[0]) {
+                    this.selectLesson(course.modules[0].lessons[0], 0);
                 }
-                if (course.modules?.[0]?.lessons?.[0]) this.selectLesson(course.modules[0].lessons[0], 0);
             },
-            error: () => { this.loading = false; },
+            error: (err) => {
+                console.error(err);
+                this.loading = false;
+            }
         });
     }
 
     flattenLessons() {
         this.allLessons = [];
-        this.course?.modules?.forEach((mod, mIdx) => {
-            mod.lessons?.forEach((l: any) => this.allLessons.push({ ...l, moduleIndex: mIdx }));
+        if (!this.course?.modules) return;
+        this.course.modules.forEach((module, mIdx) => {
+            if (module.lessons) {
+                module.lessons.forEach((lesson: any) => {
+                    this.allLessons.push({ ...lesson, moduleIndex: mIdx });
+                });
+            }
         });
     }
 
     loadProgress(tenantId: string) {
         this.progressService.getCourseProgress(this.courseId, tenantId).subscribe({
-            next: (p) => { this.progress = p; this.loading = false; },
-            error: () => { this.loading = false; },
+            next: (progress) => {
+                this.progress = progress;
+                this.loading = false;
+            },
+            error: (err) => {
+                console.error('Error loading progress', err);
+                this.loading = false;
+            }
         });
     }
 
@@ -101,77 +128,156 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.activeModuleIndex = moduleIndex;
         this.quizSubmitted = false;
         this.activeQuiz = null;
-        this.videoUrl = (lesson.type === 'video' && lesson.content) ? this.getSafeVideoUrl(lesson.content) : null;
-        if (lesson.type === 'quiz' && lesson.content) this.loadQuiz(lesson.content);
-        document.querySelector('main')?.scrollTo(0, 0);
+
+        console.log('Selected Lesson:', lesson.title, 'Type:', lesson.type);
+
+        // Handle Video URL
+        if (lesson.type === 'video' && lesson.content) {
+            this.videoUrl = this.getSafeVideoUrl(lesson.content);
+        } else {
+            this.videoUrl = null;
+        }
+
+        // Handle Quiz
+        if (lesson.type === 'quiz' && lesson.content) {
+            this.loadQuiz(lesson.content);
+        }
+
+        // Auto-scroll to top of content
+        const mainContent = document.querySelector('main');
+        if (mainContent) mainContent.scrollTo(0, 0);
     }
 
     loadQuiz(quizId: string) {
         this.loadingQuiz = true;
         this.quizService.getQuizById(quizId).subscribe({
-            next: (quiz) => { this.activeQuiz = quiz; this.quizAnswers = new Array(quiz.questions.length).fill(''); this.loadingQuiz = false; },
-            error: () => { this.loadingQuiz = false; },
+            next: (quiz) => {
+                this.activeQuiz = quiz;
+                this.quizAnswers = new Array(quiz.questions.length).fill('');
+                this.loadingQuiz = false;
+            },
+            error: (err) => {
+                console.error('Error loading quiz:', err);
+                this.loadingQuiz = false;
+            }
         });
     }
 
     submitQuiz() {
         if (!this.activeQuiz) return;
-        let correct = 0;
-        this.activeQuiz.questions.forEach((q, i) => { if (this.quizAnswers[i] === q.answer) correct++; });
-        this.quizScore = Math.round((correct / this.activeQuiz.questions.length) * 100);
+
+        let correctCount = 0;
+        this.activeQuiz.questions.forEach((q, i) => {
+            if (this.quizAnswers[i] === q.answer) {
+                correctCount++;
+            }
+        });
+
+        this.quizScore = Math.round((correctCount / this.activeQuiz.questions.length) * 100);
         this.quizSubmitted = true;
-        if (this.quizScore >= 70) this.markComplete();
+
+        if (this.quizScore >= 70) {
+            // Auto complete if passed
+            this.markComplete();
+        }
     }
 
     getSafeVideoUrl(url: string): SafeResourceUrl {
         if (!url) return this.sanitizer.bypassSecurityTrustResourceUrl('');
-        const ALLOWED = ['youtube.com', 'www.youtube.com', 'youtu.be', 'vimeo.com', 'player.vimeo.com'];
-        try { if (!ALLOWED.includes(new URL(url).hostname)) return this.sanitizer.bypassSecurityTrustResourceUrl(''); }
-        catch { return this.sanitizer.bypassSecurityTrustResourceUrl(''); }
-        let embed = url;
-        if (url.includes('youtube.com/watch?v=')) embed = url.replace('watch?v=', 'embed/');
-        else if (url.includes('youtu.be/')) embed = url.replace('youtu.be/', 'youtube.com/embed/');
-        return this.sanitizer.bypassSecurityTrustResourceUrl(embed);
+        // Basic YouTube handling
+        let embedUrl = url;
+        if (url.includes('youtube.com/watch?v=')) {
+            embedUrl = url.replace('watch?v=', 'embed/');
+        } else if (url.includes('youtu.be/')) {
+            embedUrl = url.replace('youtu.be/', 'youtube.com/embed/');
+        }
+        return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
     }
 
-    lessonsMatch(l1: any, l2: any): boolean { return l1 && l2 && (l1.id || l1._id) === (l2.id || l2._id); }
-    isLessonCompleted(lessonId: string): boolean { return this.progress?.completedLessons.includes(lessonId) || false; }
+    // Helper to compare IDs safely
+    lessonsMatch(l1: any, l2: any): boolean {
+        if (!l1 || !l2) return false;
+        const id1 = l1.id || l1._id;
+        const id2 = l2.id || l2._id;
+        return id1 === id2;
+    }
+
+    isLessonCompleted(lessonId: string): boolean {
+        return this.progress?.completedLessons.includes(lessonId) || false;
+    }
 
     markComplete() {
         if (!this.activeLesson) return;
         const lessonId = this.activeLesson.id || this.activeLesson._id;
-        const tenantId = this.authService.getTenantId() || this.course?.tenantId;
+        const tenantId = this.authService.getTenantId();
         if (!tenantId || !lessonId) return;
+
         this.progressService.markLessonComplete(this.courseId, lessonId, tenantId).subscribe({
-            next: (p) => { this.progress = p; },
-            error: () => { },
+            next: (updatedProgress) => {
+                this.progress = updatedProgress;
+            },
+            error: (err) => console.error('Error marking completion', err)
         });
     }
 
     saveNotes() {
         this.isSavingNotes = true;
         localStorage.setItem(`notes_${this.courseId}`, this.userNotes);
-        setTimeout(() => { this.isSavingNotes = false; }, 800);
+        setTimeout(() => {
+            this.isSavingNotes = false;
+        }, 800);
     }
 
     sendChatMessage() {
         if (!this.chatInput.trim()) return;
-        this.chatMessages.push({ sender: 'Student', text: this.chatInput, time: new Date() });
+
+        const userMsg: ChatMessage = { sender: 'Student', text: this.chatInput, time: new Date() };
+        this.chatMessages.push(userMsg);
+
         const input = this.chatInput.toLowerCase();
         this.chatInput = '';
+
+        // Mock AI Response
         setTimeout(() => {
-            const resp = (input.includes('explain') || input.includes('help'))
-                ? `I'd be happy to explain. Which part of ${this.activeLesson?.title || 'the lesson'} should we focus on?`
-                : "That's a great question. How can I clarify it further?";
-            this.chatMessages.push({ sender: 'AI', text: resp, time: new Date() });
+            let aiResponse = "That's a great question about the current topic. How can I clarify it further for you?";
+            if (input.includes('explain') || input.includes('help')) {
+                aiResponse = "I'd be happy to explain this in more detail. Which specific part of " + (this.activeLesson?.title || 'the lesson') + " should we focus on?";
+            }
+            this.chatMessages.push({ sender: 'AI', text: aiResponse, time: new Date() });
         }, 1000);
     }
 
-    private findCurrentIndex(): number { return this.allLessons.findIndex(l => this.lessonsMatch(l, this.activeLesson)); }
-    nextLesson() { const i = this.findCurrentIndex(); if (i !== -1 && i < this.allLessons.length - 1) { const n = this.allLessons[i + 1]; this.selectLesson(n, n.moduleIndex); } }
-    previousLesson() { const i = this.findCurrentIndex(); if (i > 0) { const p = this.allLessons[i - 1]; this.selectLesson(p, p.moduleIndex); } }
-    hasNextLesson(): boolean { const i = this.findCurrentIndex(); return i !== -1 && i < this.allLessons.length - 1; }
-    hasPreviousLesson(): boolean { return this.findCurrentIndex() > 0; }
-    toggleSidebar() { this.isSidebarOpen = !this.isSidebarOpen; }
-    goBack() { this.router.navigate(['/student/courses']); }
+    nextLesson() {
+        const currentIndex = this.allLessons.findIndex(l => this.lessonsMatch(l, this.activeLesson));
+        if (currentIndex !== -1 && currentIndex < this.allLessons.length - 1) {
+            const next = this.allLessons[currentIndex + 1];
+            this.selectLesson(next, next.moduleIndex);
+        }
+    }
+
+    previousLesson() {
+        const currentIndex = this.allLessons.findIndex(l => this.lessonsMatch(l, this.activeLesson));
+        if (currentIndex > 0) {
+            const prev = this.allLessons[currentIndex - 1];
+            this.selectLesson(prev, prev.moduleIndex);
+        }
+    }
+
+    hasNextLesson(): boolean {
+        const currentIndex = this.allLessons.findIndex(l => this.lessonsMatch(l, this.activeLesson));
+        return currentIndex !== -1 && currentIndex < this.allLessons.length - 1;
+    }
+
+    hasPreviousLesson(): boolean {
+        const currentIndex = this.allLessons.findIndex(l => this.lessonsMatch(l, this.activeLesson));
+        return currentIndex > 0;
+    }
+
+    toggleSidebar() {
+        this.isSidebarOpen = !this.isSidebarOpen;
+    }
+
+    goBack() {
+        this.router.navigate(['/student/courses']);
+    }
 }

@@ -15,13 +15,6 @@
     </h2>
 
     <div *ngIf="quizForm" [formGroup]="quizForm" class="space-y-4">
-      <div
-        *ngIf="formErrorMessage"
-        class="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"
-      >
-        {{ formErrorMessage }}
-      </div>
-
       <!-- Quiz Info -->
       <div>
         <p class="text-gray-600"><strong>Course:</strong> {{ quiz.course }}</p>

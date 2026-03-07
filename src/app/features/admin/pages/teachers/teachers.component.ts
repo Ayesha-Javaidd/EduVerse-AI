@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { TableColumn, DataTableComponent } from '../../../../shared/components/data-table/data-table.component';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { CommonModule } from '@angular/common';
@@ -8,13 +7,11 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { EntityModalComponent, FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
-import { ToastService } from '../../../../shared/services/toast.service';
-import { getApiErrorMessage } from '../../../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-teachers',
   standalone: true,
-  imports: [HeaderComponent, DataTableComponent, CommonModule, FiltersComponent, ButtonComponent, EntityModalComponent, FormsModule],
+  imports: [HeaderComponent, DataTableComponent, CommonModule, FiltersComponent, ButtonComponent, EntityModalComponent],
   templateUrl: './teachers.component.html',
   styleUrl: './teachers.component.css'
 })
@@ -52,12 +49,6 @@ export class TeachersComponent implements OnInit {
   isEditMode = false;
   modalTitle = 'Add Teacher';
   selectedTeacher: any = null;
-  bulkEmailsInput = '';
-  bulkDefaultPassword = '';
-  bulkStatus = 'active';
-  bulkInviteLoading = false;
-  bulkCsvLoading = false;
-  selectedCsvFile: File | null = null;
 
   teacherFields: FormField[] = [
     { name: 'fullName', label: 'Full Name', type: 'text', required: true, placeholder: 'Enter full name' },
@@ -77,8 +68,7 @@ export class TeachersComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private authService: AuthService,
-    private toastService: ToastService,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
@@ -100,9 +90,6 @@ export class TeachersComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading teachers', err);
-        this.toastService.error(
-          getApiErrorMessage(err, 'Unable to load teachers right now.'),
-        );
         this.loading = false;
       }
     });
@@ -126,13 +113,10 @@ export class TeachersComponent implements OnInit {
     if (confirm(`Are you sure you want to delete ${teacher.fullName}?`)) {
       this.adminService.deleteTeacher(teacher.id).subscribe({
         next: () => {
-          this.toastService.success('Teacher removed successfully.');
           this.loadTeachers();
         },
         error: (err) => {
-          this.toastService.error(
-            getApiErrorMessage(err, 'Failed to delete teacher.'),
-          );
+          alert(`Failed to delete teacher: ${err.error?.detail || 'Unknown error'}`);
         }
       });
     }
@@ -146,7 +130,7 @@ export class TeachersComponent implements OnInit {
   onModalSubmit(formData: any) {
     const tenantId = this.authService.getTenantId();
     if (!tenantId) {
-      this.toastService.error('Your tenant context is missing. Please log in again.');
+      alert('Tenant ID not found. Please log in again.');
       return;
     }
 
@@ -177,108 +161,11 @@ export class TeachersComponent implements OnInit {
       next: () => {
         this.onModalClose();
         this.loadTeachers();
-        this.toastService.success(
-          this.isEditMode
-            ? 'Teacher updated successfully.'
-            : 'Teacher added successfully.',
-        );
       },
       error: (err) => {
-        this.toastService.error(
-          getApiErrorMessage(
-            err,
-            `Failed to ${this.isEditMode ? 'update' : 'create'} teacher.`,
-          ),
-        );
+        alert(`Failed to ${this.isEditMode ? 'update' : 'create'} teacher: ${err.error?.detail || 'Unknown error'}`);
       }
     });
-  }
-
-  onBulkInviteTeachers() {
-    const emails = this.bulkEmailsInput
-      .split(/[,\n;]+/)
-      .map((email) => email.trim())
-      .filter(Boolean);
-
-    if (!emails.length) {
-      this.toastService.warning('Add at least one teacher email.');
-      return;
-    }
-
-    this.bulkInviteLoading = true;
-    this.adminService
-      .bulkInviteTeachers({
-        emails,
-        defaultPassword: this.bulkDefaultPassword.trim() || undefined,
-        status: this.bulkStatus || 'active',
-      })
-      .subscribe({
-        next: (res) => {
-          this.bulkInviteLoading = false;
-          this.bulkEmailsInput = '';
-          this.showBulkInviteSummary(res, 'Email invite');
-          this.loadTeachers();
-        },
-        error: (err) => {
-          this.bulkInviteLoading = false;
-          this.toastService.error(
-            getApiErrorMessage(err, 'Bulk teacher invite failed.'),
-          );
-        },
-      });
-  }
-
-  onTeacherCsvSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.selectedCsvFile = input.files?.[0] || null;
-  }
-
-  onBulkUploadTeachersCsv() {
-    if (!this.selectedCsvFile) {
-      this.toastService.warning('Please choose a CSV file first.');
-      return;
-    }
-    this.bulkCsvLoading = true;
-    this.adminService
-      .bulkUploadTeachersCsv(this.selectedCsvFile, {
-        defaultPassword: this.bulkDefaultPassword.trim() || undefined,
-        statusValue: this.bulkStatus || 'active',
-      })
-      .subscribe({
-        next: (res) => {
-          this.bulkCsvLoading = false;
-          this.selectedCsvFile = null;
-          this.showBulkInviteSummary(res, 'CSV upload');
-          this.loadTeachers();
-        },
-        error: (err) => {
-          this.bulkCsvLoading = false;
-          this.toastService.error(
-            getApiErrorMessage(err, 'CSV upload failed.'),
-          );
-        },
-      });
-  }
-
-  private showBulkInviteSummary(
-    res: {
-      created: number;
-      linkedExisting: number;
-      skipped: number;
-      errors: string[];
-      generatedPasswords: Record<string, string>;
-    },
-    mode: string,
-  ) {
-    this.toastService.success(
-      `${mode} complete. Created: ${res.created}, Linked: ${res.linkedExisting}, Skipped: ${res.skipped}.`,
-    );
-    if (res.errors?.length) {
-      const preview = res.errors.slice(0, 2).join(' | ');
-      this.toastService.warning(
-        `Some records failed: ${preview}${res.errors.length > 2 ? ' ...' : ''}`,
-      );
-    }
   }
 
   onFiltersChange(filters: { [key: string]: string }) {

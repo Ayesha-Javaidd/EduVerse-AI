@@ -15,7 +15,7 @@
       <h1 class="text-3xl font-bold mb-2">Student Signup</h1>
       <p class="text-slate-500 text-sm mb-4">Let's get you started!</p>
 
-      <form class="flex flex-col" (ngSubmit)="onSignup()">
+      <form #f="ngForm" class="flex flex-col">
         <div *ngIf="errorMessage" class="mb-3 text-red-600 text-sm">
           {{ errorMessage }}
         </div>
@@ -89,22 +89,18 @@
           required
           class="w-full px-4 py-3 border rounded-md mb-4"
         >
+          <option value="">Select Status</option>
           <option value="studying">Studying</option>
           <option value="graduated">Graduated</option>
         </select>
 
         <button
-          type="submit"
-          [disabled]="loading"
-          class="w-full py-3.5 bg-slate-900 text-white rounded-md hover:bg-slate-800 disabled:opacity-70 disabled:cursor-not-allowed"
+          type="button"
+          (click)="onSignup(f)"
+          class="w-full py-3.5 bg-slate-900 text-white rounded-md hover:bg-slate-800"
         >
-          {{ loading ? 'Creating account...' : 'Sign Up' }}
+          Sign Up
         </button>
-
-        <p class="text-center text-gray-500 text-xs mt-4">
-          Are you an organization?
-          <a routerLink="/signup/admin" class="text-blue-950 font-medium hover:underline">Register here</a>
-        </p>
 
         <p class="text-center text-gray-600 text-sm mt-2">
           Already have an account?

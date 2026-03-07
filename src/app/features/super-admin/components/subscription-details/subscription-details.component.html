@@ -5,49 +5,30 @@
 
     <div class="text-sm text-gray-600 space-y-2">
         <div class="flex justify-between">
-            <span class="font-medium">Category:</span>
-            <span>{{ subscription?.category || 'free' }}</span>
-        </div>
-
-        <div class="flex justify-between">
             <span class="font-medium">Plan:</span>
             <span>{{ subscription?.plan || '-' }}</span>
         </div>
 
         <div class="flex justify-between">
-            <span class="font-medium">Billing:</span>
-            <span>{{ subscription?.billingCycle || '-' }}</span>
-        </div>
-
-        <div class="flex justify-between">
-            <span class="font-medium">Price / Month:</span>
-            <span>${{ subscription?.pricePerMonth || 0 }}</span>
-        </div>
-
-        <div class="flex justify-between">
             <span class="font-medium">Start Date:</span>
-            <span>{{ subscription?.startDate ? (subscription?.startDate | date: 'mediumDate') : '-' }}</span>
+            <span>{{ subscription?.startDate | date: 'mediumDate' }}</span>
             
         </div>
 
         <div class="flex justify-between">
             <span class="font-medium">Expiry Date:</span>
-            <span>{{ subscription?.expiryDate ? (subscription?.expiryDate | date: 'mediumDate') : '-' }}</span>
+            <span>{{ subscription?.expiryDate | date: 'mediumDate' }}</span>
         </div>
 
         <div class="flex justify-between items-center">
             <span class="font-medium">Status:</span>
             <span 
                 class="text-sm px-2 py-1 rounded-full"
-                [ngClass]="(subscription?.status || '').toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                [ngClass]="subscription?.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
             >
                 {{ subscription?.status || 'Inactive' }}
             </span>
         </div>
-    </div>
-
-    <div class="mt-3 text-xs text-gray-500" *ngIf="subscription?.notes">
-        {{ subscription.notes }}
     </div>
 
     <div class="mt-4 bg-gray-50 p-4 rounded-md text-center">

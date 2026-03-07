@@ -1,6 +1,5 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { map } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 
 /**
@@ -13,24 +12,22 @@ export const RoleGuard: CanActivateFn = (route) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  return authService.waitForSessionRestore().pipe(
-    map(() => {
-      const expectedRoles: string[] = route.data['roles'] ?? [];
-      const userRole = authService.getRole();
+  const expectedRoles: string[] = route.data['roles'] ?? [];
+  const userRole = authService.getRole();
 
-      // Not logged in
-      if (!authService.isAuthenticated()) {
-        return router.createUrlTree(['/login']);
-      }
+  // Not logged in
+  if (!authService.isAuthenticated()) {
+    router.navigate(['/login']);
+    return false;
+  }
 
-      // Role mismatch
-      if (!userRole || !expectedRoles.includes(userRole)) {
-        return redirectByRole(authService, router);
-      }
+  // Role mismatch
+  if (!userRole || !expectedRoles.includes(userRole)) {
+    redirectByRole(authService, router);
+    return false;
+  }
 
-      return true;
-    }),
-  );
+  return true;
 };
 
 function redirectByRole(authService: AuthService, router: Router) {
@@ -38,14 +35,18 @@ function redirectByRole(authService: AuthService, router: Router) {
 
   switch (role) {
     case 'admin':
-      return router.createUrlTree(['/admin/dashboard']);
+      router.navigate(['/admin/dashboard']);
+      break;
     case 'teacher':
-      return router.createUrlTree(['/teacher/dashboard']);
+      router.navigate(['/teacher/dashboard']);
+      break;
     case 'student':
-      return router.createUrlTree(['/student/dashboard']);
+      router.navigate(['/student/dashboard']);
+      break;
     case 'super_admin':
-      return router.createUrlTree(['/super-admin/dashboard']);
+      router.navigate(['/super-admin/dashboard']);
+      break;
     default:
-      return router.createUrlTree(['/login']);
+      router.navigate(['/login']);
   }
 }

@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import {
   ChangePasswordPayload,
   StudentProfile,
@@ -12,7 +11,7 @@ import {
   providedIn: 'root',
 })
 export class StudentProfileService {
-  private readonly API_URL = `${environment.apiUrl}/students`;
+  private readonly API_URL = 'http://localhost:8000/students';
 
   constructor(private http: HttpClient) {}
 

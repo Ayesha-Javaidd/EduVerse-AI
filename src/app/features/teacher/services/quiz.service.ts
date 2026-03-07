@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../../environments/environment';
 
 import {
   Quiz,
@@ -26,9 +25,9 @@ import {
 })
 export class QuizService {
   // Base URL for quiz endpoints (adjust for production)
-  private readonly API_URL = `${environment.apiUrl}/quizzes`;
+  private readonly API_URL = 'http://localhost:8000/quizzes';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   // ========================
   // CREATE QUIZ
@@ -109,16 +108,22 @@ export class QuizService {
   // ========================
   /**
    * Updates an existing quiz (partial update).
-   * Ownership is enforced server-side via JWT token.
+   * Only the quiz's owner teacher can update it.
    * @param quizId - The quiz's ObjectId
+   * @param teacherId - The teacher's ObjectId (for authorization)
    * @param updates - QuizUpdate object with fields to update
    * @returns Observable<Quiz> - The updated quiz
    */
   updateQuiz(
     quizId: string,
+    teacherId: string,
     updates: QuizUpdate,
   ): Observable<Quiz> {
-    return this.http.patch<Quiz>(`${this.API_URL}/${quizId}`, updates);
+    // Backend expects teacher_id as query param for authorization
+    const params = new HttpParams().set('teacher_id', teacherId);
+    return this.http.patch<Quiz>(`${this.API_URL}/${quizId}`, updates, {
+      params,
+    });
   }
 
   // ========================
@@ -126,14 +131,19 @@ export class QuizService {
   // ========================
   /**
    * Soft-deletes a quiz (sets isDeleted=true in backend).
-   * Ownership is enforced server-side via JWT token.
+   * Only the quiz's owner teacher can delete it.
    * @param quizId - The quiz's ObjectId
+   * @param teacherId - The teacher's ObjectId (for authorization)
    * @returns Observable<{message: string}> - Success message
    */
   deleteQuiz(
     quizId: string,
+    teacherId: string,
   ): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.API_URL}/${quizId}`);
+    const params = new HttpParams().set('teacher_id', teacherId);
+    return this.http.delete<{ message: string }>(`${this.API_URL}/${quizId}`, {
+      params,
+    });
   }
 
   // ========================

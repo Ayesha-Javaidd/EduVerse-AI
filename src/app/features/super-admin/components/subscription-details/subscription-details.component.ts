@@ -18,13 +18,12 @@ implements OnChanges
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['subscription']?.currentValue) {
+      // Ensure both are real Date objects
       const sub = changes['subscription'].currentValue;
-      const start = sub?.startDate ? new Date(sub.startDate) : null;
-      const expiry = sub?.expiryDate ? new Date(sub.expiryDate) : null;
       this.subscription = {
         ...sub,
-        startDate: start && !Number.isNaN(start.getTime()) ? start : null,
-        expiryDate: expiry && !Number.isNaN(expiry.getTime()) ? expiry : null,
+        startDate: new Date(sub.startDate),
+        expiryDate: new Date(sub.expiryDate),
       };
     }
   }

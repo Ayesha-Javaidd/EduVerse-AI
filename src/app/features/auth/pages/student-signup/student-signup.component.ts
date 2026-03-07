@@ -1,14 +1,13 @@
 import { Component } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule, NgIf } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
-import { getApiErrorMessage } from '../../../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-student-signup',
   standalone: true,
-  imports: [FormsModule, CommonModule, NgIf, RouterLink],
+  imports: [FormsModule, CommonModule, NgIf],
   templateUrl: './student-signup.component.html',
   styleUrls: ['./student-signup.component.css'],
 })
@@ -19,12 +18,12 @@ export class StudentSignupComponent {
   confirmPassword = '';
   contactNo = '';
   country = '';
-  status = 'studying';
+  status = 'active';
 
   errorMessage = '';
   loading = false;
 
-  constructor(private router: Router, private authService: AuthService) { }
+  constructor(private router: Router, private authService: AuthService) {}
 
   validateForm(): boolean {
     this.errorMessage = '';
@@ -55,12 +54,10 @@ export class StudentSignupComponent {
     return re.test(email);
   }
 
-  onSignup() {
-    if (this.loading) return;
+  onSignup(f: NgForm) {
     if (!this.validateForm()) return;
 
     this.loading = true;
-    this.errorMessage = '';
 
     const payload = {
       fullName: this.fullName,
@@ -72,15 +69,20 @@ export class StudentSignupComponent {
       role: 'student',
     };
 
+    console.log('Student signup payload:', payload);
+
     this.authService.signup(payload, 'student').subscribe({
-      next: () => {
+      next: (res) => {
+        console.log('Signup successful:', res);
         this.loading = false;
+        // Navigate to login after successful signup
         this.router.navigate(['/login']);
+        // Optionally: auto-login using authService.login(payload)
       },
       error: (err) => {
+        console.error('Signup error:', err);
         this.loading = false;
-        this.errorMessage =
-          getApiErrorMessage(err, 'Signup failed. Please try again.');
+        this.errorMessage = err?.error?.detail?.[0]?.msg || 'Signup failed';
       },
     });
   }

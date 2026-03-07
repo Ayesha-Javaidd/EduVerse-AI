@@ -23,9 +23,14 @@ export interface AnswerItem {
  * Maps to backend QuizSubmissionCreate schema.
  */
 export interface QuizSubmissionCreate {
+  studentId: string;              // MongoDB ObjectId of the student
   quizId: string;                 // MongoDB ObjectId of the quiz
   courseId: string;               // MongoDB ObjectId of the course
+  tenantId: string;               // MongoDB ObjectId of the tenant
   answers: AnswerItem[];          // List of answers
+  percentage?: number;            // Optional (set by grading)
+  obtainedMarks?: number;         // Optional (set by grading)
+  status?: 'pending' | 'graded';  // Status of submission
 }
 
 // ========================

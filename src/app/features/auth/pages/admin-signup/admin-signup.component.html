@@ -15,7 +15,7 @@
       <h1 class="text-3xl font-bold mt-32 mb-5">Admin Signup</h1>
       <p class="text-slate-500 text-sm mb-4">Let's get you started!</p>
 
-      <form class="flex flex-col" (ngSubmit)="onSignup()">
+      <form #f="ngForm" class="flex flex-col">
         <div *ngIf="errorMessage" class="mb-3 text-red-600 text-sm">
           {{ errorMessage }}
         </div>
@@ -122,11 +122,11 @@
         />
 
         <button
-          type="submit"
-          [disabled]="loading"
-          class="w-full py-3.5 bg-slate-900 text-white rounded-md hover:bg-slate-800 disabled:opacity-70 disabled:cursor-not-allowed"
+          type="button"
+          (click)="onSignup()"
+          class="w-full py-3.5 bg-slate-900 text-white rounded-md hover:bg-slate-800"
         >
-          {{ loading ? 'Creating organization...' : 'Sign Up' }}
+          Sign Up
         </button>
 
         <p class="text-center text-gray-600 text-sm mt-2">

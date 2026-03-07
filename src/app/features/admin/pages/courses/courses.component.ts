@@ -7,8 +7,6 @@ import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { BackendCourse } from '../../../../core/services/course.service';
 import { EntityModalComponent, FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
-import { ToastService } from '../../../../shared/services/toast.service';
-import { getApiErrorMessage } from '../../../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-courses',
@@ -73,8 +71,7 @@ export class CoursesComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private authService: AuthService,
-    private toastService: ToastService,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
@@ -101,9 +98,6 @@ export class CoursesComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading teachers for dropdown', err);
-        this.toastService.warning(
-          getApiErrorMessage(err, 'Unable to load teachers right now. Instructor names may be incomplete.')
-        );
         // Load courses even if teachers fail, though names will be TBD
         this.loadCourses();
       }
@@ -127,9 +121,6 @@ export class CoursesComponent implements OnInit {
       },
       error: (err: { message: string }) => {
         console.error('Error loading courses', err);
-        this.toastService.error(
-          getApiErrorMessage(err, 'Unable to load courses right now.')
-        );
         this.loading = false;
       }
     });
@@ -148,13 +139,10 @@ export class CoursesComponent implements OnInit {
     if (confirm(`Are you sure you want to delete ${course.title}?`)) {
       this.adminService.deleteCourse((course as any).id || (course as any)._id).subscribe({
         next: () => {
-          this.toastService.success('Course deleted successfully.');
           this.loadCourses();
         },
         error: (err) => {
-          this.toastService.error(
-            getApiErrorMessage(err, 'Failed to delete course.')
-          );
+          alert(`Failed to delete course: ${err.error?.detail || 'Unknown error'}`);
         }
       });
     }
@@ -178,15 +166,12 @@ export class CoursesComponent implements OnInit {
 
     request.subscribe({
       next: () => {
-        this.toastService.success('Course status updated successfully.');
         this.onModalClose();
         this.loadCourses();
       },
       error: (err) => {
         console.error('Update error:', err);
-        this.toastService.error(
-          getApiErrorMessage(err, 'Failed to update course status.')
-        );
+        alert(`Failed to update course status: ${err.error?.detail || JSON.stringify(err.error) || 'Unknown error'}`);
       }
     });
   }

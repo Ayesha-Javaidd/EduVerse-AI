@@ -7,8 +7,6 @@ import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { EntityModalComponent, FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
-import { ToastService } from '../../../../shared/services/toast.service';
-import { getApiErrorMessage } from '../../../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-students',
@@ -69,8 +67,7 @@ export class StudentsComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private authService: AuthService,
-    private toastService: ToastService,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
@@ -91,9 +88,6 @@ export class StudentsComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading students', err);
-        this.toastService.error(
-          getApiErrorMessage(err, 'Unable to load students right now.'),
-        );
         this.loading = false;
       }
     });
@@ -117,13 +111,10 @@ export class StudentsComponent implements OnInit {
     if (confirm(`Are you sure you want to delete ${student.fullName}?`)) {
       this.adminService.deleteStudent(student.id).subscribe({
         next: () => {
-          this.toastService.success('Student removed successfully.');
           this.loadStudents();
         },
         error: (err) => {
-          this.toastService.error(
-            getApiErrorMessage(err, 'Failed to delete student.'),
-          );
+          alert(`Failed to delete student: ${err.error?.detail || 'Unknown error'}`);
         }
       });
     }
@@ -137,7 +128,7 @@ export class StudentsComponent implements OnInit {
   onModalSubmit(formData: any) {
     const tenantId = this.authService.getTenantId();
     if (!tenantId) {
-      this.toastService.error('Your tenant context is missing. Please log in again.');
+      alert('Tenant ID not found. Please log in again.');
       return;
     }
 
@@ -165,19 +156,9 @@ export class StudentsComponent implements OnInit {
       next: () => {
         this.onModalClose();
         this.loadStudents();
-        this.toastService.success(
-          this.isEditMode
-            ? 'Student updated successfully.'
-            : 'Student added successfully.',
-        );
       },
       error: (err) => {
-        this.toastService.error(
-          getApiErrorMessage(
-            err,
-            `Failed to ${this.isEditMode ? 'update' : 'create'} student.`,
-          ),
-        );
+        alert(`Failed to ${this.isEditMode ? 'update' : 'create'} student: ${err.error?.detail || 'Unknown error'}`);
       }
     });
   }

@@ -1,0 +1,51 @@
+<div class="flex inset-0 fixed">
+  <!-- Left Section -->
+  <div
+    class="flex-1 bg-slate-900 text-white h-screen flex flex-col text-center justify-center"
+  >
+    <h1 class="text-white text-4xl font-bold">Unlock Your Potential</h1>
+    <p class="p-5">Join our community and start your journey today.</p>
+  </div>
+
+  <!-- Right Section -->
+  <div
+    class="flex-1 bg-white text-slate-900 h-screen flex flex-col justify-center items-center"
+  >
+    <div class="p-10 w-full max-w-md">
+      <h1 class="text-3xl font-bold mb-2">Create your account</h1>
+      <p class="text-slate-500 text-sm mb-4">Select your role to continue</p>
+
+      <div *ngIf="errorMessage" class="mb-3 text-red-600 text-sm">
+        {{ errorMessage }}
+      </div>
+
+      <select
+        class="w-full px-4 py-3 border rounded-md mb-4"
+        [(ngModel)]="role"
+        name="role"
+      >
+        <option value="">Choose role</option>
+        <option value="student">Student</option>
+        <option value="teacher">Teacher</option>
+        <option value="admin">Admin</option>
+      </select>
+
+      <button
+        class="w-full py-3.5 bg-slate-900 text-white rounded-md hover:bg-slate-800"
+        (click)="selectRole()"
+      >
+        Continue
+      </button>
+
+      <p class="text-center text-gray-600 text-sm mt-2">
+        Already have an account?
+        <a
+          routerLink="/login"
+          class="text-blue-950 cursor-pointer font-medium hover:underline"
+        >
+          Login
+        </a>
+      </p>
+    </div>
+  </div>
+</div>

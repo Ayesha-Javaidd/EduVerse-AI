@@ -11,8 +11,6 @@ import {
 import { PerformanceService, StudentPerformance } from '../../../../core/services/performance.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { CourseService } from '../../../../core/services/course.service';
-import { ToastService } from '../../../../shared/services/toast.service';
-import { getApiErrorMessage } from '../../../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-track-student',
@@ -63,8 +61,7 @@ export class TrackStudentComponent implements OnInit {
     private route: ActivatedRoute,
     private performanceService: PerformanceService,
     private authService: AuthService,
-    private courseService: CourseService,
-    private toastService: ToastService,
+    private courseService: CourseService
   ) { }
 
   ngOnInit() {
@@ -91,12 +88,7 @@ export class TrackStudentComponent implements OnInit {
             courseDropdown.options = courseNames;
           }
         },
-        error: (err) => {
-          console.error('Error loading teacher courses for filter', err);
-          this.toastService.error(
-            getApiErrorMessage(err, 'Unable to load course filters right now.')
-          );
-        }
+        error: (err) => console.error('Error loading teacher courses for filter', err)
       });
     }
   }
@@ -122,9 +114,6 @@ export class TrackStudentComponent implements OnInit {
         },
         error: (err: any) => {
           console.error('Error loading teacher performances', err);
-          this.toastService.error(
-            getApiErrorMessage(err, 'Unable to load student performance data.')
-          );
           this.loading = false;
         }
       });
@@ -140,9 +129,6 @@ export class TrackStudentComponent implements OnInit {
         },
         error: (err: any) => {
           console.error('Error loading tenant performances', err);
-          this.toastService.error(
-            getApiErrorMessage(err, 'Unable to load tenant performance data.')
-          );
           this.loading = false;
         }
       });

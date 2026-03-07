@@ -6,9 +6,7 @@ import { SubscriptionDetailsComponent } from '../../components/subscription-deta
 import { AccountActionsComponent } from '../../components/account-actions/account-actions.component';
 import { TenantService } from '../../services/tenant.service';
 import { Subscription } from 'rxjs';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ToastService } from '../../../../shared/services/toast.service';
-import { getApiErrorMessage } from '../../../../core/utils/api-error.util';
+import { ActivatedRoute, ActivatedRouteSnapshot } from '@angular/router';
 
 @Component({
   selector: 'app-super-admin-tenant-settings',
@@ -20,43 +18,29 @@ import { getApiErrorMessage } from '../../../../core/utils/api-error.util';
 export class SuperAdminTenantSettingsComponent implements OnInit, OnDestroy {
   tenant: any = null;
   subscriptionDetails: any = null;
-  loadingTenant = false;
 
   private sub!: Subscription;
 
-  constructor(
-    private tenantService: TenantService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private toastService: ToastService
-  ) { }
+  constructor(private tenantService: TenantService, private route: ActivatedRoute) { }
+
+  // Added a route resolver so the tenant data is fetched before page load
+  resolve(route: ActivatedRouteSnapshot) {
+    const id = Number(route.paramMap.get('id'));
+    return this.tenantService.getTenantById(id);
+  }
 
   ngOnInit(): void {
-    const tenantId = this.route.snapshot.paramMap.get('id');
-    if (tenantId) {
-      this.loadingTenant = true;
-      this.tenantService.getTenantById(tenantId).subscribe({
-        next: (tenant) => {
-          this.loadingTenant = false;
-          this.tenantService.setSelectedTenant(tenant);
-        },
-        error: (err) => {
-          this.loadingTenant = false;
-          this.toastService.error(
-            getApiErrorMessage(err, 'Unable to load tenant details.'),
-          );
-          this.router.navigate(['/super-admin/tenants']);
-        },
-      });
-    } else {
-      this.toastService.error('Invalid tenant URL. Please select a tenant again.');
-      this.router.navigate(['/super-admin/tenants']);
+    const tenantId = Number(this.route.snapshot.paramMap.get('id'));
+    const tenant = this.tenantService.getTenantById(tenantId);
+
+    if (tenant) {
+      this.tenantService.setSelectedTenant(tenant);
     }
 
     this.sub = this.tenantService.getSelectedTenant().subscribe((tenant) => {
       if (tenant) {
         this.tenant = tenant;
-        this.subscriptionDetails = tenant.subscriptionDetails ?? tenant.subscription;
+        this.subscriptionDetails = tenant.subscription;
       }
     });
   }
@@ -67,86 +51,30 @@ export class SuperAdminTenantSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private toIsoDateOnly(value: Date): string {
-    return value.toISOString().slice(0, 10);
-  }
-
-  private addDays(base: Date, days: number): Date {
-    const next = new Date(base);
-    next.setDate(next.getDate() + days);
-    return next;
-  }
-
   onSaveTenant(payload: any) {
-    this.tenantService.updateTenant(payload).subscribe({
-      next: () => this.toastService.success('Tenant information updated successfully.'),
-      error: (err) =>
-        this.toastService.error(getApiErrorMessage(err, 'Failed to update tenant information.')),
-    });
+    this.tenantService.updateTenant(payload);
+    alert('Tenant information updated!');
   }
 
   onUpgrade() {
-    if (!this.tenant) return;
-    const now = new Date();
-    this.tenantService
-      .updateTenant({
-        ...this.tenant,
-        status: 'active',
-        subscriptionCategory: this.tenant.subscriptionCategory || 'pro',
-        subscriptionPlan: this.tenant.subscriptionPlan || 'Pro',
-        subscriptionBillingCycle: this.tenant.subscriptionBillingCycle || 'monthly',
-        subscriptionStartDate:
-          this.tenant.subscriptionStartDate || this.toIsoDateOnly(now),
-        subscriptionExpiryDate:
-          this.tenant.subscriptionExpiryDate || this.toIsoDateOnly(this.addDays(now, 30)),
-      })
-      .subscribe({
-        next: () => this.toastService.success('Tenant upgraded successfully.'),
-        error: (err) =>
-          this.toastService.error(getApiErrorMessage(err, 'Failed to upgrade tenant.')),
-      });
+    alert('Upgrade flow not implemented in mock.');
   }
 
   onRenew() {
-    if (!this.tenant) return;
-    const now = new Date();
-    const currentExpiry = this.tenant.subscriptionExpiryDate
-      ? new Date(this.tenant.subscriptionExpiryDate)
-      : now;
-    const base = currentExpiry > now ? currentExpiry : now;
-    this.tenantService
-      .updateTenant({
-        ...this.tenant,
-        status: 'active',
-        subscriptionExpiryDate: this.toIsoDateOnly(this.addDays(base, 30)),
-      })
-      .subscribe({
-        next: () => this.toastService.success('Subscription renewed successfully.'),
-        error: (err) =>
-          this.toastService.error(getApiErrorMessage(err, 'Failed to renew subscription.')),
-      });
+    alert('Renewal flow not implemented in mock.');
   }
 
   onDeactivate() {
-    if (!this.tenant) return;
-    this.tenantService
-      .updateTenant({ ...this.tenant, status: 'inactive' })
-      .subscribe({
-        next: () => this.toastService.success('Tenant deactivated successfully.'),
-        error: (err) =>
-          this.toastService.error(getApiErrorMessage(err, 'Failed to deactivate tenant.')),
-      });
+    if (confirm(`Deactivate tenant "${this.tenant.name}"?`)) {
+      this.tenant.subscription.status = 'Inactive';
+      this.tenantService.updateTenant(this.tenant);
+      alert('Tenant deactivated.');
+    }
   }
 
   onDelete() {
-    if (!this.tenant) return;
-    this.tenantService.deleteTenant(this.tenant.id).subscribe({
-      next: () => {
-        this.toastService.success('Tenant deleted successfully.');
-        this.router.navigate(['/super-admin/tenants']);
-      },
-      error: (err) =>
-        this.toastService.error(getApiErrorMessage(err, 'Failed to delete tenant.')),
-    });
+    if (confirm(`Delete tenant "${this.tenant.name}" permanently?`)) {
+      alert('Tenant deleted (mock).');
+    }
   }
 }

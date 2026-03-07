@@ -13,61 +13,6 @@
       </app-button>
     </div>
 
-    <div class="bg-white border border-gray-200 rounded-lg p-4 mt-2 mb-6">
-      <h3 class="text-base font-semibold text-slate-900 mb-2">Invite Teachers</h3>
-      <p class="text-sm text-slate-600 mb-3">
-        Add one or multiple teacher emails, or upload a CSV with an <code>email</code> column.
-      </p>
-
-      <textarea
-        [(ngModel)]="bulkEmailsInput"
-        rows="4"
-        class="w-full px-3 py-2 border rounded-md mb-3"
-        placeholder="teacher1@example.com, teacher2@example.com"
-      ></textarea>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-        <input
-          [(ngModel)]="bulkDefaultPassword"
-          type="text"
-          class="px-3 py-2 border rounded-md"
-          placeholder="Default password (optional)"
-        />
-        <select
-          [(ngModel)]="bulkStatus"
-          class="px-3 py-2 border rounded-md"
-        >
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-        <input
-          type="file"
-          accept=".csv,text/csv"
-          (change)="onTeacherCsvSelected($event)"
-          class="px-3 py-2 border rounded-md"
-        />
-      </div>
-
-      <div class="flex flex-wrap gap-2">
-        <button
-          type="button"
-          class="px-4 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-60"
-          [disabled]="bulkInviteLoading"
-          (click)="onBulkInviteTeachers()"
-        >
-          {{ bulkInviteLoading ? 'Inviting...' : 'Invite by Email List' }}
-        </button>
-        <button
-          type="button"
-          class="px-4 py-2 rounded-md bg-blue-700 text-white hover:bg-blue-600 disabled:opacity-60"
-          [disabled]="bulkCsvLoading"
-          (click)="onBulkUploadTeachersCsv()"
-        >
-          {{ bulkCsvLoading ? 'Uploading...' : 'Upload CSV' }}
-        </button>
-      </div>
-    </div>
-
     <br />
 
     <app-data-table title="Manage Teachers" [columns]="teacherColumns" [rows]="filteredTeachers" [showViewAll]="false"

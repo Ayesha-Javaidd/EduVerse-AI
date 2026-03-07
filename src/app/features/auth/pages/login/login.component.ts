@@ -9,7 +9,6 @@ import { NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { HttpClientModule } from '@angular/common/http';
-import { getApiErrorMessage } from '../../../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-login',
@@ -53,17 +52,13 @@ export class LoginComponent {
       error: (err) => {
         this.isLoading = false;
 
-        const detail = getApiErrorMessage(err);
-        if (err.status === 0) {
-          this.errorMessage = 'Unable to connect to server. Please check your internet or backend server.';
-        } else if (err.status === 401) {
-          this.errorMessage = detail || 'Invalid email or password.';
-        } else if (err.status === 403) {
-          this.errorMessage = detail || 'Your account is currently inactive. Please contact support.';
-        } else if (err.status === 422) {
-          this.errorMessage = 'Please enter a valid email and password.';
+        // Map backend error → user-friendly message
+        if (err.status === 401) {
+          this.errorMessage = 'Invalid email or password';
+        } else if (err.status === 0) {
+          this.errorMessage = 'Unable to connect to server';
         } else {
-          this.errorMessage = detail || 'Login failed. Please try again.';
+          this.errorMessage = 'Something went wrong. Please try again.';
         }
       },
     });

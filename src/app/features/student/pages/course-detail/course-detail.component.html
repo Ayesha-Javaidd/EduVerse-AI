@@ -236,12 +236,15 @@
                         <div>
                             <h3 class="text-xl font-bold text-slate-900 mb-2">{{ course.instructorName }}</h3>
                             <p class="text-slate-600 mb-4 whitespace-pre-line">
-                                {{ course.instructorBio || 'No bio available for this instructor.' }}
+                                {{ course.instructorBio || 'Passionate educator and industry expert. Dedicated to
+                                creating high-quality learning experiences for students around the world.' }}
                             </p>
                             <div class="flex gap-4">
                                 <span class="text-sm text-slate-500"><i
                                         class="fa-solid fa-users mr-2 text-slate-900"></i>{{ course.enrolledStudents }}
                                     Students</span>
+                                <span class="text-sm text-slate-500"><i
+                                        class="fa-solid fa-star mr-2 text-amber-500"></i>4.8 Rating</span>
                             </div>
                         </div>
                     </div>
@@ -260,6 +263,11 @@
                             <div *ngIf="!isEnrolled" class="flex items-baseline gap-2 mb-6">
                                 <span class="text-3xl font-bold text-slate-900">{{ course.price ? (course.price |
                                     currency) : 'Free' }}</span>
+                                <span *ngIf="course.price"
+                                    class="text-lg text-slate-400 line-through decoration-slate-400 decoration-2">$99.99</span>
+                                <span *ngIf="course.price"
+                                    class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full ml-auto">80%
+                                    OFF</span>
                             </div>
 
                             <div *ngIf="isEnrolled" class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-xl">
@@ -283,14 +291,17 @@
                                 {{ learningButtonText }}
                             </app-button>
 
-
+                            <p class="text-xs text-center text-slate-400 mt-3 pt-3 border-t border-slate-100">30-Day
+                                Money-Back Guarantee</p>
 
                             <div class="mt-6 space-y-4">
                                 <div *ngIf="course.hasLifetimeAccess"
                                     class="flex items-center gap-3 text-slate-600 text-sm">
                                     <i class="fa-solid fa-check text-green-500"></i> Full Lifetime Access
                                 </div>
-
+                                <div class="flex items-center gap-3 text-slate-600 text-sm">
+                                    <i class="fa-solid fa-check text-green-500"></i> Access on Mobile and TV
+                                </div>
                                 <div *ngIf="course.hasCertificate"
                                     class="flex items-center gap-3 text-slate-600 text-sm">
                                     <i class="fa-solid fa-check text-green-500"></i> Certificate of Completion
@@ -340,8 +351,8 @@
     </div>
 
     <!-- PAYMENT MODAL -->
-    <app-payment-modal *ngIf="showPaymentModal" [courseId]="courseId" [courseTitle]="course?.title || ''" [price]="course?.price || 0"
-        [currency]="course?.currency || 'USD'"
+    <app-payment-modal *ngIf="showPaymentModal" [courseTitle]="course?.title || ''" [price]="course?.price || 0"
+        [currency]="course?.currency || 'USD'" (confirmPayment)="onPaymentSuccess()"
         (cancel)="showPaymentModal = false">
     </app-payment-modal>
 </div>

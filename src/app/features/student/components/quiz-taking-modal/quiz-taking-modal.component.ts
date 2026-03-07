@@ -18,7 +18,6 @@ export class QuizTakingModalComponent implements OnInit {
   quizForm!: FormGroup;
   submitted = false;
   score = 0;
-  formErrorMessage = '';
 
   // Option letters for display
   optionLetters = ['a', 'b', 'c', 'd'];
@@ -88,9 +87,8 @@ export class QuizTakingModalComponent implements OnInit {
   }
 
   submitQuiz(): void {
-    this.formErrorMessage = '';
     if (this.quizForm.invalid) {
-      this.formErrorMessage = 'Please select an answer for all questions before submitting.';
+      alert('Please select an answer for all questions.');
       return;
     }
 

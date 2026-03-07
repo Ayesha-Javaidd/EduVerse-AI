@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
 import { API_BASE_URL } from '../../../core/constants/api.constants';
 
 export interface QuizQuestion {
@@ -27,7 +27,16 @@ export class QuizService {
 
     constructor(private http: HttpClient) { }
 
+    private getHeaders(): HttpHeaders {
+        const token = localStorage.getItem('eduverse_access_token');
+        return new HttpHeaders({
+            'Authorization': `Bearer ${token}`
+        });
+    }
+
     getQuizById(quizId: string): Observable<Quiz> {
-        return this.http.get<Quiz>(`${this.baseUrl}/${quizId}`);
+        return this.http.get<Quiz>(`${this.baseUrl}/${quizId}`, {
+            headers: this.getHeaders()
+        });
     }
 }

@@ -8,63 +8,7 @@
         [iconColorClass]="stat.iconColorClass"></app-stat-card>
     </div>
 
-    <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
-        <input
-          [value]="filters.search"
-          (input)="onSearchInput($event)"
-          placeholder="Search tenant name or admin email"
-          class="border rounded-md px-3 py-2"
-        />
-
-        <select
-          [value]="filters.status"
-          (change)="onStatusChange($event)"
-          class="border rounded-md px-3 py-2"
-        >
-          <option value="">All statuses</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-          <option value="trial">Trial</option>
-          <option value="pending">Pending</option>
-          <option value="expired">Expired</option>
-        </select>
-
-        <select
-          [value]="filters.planCode"
-          (change)="onPlanCodeChange($event)"
-          class="border rounded-md px-3 py-2"
-          [disabled]="loadingPlans"
-        >
-          <option value="">{{ loadingPlans ? 'Loading plans...' : 'All plan codes' }}</option>
-          <option *ngFor="let plan of plans" [value]="plan.code">{{ plan.code }}</option>
-        </select>
-
-        <select
-          [value]="filters.category"
-          (change)="onCategoryChange($event)"
-          class="border rounded-md px-3 py-2"
-        >
-          <option value="">All categories</option>
-          <option *ngFor="let category of categories" [value]="category">
-            {{ category | titlecase }}
-          </option>
-        </select>
-
-        <button
-          type="button"
-          (click)="clearFilters()"
-          class="border border-slate-300 rounded-md px-3 py-2 hover:bg-slate-50"
-        >
-          Clear Filters
-        </button>
-      </div>
-    </section>
-
     <div class="bg-white rounded-lg shadow-sm">
-      <div *ngIf="loadingTenants" class="px-4 py-3 text-sm text-gray-500 border-b border-gray-100">
-        Loading tenants...
-      </div>
       <app-data-table title="Manage Tenants" [columns]="columns" [rows]="tenants" [currentPage]="currentPage"
         [pageSize]="pageSize" [totalItems]="totalItems" [enableActions]="true" [rowClickable]="false"
         (pageChange)="onPageChange($event)" (actionClick)="onActionClick($event)" [visibleActions]="['edit']"

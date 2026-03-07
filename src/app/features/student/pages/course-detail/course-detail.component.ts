@@ -7,8 +7,6 @@ import { StudentProgressService } from '../../services/student-progress.service'
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { PaymentModalComponent } from '../../../../shared/components/payment-modal/payment-modal.component';
-import { ToastService } from '../../../../shared/services/toast.service';
-import { getApiErrorMessage } from '../../../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-course-detail',
@@ -35,8 +33,7 @@ export class CourseDetailComponent implements OnInit {
     private router: Router,
     private courseService: CourseService,
     private authService: AuthService,
-    private progressService: StudentProgressService,
-    private toastService: ToastService,
+    private progressService: StudentProgressService
   ) { }
 
   ngOnInit() {
@@ -51,25 +48,16 @@ export class CourseDetailComponent implements OnInit {
   }
 
   loadCourse() {
-    const user = this.authService.getUser();
     const tenantId = this.authService.getTenantId();
-
-    // Students can view marketplace courses cross-tenant without tenantId query.
-    if (!user) {
-      this.error = 'Please log in to view course details';
-      this.loading = false;
-      return;
-    }
-
-    if (user.role !== 'student' && !tenantId) {
+    if (!tenantId) {
       this.error = 'Tenant ID not found';
       this.loading = false;
       return;
     }
 
-    const scopedTenantId = user.role === 'student' ? undefined : (tenantId ?? undefined);
-    this.courseService.getCourseById(this.courseId, scopedTenantId).subscribe({
+    this.courseService.getCourseById(this.courseId, tenantId).subscribe({
       next: (course) => {
+        console.log('Loaded Course:', course); // DEBUG
         this.course = course;
         this.calculateStats();
         this.checkEnrollment();
@@ -77,7 +65,7 @@ export class CourseDetailComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.error = getApiErrorMessage(err, 'Failed to load course details');
+        this.error = 'Failed to load course details';
         this.loading = false;
       }
     });
@@ -105,21 +93,17 @@ export class CourseDetailComponent implements OnInit {
   checkEnrollment() {
     const user = this.authService.getUser();
     const tenantId = this.authService.getTenantId();
-    if (!user) return;
+    if (!user || !tenantId) return;
 
     const studentId = user.studentId || user.id;
-    this.courseService.getStudentCourses(studentId, tenantId || undefined).subscribe({
+    this.courseService.getStudentCourses(studentId, tenantId).subscribe({
       next: (courses) => {
         this.isEnrolled = courses.some(c => c._id === this.courseId || c.id === this.courseId);
-        const progressTenantId = tenantId || this.course?.tenantId;
-        if (this.isEnrolled && progressTenantId) {
-          this.loadProgress(progressTenantId);
+        if (this.isEnrolled) {
+          this.loadProgress(tenantId);
         }
       },
-      error: (err) => {
-        console.error('Error checking enrollment:', err);
-        this.toastService.error(getApiErrorMessage(err, 'Unable to verify enrollment status.'));
-      }
+      error: (err) => console.error('Error checking enrollment:', err)
     });
   }
 
@@ -128,10 +112,7 @@ export class CourseDetailComponent implements OnInit {
       next: (prog) => {
         this.progress = prog.progressPercentage;
       },
-      error: (err) => {
-        console.error('Error loading progress:', err);
-        this.toastService.error(getApiErrorMessage(err, 'Unable to load progress right now.'));
-      }
+      error: (err) => console.error('Error loading progress:', err)
     });
   }
 
@@ -160,14 +141,21 @@ export class CourseDetailComponent implements OnInit {
     }
   }
 
+  onPaymentSuccess() {
+    this.showPaymentModal = false;
+    this.processEnrollment();
+  }
+
   processEnrollment() {
     const user = this.authService.getUser();
+    const tenantId = this.authService.getTenantId();
 
-    if (!user) return;
+    if (!user || !tenantId) return;
 
     this.enrolling = true;
+    const studentId = user.studentId || user.id;
 
-    this.courseService.enrollStudent(this.courseId).subscribe({
+    this.courseService.enrollStudent(this.courseId, studentId, tenantId).subscribe({
       next: () => {
         this.enrolling = false;
         this.showSuccessModal = true;
@@ -175,7 +163,7 @@ export class CourseDetailComponent implements OnInit {
       error: (err) => {
         this.enrolling = false;
         console.error(err);
-        this.toastService.error(getApiErrorMessage(err, 'Enrollment failed.'));
+        alert('Enrollment failed: ' + (err.error?.detail || 'Unknown error'));
       }
     });
   }

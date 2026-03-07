@@ -7,8 +7,6 @@ import { HeaderComponent } from '../../../../shared/components/header/header.com
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { AdminService, AdminTeacher, AdminStudent } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../auth/services/auth.service';
-import { ToastService } from '../../../../shared/services/toast.service';
-import { getApiErrorMessage } from '../../../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -107,8 +105,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private adminService: AdminService, // UPDATED: Injected AdminService
-    private authService: AuthService,      // UPDATED: Injected AuthService
-    private toastService: ToastService,
+    private authService: AuthService      // UPDATED: Injected AuthService
   ) { }
 
   ngOnInit() {
@@ -140,12 +137,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
             avatar: t.fullName?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'TR'
           }));
           this.statsCards[3].value = data.length.toString();
-        },
-        error: (err) => {
-          this.toastService.error(
-            getApiErrorMessage(err, 'Unable to load teachers.'),
-          );
-        },
+        }
       });
 
       this.adminService.getStudents().subscribe({
@@ -155,12 +147,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
             avatar: s.fullName?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'ST'
           }));
           this.statsCards[0].value = data.length.toString();
-        },
-        error: (err) => {
-          this.toastService.error(
-            getApiErrorMessage(err, 'Unable to load students.'),
-          );
-        },
+        }
       });
 
       this.adminService.getCourses().subscribe({
@@ -170,12 +157,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           this.statsCards[2].value = data.length.toString();
           this.loading = false;
         },
-        error: (err) => {
-          this.loading = false;
-          this.toastService.error(
-            getApiErrorMessage(err, 'Unable to load courses.'),
-          );
-        }
+        error: () => this.loading = false
       });
     }
   }

@@ -31,7 +31,7 @@
       class="text-xl font-bold text-gray-50 transition-all duration-300"
       [class.hidden]="!isMobile && !isOpen"
     >
-      EduVerse
+      EduHub
     </h1>
 
     <!-- Desktop Hamburger (aligned right inside header) -->
@@ -50,25 +50,6 @@
     >
       <i class="fa-solid fa-xmark text-2xl"></i>
     </button>
-  </div>
-
-  <div
-    *ngIf="role === 'teacher' && teacherTenants.length > 1"
-    class="px-4 py-3 border-b border-slate-800"
-  >
-    <label class="block text-[11px] uppercase tracking-wide text-slate-400 mb-1">
-      Active Tenant
-    </label>
-    <select
-      [(ngModel)]="selectedTenantId"
-      (change)="onTenantSwitch()"
-      class="w-full bg-slate-800 text-white border border-slate-700 rounded-md px-2 py-2 text-sm"
-      [disabled]="switchingTenant"
-    >
-      <option *ngFor="let item of teacherTenants" [value]="item.tenantId">
-        {{ item.tenantName }}
-      </option>
-    </select>
   </div>
 
   <!-- Navigation -->
