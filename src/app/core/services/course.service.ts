@@ -160,5 +160,11 @@ export class CourseService {
             params
         });
     }
-}
 
+    // Create a Stripe checkout session for a specific course
+    createCheckoutSession(courseId: string): Observable<{clientSecret: string}> {
+         return this.http.post<{clientSecret: string}>(`${ENDPOINTS.STUDENTS.BASE}/checkout`, { courseId }, {
+             headers: this.getHeaders()
+         });
+    }
+}

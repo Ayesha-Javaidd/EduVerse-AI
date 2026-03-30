@@ -22,6 +22,11 @@ export interface AdminStudent {
     status: string;
 }
 
+export interface SystemSettingsConfig {
+    tenantName: string;
+    tenantLogoUrl: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -83,7 +88,9 @@ export class AdminService {
     updateTeacher(teacherId: string, data: any): Observable<any> {
         // Remove id/_id from payload to avoid 422
         const { id, _id, ...updateData } = data;
-        return this.http.put(`${ENDPOINTS.TEACHERS.BASE}/${teacherId}`, updateData, {
+        // Backend admin update teacher endpoint is /admin/update-teacher/{id}
+        const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
+        return this.http.put(`${baseUrl}/update-teacher/${teacherId}`, updateData, {
             headers: this.getHeaders()
         });
     }
@@ -135,6 +142,44 @@ export class AdminService {
     deleteCourse(courseId: string): Observable<any> {
         const tenantId = localStorage.getItem('tenantId');
         return this.http.delete(`${ENDPOINTS.COURSES.BASE}/${courseId}?tenantId=${tenantId}`, {
+            headers: this.getHeaders()
+        });
+    }
+
+    // --- System Settings ---
+    getSystemSettings(): Observable<SystemSettingsConfig> {
+        // ENDPOINTS.ADMINS.BASE is /admin/dashboard, so we need to target /admin/settings/system
+        const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
+        return this.http.get<SystemSettingsConfig>(`${baseUrl}/settings/system`, {
+            headers: this.getHeaders()
+        });
+    }
+
+    updateSystemSettings(data: SystemSettingsConfig): Observable<SystemSettingsConfig> {
+        const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
+        return this.http.put<SystemSettingsConfig>(`${baseUrl}/settings/system`, data, {
+            headers: this.getHeaders()
+        });
+    }
+
+    // --- Billing & Usage ---
+    getBillingUsage(): Observable<any> {
+        const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
+        return this.http.get<any>(`${baseUrl}/billing/usage`, {
+            headers: this.getHeaders()
+        });
+    }
+
+    getAvailablePlans(): Observable<any[]> {
+        const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
+        return this.http.get<any[]>(`${baseUrl}/billing/plans`, {
+            headers: this.getHeaders()
+        });
+    }
+
+    createSubscriptionCheckout(planId: string): Observable<any> {
+        const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
+        return this.http.post<any>(`${baseUrl}/billing/checkout`, { planId }, {
             headers: this.getHeaders()
         });
     }

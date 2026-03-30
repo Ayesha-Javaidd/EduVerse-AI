@@ -17,6 +17,12 @@
             (click)="activeTab = 'system'">
             System Settings
           </button>
+          <button
+            class="px-3 py-2 text-sm font-medium border-b-2"
+            [ngClass]="activeTab === 'billing' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+            (click)="activeTab = 'billing'">
+            Billing & Plans
+          </button>
         </nav>
       </div>
 
@@ -27,6 +33,9 @@
       </div>
       <div *ngIf="activeTab === 'system'" class="space-y-6">
         <app-system-settings></app-system-settings>
+      </div>
+      <div *ngIf="activeTab === 'billing'" class="space-y-6">
+        <app-admin-billing></app-admin-billing>
       </div>
     </div>
   </main>

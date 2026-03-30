@@ -243,8 +243,6 @@
                                 <span class="text-sm text-slate-500"><i
                                         class="fa-solid fa-users mr-2 text-slate-900"></i>{{ course.enrolledStudents }}
                                     Students</span>
-                                <span class="text-sm text-slate-500"><i
-                                        class="fa-solid fa-star mr-2 text-amber-500"></i>4.8 Rating</span>
                             </div>
                         </div>
                     </div>
@@ -350,9 +348,11 @@
         </div>
     </div>
 
-    <!-- PAYMENT MODAL -->
-    <app-payment-modal *ngIf="showPaymentModal" [courseTitle]="course?.title || ''" [price]="course?.price || 0"
-        [currency]="course?.currency || 'USD'" (confirmPayment)="onPaymentSuccess()"
-        (cancel)="showPaymentModal = false">
-    </app-payment-modal>
+    <!-- Payment/Enrollment Modal -->
+    <app-stripe-embedded-modal
+      *ngIf="showPaymentModal && clientSecret"
+      [title]="course?.title + ' Checkout'"
+      [clientSecret]="clientSecret"
+      (cancel)="showPaymentModal = false">
+    </app-stripe-embedded-modal>
 </div>

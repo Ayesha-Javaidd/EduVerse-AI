@@ -6,6 +6,13 @@ import {
   TeacherResponse,
   TeacherUpdatePayload,
 } from '../../../shared/models/teacher-profile.models';
+import { ENDPOINTS } from '../../../core/constants/api.constants';
+
+export interface TeacherDashboardMetrics {
+  totalAssignments: number;
+  totalQuizzes: number;
+  totalCourses: number;
+}
 
 /**
  * Teacher Profile Response from GET /teachers/me
@@ -52,7 +59,7 @@ export interface TeacherProfile {
   providedIn: 'root',
 })
 export class TeacherProfileService {
-  private readonly API_URL = 'http://localhost:8000/teachers';
+  private readonly API_URL = ENDPOINTS.TEACHERS.BASE;
 
   constructor(private http: HttpClient) {}
 
@@ -78,6 +85,14 @@ export class TeacherProfileService {
    */
   changeMyPassword(payload: ChangePasswordPayload): Observable<void> {
     return this.http.put<void>(`${this.API_URL}/me/password`, payload);
+  }
+
+  /**
+   * GET /teachers/{id}/dashboard
+   * Returns dashboard metrics (totalAssignments, totalQuizzes, etc.)
+   */
+  getTeacherDashboard(teacherId: string): Observable<TeacherDashboardMetrics> {
+    return this.http.get<TeacherDashboardMetrics>(`${this.API_URL}/${teacherId}/dashboard`);
   }
 }
 

@@ -1,8 +1,8 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { ChangePasswordComponent } from '../../../../shared/components/change-password/change-password.component';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, ɵInternalFormsSharedModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-tenant-info-form',
@@ -11,7 +11,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, ɵInternalForm
   templateUrl: './tenant-info-form.component.html',
   styleUrl: './tenant-info-form.component.css'
 })
-export class TenantInfoFormComponent {
+export class TenantInfoFormComponent implements OnChanges {
   @Input() tenant: any = null;
   @Output() save = new EventEmitter<any>();
 
@@ -27,13 +27,14 @@ export class TenantInfoFormComponent {
     });
   }
 
-  ngOnChanges(): void {
-    if (this.tenant) {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['tenant'] && changes['tenant'].currentValue) {
+      const data = changes['tenant'].currentValue;
       this.form.patchValue({
-        tenantName: this.tenant.name || '',
-        adminEmail: this.tenant.adminEmail || '',
-        contactNumber: this.tenant.contactNumber || '',
-        address: this.tenant.address || ''
+        tenantName: data.tenantName || '',
+        adminEmail: data.adminEmail || '',
+        contactNumber: data.contactNumber || '',
+        address: data.address || ''
       });
     }
   }

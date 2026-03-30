@@ -9,6 +9,7 @@ export interface FormField {
   required?: boolean;
   options?: { value: string; label: string }[];
   placeholder?: string;
+  disabled?: boolean;
 }
 
 @Component({
@@ -28,11 +29,16 @@ export class EntityModalComponent implements OnInit {
   @Output() submit$ = new EventEmitter<any>();
 
   formData: any = {};
+  showPasswords: { [key: string]: boolean } = {};
   loading = false;
   errorMessage = '';
 
   ngOnInit() {
     this.initializeForm();
+  }
+
+  togglePassword(fieldName: string) {
+    this.showPasswords[fieldName] = !this.showPasswords[fieldName];
   }
 
   ngOnChanges() {
@@ -48,7 +54,8 @@ export class EntityModalComponent implements OnInit {
     // Initialize form data
     this.fields.forEach(field => {
       if (field.type === 'array') {
-        this.formData[field.name] = this.initialData?.[field.name] || [''];
+        const initialArray = this.initialData?.[field.name];
+        this.formData[field.name] = Array.isArray(initialArray) ? [...initialArray] : [''];
       } else {
         this.formData[field.name] = this.initialData?.[field.name] || '';
       }
@@ -90,6 +97,31 @@ export class EntityModalComponent implements OnInit {
       }
       return false;
     });
+  }
+
+  hasUnsavedChanges(): boolean {
+    if (!this.isEditMode || !this.initialData) return true;
+
+    for (const field of this.fields) {
+      if (field.type === 'password' && field.required === false) {
+        if (this.formData[field.name]) return true;
+        continue;
+      }
+
+      let current = this.formData[field.name];
+      let initial = this.initialData[field.name];
+
+      if (field.type === 'array') {
+        current = (current || []).filter((i: string) => i && i.trim() !== '');
+        initial = (initial || []).filter((i: string) => i && i.trim() !== '');
+        if (JSON.stringify(current) !== JSON.stringify(initial)) return true;
+      } else {
+        current = current == null ? '' : String(current);
+        initial = initial == null ? '' : String(initial);
+        if (current !== initial) return true;
+      }
+    }
+    return false;
   }
 
   onSubmit() {

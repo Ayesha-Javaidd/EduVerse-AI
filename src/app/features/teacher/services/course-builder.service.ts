@@ -211,6 +211,7 @@ export class CourseBuilderService {
       thumbnailUrl: course.thumbnailUrl || '',
       teacherId: course.teacherId || '',
       tenantId: course.tenantId || '',
+      courseCode: course.courseCode || '', // Map the course code here
       isFree: course.isFree ?? true,
       price: course.price || 0,
       currency: course.currency || 'USD',
@@ -252,20 +253,5 @@ export class CourseBuilderService {
         ),
         catchError(() => of([])) // Return empty array if endpoint doesn't exist
       );
-  }
-
-  /**
-   * Unenroll a student from the course
-   */
-  unenrollStudent(
-    courseId: string,
-    tenantId: string,
-    studentId: string
-  ): Observable<void> {
-    const params = new HttpParams().set('tenantId', tenantId);
-    return this.http.delete<void>(
-      `${this.API_URL}/${courseId}/students/${studentId}`,
-      { params }
-    );
   }
 }

@@ -6,12 +6,13 @@ import { AuthService } from '../../../auth/services/auth.service';
 import { StudentProgressService } from '../../services/student-progress.service';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { PaymentModalComponent } from '../../../../shared/components/payment-modal/payment-modal.component';
+import { StripeEmbeddedModalComponent } from '../../../../shared/components/stripe-embedded-modal/stripe-embedded-modal.component';
+import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-course-detail',
   standalone: true,
-  imports: [CommonModule, HeaderComponent, ButtonComponent, PaymentModalComponent],
+  imports: [CommonModule, HeaderComponent, ButtonComponent, StripeEmbeddedModalComponent],
   templateUrl: './course-detail.component.html',
   styleUrls: ['./course-detail.component.css']
 })
@@ -23,6 +24,7 @@ export class CourseDetailComponent implements OnInit {
   enrolling: boolean = false;
   showSuccessModal: boolean = false;
   showPaymentModal: boolean = false;
+  clientSecret: string = '';
   isEnrolled: boolean = false;
   progress: number = 0;
   quizCount: number = 0;
@@ -33,7 +35,8 @@ export class CourseDetailComponent implements OnInit {
     private router: Router,
     private courseService: CourseService,
     private authService: AuthService,
-    private progressService: StudentProgressService
+    private progressService: StudentProgressService,
+    private confirmDialogService: ConfirmDialogService
   ) { }
 
   ngOnInit() {
@@ -49,13 +52,8 @@ export class CourseDetailComponent implements OnInit {
 
   loadCourse() {
     const tenantId = this.authService.getTenantId();
-    if (!tenantId) {
-      this.error = 'Tenant ID not found';
-      this.loading = false;
-      return;
-    }
 
-    this.courseService.getCourseById(this.courseId, tenantId).subscribe({
+    this.courseService.getCourseById(this.courseId, tenantId || '').subscribe({
       next: (course) => {
         console.log('Loaded Course:', course); // DEBUG
         this.course = course;
@@ -92,15 +90,15 @@ export class CourseDetailComponent implements OnInit {
 
   checkEnrollment() {
     const user = this.authService.getUser();
-    const tenantId = this.authService.getTenantId();
-    if (!user || !tenantId) return;
+    const tenantId = this.authService.getTenantId() || '';
+    if (!user) return;
 
     const studentId = user.studentId || user.id;
     this.courseService.getStudentCourses(studentId, tenantId).subscribe({
       next: (courses) => {
         this.isEnrolled = courses.some(c => c._id === this.courseId || c.id === this.courseId);
         if (this.isEnrolled) {
-          this.loadProgress(tenantId);
+          this.loadProgress(this.course?.tenantId || tenantId);
         }
       },
       error: (err) => console.error('Error checking enrollment:', err)
@@ -135,7 +133,20 @@ export class CourseDetailComponent implements OnInit {
 
     // Check if course is paid
     if (this.course && !this.course.isFree && (this.course.price || 0) > 0) {
-      this.showPaymentModal = true;
+      this.enrolling = true;
+      this.courseService.createCheckoutSession(this.courseId).subscribe({
+         next: (res) => {
+            if(res.clientSecret) {
+               this.clientSecret = res.clientSecret;
+               this.showPaymentModal = true;
+            }
+            this.enrolling = false;
+         },
+         error: (err) => {
+            console.error("Failed to generate stripe checkout", err);
+            this.enrolling = false;
+         }
+      });
     } else {
       this.processEnrollment();
     }
@@ -143,12 +154,13 @@ export class CourseDetailComponent implements OnInit {
 
   onPaymentSuccess() {
     this.showPaymentModal = false;
-    this.processEnrollment();
+    this.clientSecret = '';
   }
 
   processEnrollment() {
     const user = this.authService.getUser();
-    const tenantId = this.authService.getTenantId();
+    const userTenantId = this.authService.getTenantId();
+    const tenantId = this.course?.tenantId || userTenantId;
 
     if (!user || !tenantId) return;
 
@@ -160,10 +172,10 @@ export class CourseDetailComponent implements OnInit {
         this.enrolling = false;
         this.showSuccessModal = true;
       },
-      error: (err) => {
+      error: async (err) => {
         this.enrolling = false;
         console.error(err);
-        alert('Enrollment failed: ' + (err.error?.detail || 'Unknown error'));
+        await this.confirmDialogService.alert('Enrollment failed: ' + (err.error?.detail || 'Unknown error'), 'Error', 'danger');
       }
     });
   }

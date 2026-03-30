@@ -5,13 +5,13 @@ import { HeaderComponent } from '../../../../shared/components/header/header.com
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../auth/services/auth.service';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { EntityModalComponent, FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
+import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
+import { FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
 
 @Component({
   selector: 'app-students',
   standalone: true,
-  imports: [HeaderComponent, DataTableComponent, CommonModule, FiltersComponent, ButtonComponent, EntityModalComponent],
+  imports: [HeaderComponent, DataTableComponent, CommonModule, FiltersComponent],
   templateUrl: './students.component.html',
   styleUrl: './students.component.css'
 })
@@ -67,7 +67,8 @@ export class StudentsComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private authService: AuthService
+    private authService: AuthService,
+    private confirmDialogService: ConfirmDialogService
   ) { }
 
   ngOnInit() {
@@ -107,14 +108,15 @@ export class StudentsComponent implements OnInit {
     this.isModalOpen = true;
   }
 
-  onDeleteStudent(student: any) {
-    if (confirm(`Are you sure you want to delete ${student.fullName}?`)) {
+  async onRemoveStudent(student: any) {
+    const isConfirmed = await this.confirmDialogService.confirmDelete(student.fullName);
+    if (isConfirmed) {
       this.adminService.deleteStudent(student.id).subscribe({
         next: () => {
           this.loadStudents();
         },
-        error: (err) => {
-          alert(`Failed to delete student: ${err.error?.detail || 'Unknown error'}`);
+        error: async (err) => {
+          await this.confirmDialogService.alert(`Failed to delete student: ${err.error?.detail || 'Unknown error'}`, 'Error', 'danger');
         }
       });
     }
@@ -125,10 +127,10 @@ export class StudentsComponent implements OnInit {
     this.selectedStudent = null;
   }
 
-  onModalSubmit(formData: any) {
+  async onModalSubmit(formData: any) {
     const tenantId = this.authService.getTenantId();
     if (!tenantId) {
-      alert('Tenant ID not found. Please log in again.');
+      await this.confirmDialogService.alert('Tenant ID not found. Please log in again.', 'Error', 'danger');
       return;
     }
 
@@ -157,8 +159,8 @@ export class StudentsComponent implements OnInit {
         this.onModalClose();
         this.loadStudents();
       },
-      error: (err) => {
-        alert(`Failed to ${this.isEditMode ? 'update' : 'create'} student: ${err.error?.detail || 'Unknown error'}`);
+      error: async (err) => {
+        await this.confirmDialogService.alert(`Failed to ${this.isEditMode ? 'update' : 'create'} student: ${err.error?.detail || 'Unknown error'}`, 'Error', 'danger');
       }
     });
   }

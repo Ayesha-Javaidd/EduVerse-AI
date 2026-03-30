@@ -73,9 +73,9 @@ export class StudentCoursesComponent implements OnInit {
   // UPDATED: New method to fetch courses from backend
   loadStudentCourses() {
     const user = this.authService.getUser();
-    const tenantId = this.authService.getTenantId();
+    const tenantId = this.authService.getTenantId() || '';
 
-    if (user && tenantId) {
+    if (user) {
       this.profile.name = user.fullName || 'Student';
       this.profile.initials = this.profile.name.trim().charAt(0).toUpperCase();
 

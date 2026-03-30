@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
+import { SuperAdminDashboardService, ActivityDataPoint, OrganizationRow, TenantGrowthPoint } from '../../../../shared/services/super-admin-dashboard.service';
 
 @Component({
   selector: 'app-superadmin-dashboard',
@@ -18,6 +19,7 @@ import { HeaderComponent } from '../../../../shared/components/header/header.com
 })
 export class SuperadminDashboardComponent implements OnInit {
 
+  constructor(private dashboardService: SuperAdminDashboardService) {}
 
   pageTitle = 'Super Admin Dashboard';
   notificationCount = 5;
@@ -26,11 +28,10 @@ export class SuperadminDashboardComponent implements OnInit {
     initials: 'S'
   };
 
-
   stats = [
     {
       title: 'Total Tenants',
-      value: 48,
+      value: 0 as string | number,
       icon: 'fa-solid fa-building',
       iconBgClass: 'bg-blue-100',
       iconColorClass: 'text-blue-600',
@@ -38,7 +39,7 @@ export class SuperadminDashboardComponent implements OnInit {
     },
     {
       title: 'Active Users',
-      value: '12.5K',
+      value: '0' as string | number,
       icon: 'fa-solid fa-users',
       iconBgClass: 'bg-green-100',
       iconColorClass: 'text-green-600',
@@ -46,7 +47,7 @@ export class SuperadminDashboardComponent implements OnInit {
     },
     {
       title: 'Total Courses',
-      value: 842,
+      value: 0 as string | number,
       icon: 'fa-solid fa-book',
       iconBgClass: 'bg-purple-100',
       iconColorClass: 'text-purple-600',
@@ -54,7 +55,7 @@ export class SuperadminDashboardComponent implements OnInit {
     },
     {
       title: 'Revenue',
-      value: '$48.2K',
+      value: '$0' as string | number,
       icon: 'fa-solid fa-dollar-sign',
       iconBgClass: 'bg-yellow-100',
       iconColorClass: 'text-yellow-600',
@@ -62,103 +63,55 @@ export class SuperadminDashboardComponent implements OnInit {
     }
   ];
 
-  /* 
-     Used for line/bar chart visualization to represent
-     growth of tenants per month over time.
-     */
-  tenantGrowthData = [
-    { month: 'Jan', tenants: 32 },
-    { month: 'Feb', tenants: 35 },
-    { month: 'Mar', tenants: 38 },
-    { month: 'Apr', tenants: 41 },
-    { month: 'May', tenants: 44 },
-    { month: 'Jun', tenants: 48 }
-  ];
+  tenantGrowthData: TenantGrowthPoint[] = [];
+  activityData: ActivityDataPoint[] = [];
 
-  /*
-     Represents tenant or user activity distribution in
-     categories such as Active, Pending, and Inactive.
-     This data is used for donut or progress charts.
-     */
-  activityData = [
-    { category: 'Active', value: 35, color: 'bg-green-500' },
-    { category: 'Pending', value: 8, color: 'bg-yellow-500' },
-    { category: 'Inactive', value: 5, color: 'bg-red-500' }
-  ];
-
-  /* 
-     Displays a list of top-performing or active tenants
-     (organizations). Each row shows name, active courses,
-     and total users.
-     */
   organizationColumns: TableColumn[] = [
     { key: 'name', label: 'Organization Name', type: 'text' },
     { key: 'activeCourses', label: 'Active Courses', type: 'text' },
     { key: 'users', label: 'Users', type: 'text' }
   ];
 
-  // Top 5 organizations (manually provided for dashboard display)
-  organizationRows = [
-    { name: 'Punjab University', activeCourses: 45, users: 1250 },
-    { name: 'Skills Academy', activeCourses: 38, users: 980 },
-    { name: 'Qazi Schools', activeCourses: 52, users: 1420 },
-    { name: 'Punjab Colleges', activeCourses: 31, users: 765 },
-    { name: 'Comsats University', activeCourses: 28, users: 690 }
-  ];
+  organizationRows: OrganizationRow[] = [];
+  totalOrganizations = 0;
 
-  // Total tenants in the system (used for summary)
-  totalOrganizations = 48;
-
-  /*
-     Runs once when the component initializes. 
-     Can be used for fetching data or setup logic.
-      */
   ngOnInit(): void {
-    // Future: Load dashboard data dynamically from backend service
+    this.dashboardService.getDashboardStats().subscribe({
+      next: (data) => {
+        this.stats[0].value = data.totalTenants;
+        this.stats[1].value = data.activeUsers;
+        this.stats[2].value = data.totalCourses;
+        this.stats[3].value = data.revenue;
+
+        this.tenantGrowthData = data.tenantGrowthData;
+        this.activityData = data.activityData;
+        this.organizationRows = data.organizationRows;
+        this.totalOrganizations = data.totalTenants;
+      },
+      error: (err: any) => console.error("Error fetching Super Admin stats", err)
+    });
   }
 
-  /* 
-     Helper functions used by the chart templates to 
-     calculate proportional values for rendering.
-     */
-
-  // Returns maximum tenant count to normalize bar height
   get maxTenantValue(): number {
+    if (this.tenantGrowthData.length === 0) return 1;
     return Math.max(...this.tenantGrowthData.map(d => d.tenants));
   }
 
-  // Calculates total of all activity categories (for percentage)
   get totalActivityValue(): number {
     return this.activityData.reduce((sum, item) => sum + item.value, 0);
   }
 
-  // Converts a tenant count to height percentage for bar chart
   getBarHeight(value: number): number {
+    if (this.maxTenantValue === 0) return 0;
     return (value / this.maxTenantValue) * 100;
   }
 
-  // Converts a value to its percentage of total (for donut chart)
   getPercentage(value: number): number {
+    if (this.totalActivityValue === 0) return 0;
     return (value / this.totalActivityValue) * 100;
   }
 
-  /* 
-     Event handlers for clickable icons in the header bar.
-     (Future: Can integrate with real routing or modals)
-      */
-
-  // Triggered when user clicks notifications bell
-  onNotificationClick(): void {
-
-  }
-
-  // Triggered when user clicks profile/avatar
-  onProfileClick(): void {
-
-  }
-
-  // Triggered when user clicks logout button
-  onLogoutClick(): void {
-
-  }
+  onNotificationClick(): void {}
+  onProfileClick(): void {}
+  onLogoutClick(): void {}
 }

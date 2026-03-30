@@ -78,7 +78,7 @@ export class ProfileFormComponent implements OnInit {
   private buildForm(): void {
     this.profileForm = this.fb.group({
       fullName: ['', [Validators.required, Validators.minLength(3)]],
-      email: ['', [Validators.required, Validators.email]],
+      email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
       phone: [''],
       country: [''],
     });
@@ -110,7 +110,7 @@ export class ProfileFormComponent implements OnInit {
           fullName: profile.fullName ?? '',
           email: profile.email ?? '',
           phone: profile.contactNo ?? '',
-          country: this.countryMap[profile.country] ?? '',
+          country: this.countryMap[profile.country] || profile.country || '',
         });
 
         this.profilePreview = profile.profileImageURL ?? null;
@@ -151,7 +151,6 @@ export class ProfileFormComponent implements OnInit {
     if (this.role === 'student') {
       const payload: StudentUpdatePayload = {
         fullName: this.profileForm.value.fullName,
-        email: this.profileForm.value.email,
         contactNo: this.profileForm.value.phone,
         country: this.profileForm.value.country,
         profileImageURL: this.profilePreview,
@@ -186,7 +185,6 @@ export class ProfileFormComponent implements OnInit {
     if (this.role === 'teacher') {
       const payload: TeacherUpdatePayload = {
         fullName: this.profileForm.value.fullName,
-        email: this.profileForm.value.email,
         contactNo: this.profileForm.value.phone,
         country: this.profileForm.value.country,
         profileImageURL: this.profilePreview ?? undefined,

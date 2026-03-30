@@ -25,7 +25,28 @@
     </div>
 
     <div>
-      <app-student-enrollment-chart></app-student-enrollment-chart>
+      <!-- Student Enrollment Chart -->
+      <div class="bg-white rounded-lg shadow p-6 border-t-4 border-indigo-600">
+        <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+          <i class="fas fa-chart-bar text-indigo-600 mr-2 text-2xl"></i>
+          Student Enrollments per Subject
+        </h3>
+        
+        <div class="relative h-72 w-full flex items-center justify-center">
+          <app-student-enrollment-chart 
+            *ngIf="chartSubjects.length > 0; else noDataChart"
+            [subjects]="chartSubjects"
+            [enrollments]="chartEnrollments"
+            class="w-full h-full">
+          </app-student-enrollment-chart>
+          <ng-template #noDataChart>
+            <div class="flex flex-col items-center text-gray-400">
+              <i class="fas fa-chart-line text-4xl mb-2"></i>
+              <p>No enrollment data yet</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
     </div>
   </div>
 </div>

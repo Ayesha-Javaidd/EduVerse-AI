@@ -31,7 +31,7 @@ import {
   calculateTotalDuration,
 } from '../../../../shared/models/course-builder.model';
 
-type TabType = 'content' | 'settings' | 'students' | 'reviews';
+type TabType = 'content' | 'settings' | 'students';
 
 @Component({
   selector: 'app-course-builder',
@@ -687,34 +687,6 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
         s.fullName.toLowerCase().includes(query) ||
         s.email.toLowerCase().includes(query)
     );
-  }
-
-  async onUnenrollStudent(student: EnrolledStudent): Promise<void> {
-    const confirmed = await this.confirmDialog.confirm(
-      'Unenroll Student',
-      `Are you sure you want to unenroll ${student.fullName} from this course? They will lose access to all course content.`
-    );
-
-    if (confirmed) {
-      this.courseBuilderService
-        .unenrollStudent(this.courseId, this.tenantId, student.id)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.enrolledStudents = this.enrolledStudents.filter(
-              (s) => s.id !== student.id
-            );
-            if (this.course) {
-              this.course.enrolledStudents = Math.max(0, this.course.enrolledStudents - 1);
-            }
-            this.toastService.success(`${student.fullName} has been unenrolled`);
-          },
-          error: (err) => {
-            console.error('Failed to unenroll student:', err);
-            this.toastService.error('Failed to unenroll student');
-          },
-        });
-    }
   }
 
   formatDate(dateString: string): string {

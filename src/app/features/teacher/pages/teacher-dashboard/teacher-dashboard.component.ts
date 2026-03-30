@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
@@ -10,6 +11,7 @@ import {
 import { StudentEnrollmentChartComponent } from '../../components/student-enrollment-chart/student-enrollment-chart.component';
 import { CourseService, BackendCourse } from '../../../../core/services/course.service';
 import { AuthService } from '../../../auth/services/auth.service';
+import { TeacherProfileService, TeacherDashboardMetrics } from '../../services/teacher-profile.service';
 
 @Component({
   selector: 'app-teacher-dashboard',
@@ -34,7 +36,8 @@ export class TeacherDashboardComponent implements OnInit {
   constructor(
     private router: Router,
     private courseService: CourseService, // UPDATED: Injected CourseService
-    private authService: AuthService      // UPDATED: Injected AuthService
+    private authService: AuthService,     // UPDATED: Injected AuthService
+    private teacherService: TeacherProfileService,
   ) { }
 
   quickLinks = [
@@ -98,6 +101,9 @@ export class TeacherDashboardComponent implements OnInit {
   courses: BackendCourse[] = []; // UPDATED: Properly typed
   loading: boolean = true;
 
+  chartSubjects: string[] = ['Math101', 'HistoryT201', 'CS101', 'English'];
+  chartEnrollments: number[] = [25, 22, 20, 30];
+
   ngOnInit() {
     this.loadDashboardData();
   }
@@ -114,6 +120,10 @@ export class TeacherDashboardComponent implements OnInit {
       // Use teacherId if available
       const teacherId = user.teacherId || user.id;
 
+      // Calculate chart arrays initially empty
+      this.chartSubjects = [];
+      this.chartEnrollments = [];
+
       this.courseService.getCourses(tenantId, { teacher_id: teacherId }).subscribe({
         next: (data: BackendCourse[]) => {
           this.courses = data;
@@ -123,17 +133,39 @@ export class TeacherDashboardComponent implements OnInit {
           const totalStudents = data.reduce((acc: number, c: BackendCourse) => acc + (c.enrolledStudents || 0), 0);
           this.statsCards[1].value = totalStudents.toString();
 
+          // Map the chart data dynamically
+          if (data.length > 0) {
+            this.chartSubjects = data.map(c => c.title || c.courseCode || 'Unknown Course');
+            this.chartEnrollments = data.map(c => c.enrolledStudents || 0);
+          }
+
           this.loading = false;
         },
-        error: (err: { message: string }) => {
+        error: (err: HttpErrorResponse | Error) => {
           console.error('Error loading teacher dashboard data', err);
           this.loading = false;
+        }
+      });
+
+      // Fetch dashboard metrics manually 
+      this.teacherService.getTeacherDashboard(teacherId).subscribe({
+        next: (metrics: TeacherDashboardMetrics) => {
+          // statsCards[2] = Assignments (mapped to totalAssignments)
+          this.statsCards[2].value = (metrics.totalAssignments || 0).toString();
+          
+          // statsCards[3] = Awaiting Grading (mapped to Quizzes for now since grading endpoint is bare)
+          // In the future this should point to total submissions awaiting review!
+          this.statsCards[3].title = 'Total Quizzes';
+          this.statsCards[3].value = (metrics.totalQuizzes || 0).toString();
+        },
+        error: (err: HttpErrorResponse | Error) => {
+          console.error('Error loading dashboard metrics', err);
         }
       });
     }
   }
 
-  onViewCourse(row: any) {
+  onViewCourse(row: BackendCourse) {
 
   }
 

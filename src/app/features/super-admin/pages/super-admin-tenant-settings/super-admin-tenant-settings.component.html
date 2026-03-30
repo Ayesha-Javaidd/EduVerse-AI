@@ -14,8 +14,12 @@
 
             <!-- right: subscription details -->
             <div>
-                <app-subscription-details [subscription]="subscriptionDetails" (upgrade)="onUpgrade()"
-                    (renew)="onRenew()"></app-subscription-details>
+                <app-subscription-details 
+                    [tenant]="tenant" 
+                    [availablePlans]="availablePlans" 
+                    (assignPlan)="onAssignPlan($event)"
+                    (renew)="onRenew()">
+                </app-subscription-details>
             </div>
         </div>
     </main>

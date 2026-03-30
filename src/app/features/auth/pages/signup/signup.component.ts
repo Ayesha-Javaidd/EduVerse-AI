@@ -110,9 +110,6 @@ export class SignupComponent {
       case 'student':
         this.router.navigate(['/signup/student']);
         break;
-      case 'teacher':
-        this.router.navigate(['/signup/teacher']);
-        break;
       case 'admin':
         this.router.navigate(['/signup/admin']);
         break;

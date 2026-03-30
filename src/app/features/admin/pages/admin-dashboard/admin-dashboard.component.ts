@@ -7,6 +7,7 @@ import { HeaderComponent } from '../../../../shared/components/header/header.com
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { AdminService, AdminTeacher, AdminStudent } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../auth/services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -102,10 +103,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   courses: any[] = [];
   loading: boolean = true;
+  showUpgradePrompt: boolean = false;
 
   constructor(
     private adminService: AdminService, // UPDATED: Injected AdminService
-    private authService: AuthService      // UPDATED: Injected AuthService
+    private authService: AuthService,      // UPDATED: Injected AuthService
+    private router: Router
   ) { }
 
   ngOnInit() {
@@ -128,6 +131,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   loadAdminData(tenantId: string) {
     if (tenantId) {
       this.loading = true;
+      
+      this.checkFirstTimeLoginPlan();
 
       // Parallel requests for better performance
       this.adminService.getTeachers().subscribe({
@@ -160,6 +165,36 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         error: () => this.loading = false
       });
     }
+  }
+
+  // UPDATED: 1st Time Login Prompt verification
+  checkFirstTimeLoginPlan() {
+    const hasPrompted = localStorage.getItem('tenant_plan_prompted');
+    if (!hasPrompted) {
+      this.adminService.getBillingUsage().subscribe({
+        next: (usage) => {
+          if (usage?.plan?.name?.includes('Free') || usage?.plan?.name?.includes('Starter') || usage?.plan?.pricePerMonth === 0) {
+            this.showUpgradePrompt = true;
+          } else {
+             localStorage.setItem('tenant_plan_prompted', 'true');
+          }
+        }
+      });
+    }
+  }
+
+  dismissUpgradePrompt() {
+    this.showUpgradePrompt = false;
+    localStorage.setItem('tenant_plan_prompted', 'true');
+  }
+
+  goToBillingSettings() {
+    this.dismissUpgradePrompt();
+    // In our new routing, activeTab='billing' inside /admin/settings
+    // Since we don't naturally pass state to activeTab from Router without query params,
+    // we'll just send them to settings. The user will click the tab if we don't have query handling.
+    // For seamlessness, let's just route them to settings.
+    this.router.navigate(['/admin/settings']);
   }
 }
 

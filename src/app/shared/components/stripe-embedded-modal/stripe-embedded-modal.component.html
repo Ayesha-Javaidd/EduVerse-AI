@@ -1,0 +1,42 @@
+<div class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden relative border border-gray-100/50">
+    
+    <!-- Close Button -->
+    <button (click)="onCancel()" class="absolute top-4 right-4 w-10 h-10 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full flex items-center justify-center transition-colors z-50">
+      <i class="fa-solid fa-xmark text-xl"></i>
+    </button>
+
+    <!-- Header -->
+    <div class="p-6 border-b border-gray-100 flex items-center bg-gray-50/50">
+        <div class="w-12 h-12 rounded-xl bg-indigo-50 flex flex-shrink-0 items-center justify-center text-indigo-600 mr-4 shadow-sm border border-indigo-100">
+            <i class="fa-brands fa-stripe-s text-2xl drop-shadow-sm"></i>
+        </div>
+        <div>
+            <h2 class="text-xl font-bold text-gray-900">{{ title }}</h2>
+            <p class="text-sm font-medium text-gray-500 mt-0.5">Secure payment powered by Stripe</p>
+        </div>
+    </div>
+
+    <!-- Stripe Container -->
+    <div class="flex-1 overflow-y-auto w-full p-4 relative bg-gray-50">
+        
+       <!-- Loading overlay -->
+       <div *ngIf="loading" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 z-20">
+          <div class="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin shadow-md mb-4"></div>
+          <span class="text-indigo-600 font-bold tracking-wide">Connecting to Secure Vault...</span>
+       </div>
+
+       <!-- Stripe Magic Div -->
+       <div #checkoutContainer id="checkout" class="w-full"></div>
+
+       <!-- Error State -->
+       <div *ngIf="error" class="p-8 text-center bg-red-50 rounded-2xl border border-red-100 m-4">
+           <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-4 animate-bounce"></i>
+           <h3 class="text-lg font-bold text-red-800">{{ error }}</h3>
+           <p class="text-red-600 mt-2 text-sm">Please refresh the page or try again later.</p>
+           <button (click)="onCancel()" class="mt-6 px-6 py-2 bg-red-600 text-white rounded-lg shadow-sm hover:bg-red-700 font-medium">Close Form</button>
+       </div>
+    </div>
+
+  </div>
+</div>

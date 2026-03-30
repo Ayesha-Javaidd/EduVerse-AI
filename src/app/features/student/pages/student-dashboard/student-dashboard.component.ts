@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
-import { NotificationsComponent } from '../../components/notifications/notifications.component';
+import { NotificationsComponent, PendingTaskItem } from '../../components/notifications/notifications.component';
 import { ProgressSnapshotComponent } from '../../components/progress-snapshot/progress-snapshot.component';
 import { ContinueLearningComponent } from '../../components/continue-learning/continue-learning.component';
 import { CoursesCardComponent, Course } from '../../components/courses-card/courses-card.component';
@@ -12,6 +12,8 @@ import { QuizService } from '../../../teacher/services/quiz.service';
 import { QuizSubmissionService } from '../../services/quiz-submission.service';
 import { AssignmentService } from '../../../../shared/services/assignment.service';
 import { forkJoin } from 'rxjs';
+import { StudentProgressService, CourseProgress } from '../../services/student-progress.service';
+import { ContinueCourse } from '../../components/continue-learning/continue-learning.component';
 
 @Component({
   selector: 'app-student-dashboard',
@@ -56,6 +58,9 @@ export class StudentDashboardComponent implements OnInit {
     },
   ];
 
+  overallProgress: number = 0;
+  pendingTasks: PendingTaskItem[] = [];
+  continueCourses: ContinueCourse[] = [];
   recommendations: Course[] = []; // Initially empty
 
   constructor(
@@ -63,7 +68,8 @@ export class StudentDashboardComponent implements OnInit {
     private authService: AuthService,
     private quizService: QuizService,
     private submissionService: QuizSubmissionService,
-    private assignmentService: AssignmentService
+    private assignmentService: AssignmentService,
+    private progressService: StudentProgressService
   ) { }
 
   ngOnInit() {
@@ -73,43 +79,117 @@ export class StudentDashboardComponent implements OnInit {
   // UPDATED: New method to load dashboard data from backend with proper types
   loadDashboardData() {
     const user = this.authService.getUser();
-    const tenantId = this.authService.getTenantId();
+    const tenantId = this.authService.getTenantId() || '';
 
-    if (user && tenantId) {
+    if (user) {
       // Use studentId if available, otherwise fallback to user.id (though backend expects studentId)
       const studentId = user.studentId || user.id;
 
       // 1. Fetch Enrolled Courses
       this.courseService.getStudentCourses(studentId, tenantId).subscribe({
         next: (courses: any[]) => {
-          this.statsCards[0].value = courses.length.toString().padStart(2, '0');
+          this.statsCards[0].value = courses.length.toString();
         },
         error: (err: { message: string }) => console.error('Error loading enrolled courses', err)
       });
 
-      // 2. Fetch Quizzes and Submissions to calculate pending
+      // 2. Tasks & Deadlines Pipeline
       forkJoin({
         quizzes: this.quizService.getStudentAvailableQuizzes(),
-        submissions: this.submissionService.getSubmissionsByStudent(studentId) // We might need student profile ID, but let's try user.id if studentId is missing or ensure AuthService has it
+        quizSubs: this.submissionService.getSubmissionsByStudent(studentId),
+        assignmentsResp: this.assignmentService.getAssignments({ tenantId: tenantId, status: 'active' }),
+        assignmentSubs: this.assignmentService.getMySubmissions()
       }).subscribe({
-        next: ({ quizzes, submissions }) => {
-          // Filter quizzes that don't have a specific submission
-          const pendingCount = quizzes.filter(q => {
-            const hasSubmission = submissions.some(s => s.quizId === q.id);
-            return !hasSubmission;
-          }).length;
+        next: ({ quizzes, quizSubs, assignmentsResp, assignmentSubs }) => {
+          // A. Filter Quizzes
+          const pendingQuizzes = quizzes.filter(q => !quizSubs.some(s => s.quizId === q.id));
+          this.statsCards[2].value = pendingQuizzes.length.toString();
 
-          this.statsCards[2].value = pendingCount.toString().padStart(2, '0');
+          // B. Filter Assignments
+          const assignments = assignmentsResp.data || [];
+          const pendingAssignments = assignments.filter(a => !assignmentSubs.some(s => s.assignmentId === a.id));
+          this.statsCards[1].value = pendingAssignments.length.toString();
+
+          // C. Build Timeline
+          const combinedTasks: PendingTaskItem[] = [
+            ...pendingQuizzes.map(q => ({
+               id: q.id,
+               type: 'quiz' as const,
+               title: q.description || `Quiz ${q.quizNumber}`,
+               courseName: q.courseName || 'Course Assessment',
+               dueDate: new Date(q.dueDate),
+               icon: 'fa-solid fa-clock',
+               iconBgClass: 'bg-orange-200',
+               iconColorClass: 'text-orange-600',
+               bgClass: 'bg-orange-50',
+               route: `/student/quizzes`
+            })),
+            ...pendingAssignments.map(a => ({
+               id: a.id,
+               type: 'assignment' as const,
+               title: a.title,
+               courseName: a.courseName || 'Course Assignment',
+               dueDate: new Date(a.dueDate),
+               icon: 'fa-solid fa-book-open',
+               iconBgClass: 'bg-purple-200',
+               iconColorClass: 'text-purple-600',
+               bgClass: 'bg-purple-50',
+               route: `/student/assignments`
+            }))
+          ];
+
+          // Sort by Due Date ascending (soonest first)
+          combinedTasks.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+
+          this.pendingTasks = combinedTasks.slice(0, 4);
         },
-        error: (err) => console.error('Error loading quiz stats', err)
+        error: (err) => console.error('Error loading tasks pipeline', err)
       });
 
-      // 3. Fetch Assignments to show count
-      this.assignmentService.getAssignments({ tenantId: tenantId, status: 'active' }).subscribe({
-        next: (response) => {
-          this.statsCards[1].value = response.total.toString().padStart(2, '0');
+      // 4. Fetch Dashboard Widgets Data (Courses, Progress, Recommendations)
+      forkJoin({
+        enrolled: this.courseService.getStudentCourses(studentId, tenantId),
+        progress: this.progressService.getAllProgress(tenantId),
+        allCourses: this.courseService.getCourses(tenantId)
+      }).subscribe({
+        next: ({ enrolled, progress, allCourses }) => {
+          // A. Calculate Progress Snapshot
+          if (progress.length > 0) {
+            const totalProgress = progress.reduce((sum: number, p: CourseProgress) => sum + p.progressPercentage, 0);
+            this.overallProgress = Math.round(totalProgress / progress.length);
+          }
+
+          // B. Continue Learning (Top 2 Active Courses)
+          const progressMap = new Map<string, CourseProgress>(progress.map((p: CourseProgress) => [p.courseId, p]));
+          const activeCourses = enrolled.map((c: any) => {
+            const p = progressMap.get(c._id);
+            return {
+               title: c.title,
+               lesson: p ? `Completed ${p.completedLessons.length} lessons` : 'Start learning',
+               progress: p ? p.progressPercentage : 0,
+               lastAccessedAt: p ? new Date(p.lastAccessedAt).getTime() : 0
+            };
+          }).filter((c: any) => c.progress < 100);
+          
+          // Sort by last accessed descending
+          activeCourses.sort((a, b) => b.lastAccessedAt - a.lastAccessedAt);
+          this.continueCourses = activeCourses.slice(0, 2);
+
+          // C. Recommendations (Marketplace missing from Enrolled)
+          const enrolledIds = new Set(enrolled.map((c: any) => c._id));
+          const recommended = allCourses.filter((c: any) => !enrolledIds.has(c._id));
+          
+          this.recommendations = recommended.slice(0, 3).map((c: any) => ({
+            id: c._id,
+            title: c.title,
+            description: c.description || 'Recommended for you',
+            image: c.thumbnailUrl || 'assets/images/Web Development.jpeg',
+            instructor: c.instructorName || 'Instructor',
+            level: c.level as any || 'Beginner',
+            duration: c.duration || '0h'
+          }));
         },
-        error: (err) => console.error('Error loading assignment stats', err)
+        error: (err) => console.error('Error loading dashboard widgets', err)
       });
     }
   }

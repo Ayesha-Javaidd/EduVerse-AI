@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-quiz-taking-modal',
@@ -22,7 +23,7 @@ export class QuizTakingModalComponent implements OnInit {
   // Option letters for display
   optionLetters = ['a', 'b', 'c', 'd'];
 
-  constructor(private fb: FormBuilder) { }
+  constructor(private fb: FormBuilder, private confirmDialogService: ConfirmDialogService) { }
 
   ngOnInit(): void {
     this.initForm();
@@ -86,9 +87,9 @@ export class QuizTakingModalComponent implements OnInit {
     this.close.emit();
   }
 
-  submitQuiz(): void {
+  async submitQuiz(): Promise<void> {
     if (this.quizForm.invalid) {
-      alert('Please select an answer for all questions.');
+      await this.confirmDialogService.alert('Please select an answer for all questions.', 'Warning', 'warning');
       return;
     }
 

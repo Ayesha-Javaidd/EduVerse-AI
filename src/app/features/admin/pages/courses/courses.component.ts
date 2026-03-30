@@ -7,6 +7,7 @@ import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { BackendCourse } from '../../../../core/services/course.service';
 import { EntityModalComponent, FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
+import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-courses',
@@ -57,8 +58,8 @@ export class CoursesComponent implements OnInit {
 
   // Admin can only edit status - simplified fields
   courseFields: FormField[] = [
-    { name: 'title', label: 'Course Title', type: 'text', required: false, placeholder: 'Course title (read-only)' },
-    { name: 'instructorName', label: 'Instructor', type: 'text', required: false, placeholder: 'Instructor name' },
+    { name: 'title', label: 'Course Title', type: 'text', required: true, placeholder: 'Course title' },
+    { name: 'instructorName', label: 'Instructor', type: 'text', required: false, placeholder: 'Instructor name (read-only)', disabled: true },
     {
       name: 'status', label: 'Status', type: 'select', options: [
         { value: 'draft', label: 'Draft' },
@@ -71,7 +72,8 @@ export class CoursesComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private authService: AuthService
+    private authService: AuthService,
+    private confirmDialogService: ConfirmDialogService
   ) { }
 
   ngOnInit() {
@@ -135,14 +137,15 @@ export class CoursesComponent implements OnInit {
     this.isModalOpen = true;
   }
 
-  onDeleteCourse(course: BackendCourse) {
-    if (confirm(`Are you sure you want to delete ${course.title}?`)) {
+  async onDeleteCourse(course: BackendCourse) {
+    const isConfirmed = await this.confirmDialogService.confirmDelete(course.title);
+    if (isConfirmed) {
       this.adminService.deleteCourse((course as any).id || (course as any)._id).subscribe({
         next: () => {
           this.loadCourses();
         },
-        error: (err) => {
-          alert(`Failed to delete course: ${err.error?.detail || 'Unknown error'}`);
+        error: async (err) => {
+          await this.confirmDialogService.alert(`Failed to delete course: ${err.error?.detail || 'Unknown error'}`, 'Error', 'danger');
         }
       });
     }
@@ -154,13 +157,14 @@ export class CoursesComponent implements OnInit {
   }
 
   onModalSubmit(formData: any) {
-    // Admin can only update status
+    // Admin can update title and status
     const courseData = {
+      title: formData.title,
       status: formData.status
     };
 
     const request = this.adminService.updateCourse(
-      (this.selectedCourse as any).id || (this.selectedCourse as any)._id, 
+      (this.selectedCourse as any).id || (this.selectedCourse as any)._id,
       courseData
     );
 
@@ -169,9 +173,9 @@ export class CoursesComponent implements OnInit {
         this.onModalClose();
         this.loadCourses();
       },
-      error: (err) => {
+      error: async (err) => {
         console.error('Update error:', err);
-        alert(`Failed to update course status: ${err.error?.detail || JSON.stringify(err.error) || 'Unknown error'}`);
+        await this.confirmDialogService.alert(`Failed to update course status: ${err.error?.detail || JSON.stringify(err.error) || 'Unknown error'}`, 'Error', 'danger');
       }
     });
   }

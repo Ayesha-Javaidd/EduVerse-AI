@@ -14,11 +14,11 @@ export interface Course {
   totalLessons?: number;
   category: string;
   level: 'Beginner' | 'Intermediate' | 'Advanced';
-  rating?: number;
   nextLesson?: string;
   description?: string;
   price?: number;
   enrolledStudents?: number;
+  tenantId?: string;
   variant?: 'enrolled' | 'explore';
 }
 

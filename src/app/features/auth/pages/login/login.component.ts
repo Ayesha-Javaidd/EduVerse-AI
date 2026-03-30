@@ -19,6 +19,7 @@ import { HttpClientModule } from '@angular/common/http';
 })
 export class LoginComponent {
   loginForm: FormGroup;
+  showPassword = false;
 
   isLoading = false;
   errorMessage: string | null = null;

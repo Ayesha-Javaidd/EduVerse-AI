@@ -78,7 +78,7 @@ export class QuizzesComponent implements OnInit {
     private courseService: CourseService,
     private toastService: ToastService,
     private confirmDialog: ConfirmDialogService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadTeacherContext();
@@ -333,10 +333,10 @@ export class QuizzesComponent implements OnInit {
   /**
    * Creates a new quiz via API.
    */
-  createQuiz(formData: any): void {
+  async createQuiz(formData: any): Promise<void> {
     // Validate courseId is present
     if (!formData.courseId) {
-      alert('Please select a course.');
+      await this.confirmDialog.alert('Please select a course.', 'Warning', 'warning');
       return;
     }
 

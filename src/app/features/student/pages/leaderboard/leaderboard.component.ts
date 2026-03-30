@@ -1,7 +1,12 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { NgChartsModule } from 'ng2-charts';
+import { StudentPerformanceService, PointsHistoryItem, CertificateItem, LeaderboardUser } from '../../../../shared/services/student-performance.service';
+import { CourseService } from '../../../../core/services/course.service';
+import { AuthService } from '../../../auth/services/auth.service';
+import { forkJoin } from 'rxjs';
+import { API_BASE_URL } from '../../../../core/constants/api.constants';
 
 @Component({
   selector: 'app-leaderboard',
@@ -10,120 +15,89 @@ import { NgChartsModule } from 'ng2-charts';
   templateUrl: './leaderboard.component.html',
   styleUrl: './leaderboard.component.css',
 })
-export class LeaderboardComponent {
-  selectedRank = 2;
-  totalPoints = signal(12450);
-  pointsChange = signal(250);
-  currentLevel = signal(5);
-  nextLevel = signal(6);
-  xpToNext = signal(2500);
+export class LeaderboardComponent implements OnInit {
+  selectedRank = 1;
+  totalPoints = signal(0);
+  pointsChange = signal(0);
+  currentLevel = signal(1);
+  nextLevel = signal(2);
+  xp = signal(0);
+  xpToNext = signal(300);
+
+  certificates: CertificateItem[] = [];
+  pointsHistory: PointsHistoryItem[] = [];
+  leaderboard: LeaderboardUser[] = [];
+
+  constructor(
+    private performanceService: StudentPerformanceService,
+    private courseService: CourseService,
+    private authService: AuthService
+  ) {}
+
+  ngOnInit() {
+    this.loadGamificationData();
+  }
+
+  loadGamificationData() {
+    const user = this.authService.getUser();
+    const tenantId = this.authService.getTenantId() || '';
+    if (!user) return;
+    const studentId = user.studentId || user.id;
+
+    forkJoin({
+      performance: this.performanceService.getStudentPerformance(tenantId, studentId),
+      top5: this.performanceService.getTenantTop5(tenantId),
+      courses: this.courseService.getStudentCourses(studentId, tenantId)
+    }).subscribe({
+      next: ({ performance, top5, courses }) => {
+        if (performance) {
+          this.totalPoints.set(performance.totalPoints);
+          this.pointsChange.set(performance.pointsThisWeek);
+          this.currentLevel.set(performance.level);
+          this.nextLevel.set(performance.level + 1);
+          this.xp.set(performance.xp || 0);
+          this.xpToNext.set(performance.xpToNextLevel);
+          this.certificates = performance.certificates || [];
+          
+          this.pointsHistory = (performance.pointsHistory || []).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+          if (performance.courseStats && performance.courseStats.length > 0) {
+            const courseMap = new Map(courses.map((c: any) => [c._id, c.title]));
+            const labels: string[] = [];
+            const data: number[] = [];
+            
+            performance.courseStats.slice(0, 7).forEach(stat => {
+               labels.push(courseMap.get(stat.courseId) || 'Course');
+               data.push(stat.completionPercentage);
+            });
+
+            this.courseCompletionData = { ...this.courseCompletionData, labels };
+            this.courseCompletionData.datasets[0].data = data;
+          } else {
+             this.courseCompletionData = { ...this.courseCompletionData, labels: [] };
+             this.courseCompletionData.datasets[0].data = [];
+          }
+        }
+
+        if (top5) {
+          this.leaderboard = top5;
+          const meIndex = this.leaderboard.findIndex(l => l.studentName && user.fullName && l.studentName.toLowerCase() === user.fullName.toLowerCase());
+          if (meIndex !== -1) {
+            this.selectedRank = this.leaderboard[meIndex].rank || (meIndex + 1);
+          }
+        }
+      },
+      error: (err) => console.error('Error loading gamification data', err)
+    });
+  }
 
   selectPlayer(rank: number): void {
     this.selectedRank = rank;
   }
 
-  certificates = [
-    {
-      title: 'Certificate of Completion: Intro to Marketing',
-      date: 'Issued on: Oct 20, 2025',
-      file: 'certificate-marketing.pdf',
-    },
-    {
-      title: 'Certificate of Excellence: Art History',
-      date: 'Issued on: Sep 15, 2025',
-      file: 'certificate-art.pdf',
-    },
-    {
-      title: 'Certificate of Excellence: AI',
-      date: 'Issued on: Aug 19, 2025',
-      file: 'certificate-art.pdf',
-    },
-  ];
-
-  badges = [
-    {
-      name: 'Course Completer',
-      date: 'Oct 20, 2025',
-      color: 'bg-green-100',
-      textColor: 'text-green-600',
-      icon: 'fa-solid fa-graduation-cap',
-    },
-    {
-      name: 'Perfect Quiz',
-      date: 'Oct 18, 2024',
-      color: 'bg-blue-100',
-      textColor: 'text-blue-600',
-      icon: 'fa-solid fa-clipboard-check',
-    },
-    {
-      name: 'Team Player',
-      date: 'Oct 15, 2025',
-      color: 'bg-purple-100',
-      textColor: 'text-purple-600',
-      icon: 'fa-solid fa-users',
-    },
-    {
-      name: 'Hot Streak',
-      date: 'Oct 12, 2024',
-      color: 'bg-red-100',
-      textColor: 'text-red-600',
-      icon: 'fa-solid fa-fire',
-    },
-    {
-      name: 'Forum Leader',
-      date: 'Locked',
-      color: 'bg-gray-100',
-      textColor: 'text-gray-400',
-      icon: 'fa-solid fa-lock',
-      locked: true,
-    },
-  ];
-
-  leaderboard = [
-    {
-      rank: 1,
-      name: 'Tayyaba Anwar',
-      points: 15200,
-      avatar: 'assets/avatar/1.png',
-      color: 'bg-yellow-100 text-yellow-600',
-    },
-    {
-      rank: 2,
-      name: 'You',
-      points: 12450,
-      avatar: 'assets/avatar/5.png',
-      color: 'bg-blue-500 text-white',
-    },
-    {
-      rank: 3,
-      name: 'Muhammad Hassan',
-      points: 10300,
-      avatar: 'assets/avatar/3.png',
-      color: 'bg-green-100 text-gray-700',
-    },
-    {
-      rank: 4,
-      name: 'Ayesha Javaid',
-      points: 9450,
-      avatar: 'assets/avatar/2.png',
-      color: 'bg-gray-100 text-gray-700',
-    },
-    {
-      rank: 5,
-      name: 'Manahil Kamran',
-      points: 8200,
-      avatar: 'assets/avatar/4.png',
-      color: 'bg-pink-100 text-gray-700',
-
-    },
-    
-    
-    
-  ];
-
   downloadCertificate(filename: string) {
     const link = document.createElement('a');
-    link.href = `assets/certificates/${filename}`;
+    link.href = `${API_BASE_URL}/uploads/certificate/${filename}`;
     link.download = filename;
     link.target = '_blank';
     document.body.appendChild(link);
@@ -131,123 +105,66 @@ export class LeaderboardComponent {
     document.body.removeChild(link);
   }
 
-courseCompletionData = {
-  labels: ['Art', 'Math', 'Marketing', 'Illustration', 'Physics', 'DSA', 'OOP'],
-  datasets: [
-    {
-      label: 'Completion (%)',
-      data: [95, 88, 78, 90, 72,88,72],
-      backgroundColor: [
-        '#60A5FA', 
-        '#34D399', 
-        '#FBBF24', 
-        '#A78BFA', 
-        '#F87171', 
-        '#34D399', 
-        '#FBBF24', 
-      ],
-      borderRadius: 12,
-      borderSkipped: false,
-      barThickness: 50,
-      hoverBackgroundColor: [
-        '#3B82F6',
-        '#10B981',
-        '#F59E0B',
-        '#8B5CF6',
-        '#EF4444',
-        '#10B981',
-        '#F59E0B',
-      ],
-    },
-  ],
-};
+  courseCompletionData: any = {
+    labels: [],
+    datasets: [
+      {
+        label: 'Completion (%)',
+        data: [],
+        backgroundColor: [
+          '#60A5FA', 
+          '#34D399', 
+          '#FBBF24', 
+          '#A78BFA', 
+          '#F87171', 
+          '#34D399', 
+          '#FBBF24', 
+        ],
+        borderRadius: 12,
+        borderSkipped: false,
+        barThickness: 50,
+        hoverBackgroundColor: [
+          '#3B82F6',
+          '#10B981',
+          '#F59E0B',
+          '#8B5CF6',
+          '#EF4444',
+          '#10B981',
+          '#F59E0B',
+        ],
+      },
+    ],
+  };
 
-courseCompletionOptions: any = {
-  responsive: true,
-  maintainAspectRatio: false,
-  scales: {
-    x: {
-      grid: {
-        display: false,
+  courseCompletionOptions: any = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: '#374151', font: { size: 14, weight: '500' } },
       },
-      ticks: {
-        color: '#374151',
-        font: { size: 14, weight: '500' },
-      },
-    },
-    y: {
-      beginAtZero: true,
-      max: 100,
-      grid: {
-        color: 'rgba(243,244,246,0.3)',
-      },
-      ticks: {
-        color: '#6B7280',
-        font: { size: 13 },
-        stepSize: 25,
+      y: {
+        beginAtZero: true,
+        max: 100,
+        grid: { color: 'rgba(243,244,246,0.3)' },
+        ticks: { color: '#6B7280', font: { size: 13 }, stepSize: 25 },
       },
     },
-  },
-  plugins: {
-    legend: {
-      display: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1E3A8A',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        padding: 12,
+        borderWidth: 0,
+        cornerRadius: 8,
+        displayColors: false,
+      },
     },
-    tooltip: {
-      backgroundColor: '#1E3A8A',
-      titleColor: '#fff',
-      bodyColor: '#fff',
-      padding: 12,
-      borderWidth: 0,
-      cornerRadius: 8,
-      displayColors: false,
+    animation: <any>{
+      duration: 1200,
     },
-  },
-  animation: <any>{
-    duration: 1200,
-    easing: 'easeOutQuart',
-  },
-};
-weeklyStudyData = {
-  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-  datasets: [
-    {
-      label: 'Study Hours',
-      data: [5, 7, 3, 8, 6, 9, 4],
-      fill: true,
-      borderColor: '#3B82F6',
-      backgroundColor: 'rgba(59,130,246,0.15)',
-      tension: 0.4,
-      pointBackgroundColor: '#2563EB',
-      pointBorderWidth: 2,
-      pointRadius: 5,
-    },
-  ],
-};
-
-weeklyStudyOptions: any = {
-  responsive: true,
-  maintainAspectRatio: false,
-  scales: {
-    x: {
-      grid: { display: false },
-      ticks: { color: '#4B5563', font: { size: 14 } },
-    },
-    y: {
-      grid: { color: 'rgba(229,231,235,0.5)' },
-      ticks: { color: '#6B7280', stepSize: 2 },
-    },
-  },
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      backgroundColor: '#1E3A8A',
-      titleColor: '#fff',
-      bodyColor: '#fff',
-      padding: 10,
-      cornerRadius: 8,
-    },
-  },
-};
-
-
+  };
 }

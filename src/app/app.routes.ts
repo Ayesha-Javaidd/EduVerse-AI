@@ -31,6 +31,7 @@ import { SuperAdminTenantsComponent } from './features/super-admin/pages/super-a
 import { SuperAdminSettingsComponent } from './features/super-admin/pages/super-admin-settings/super-admin-settings.component';
 import { StudentDetailsComponent } from './features/teacher/pages/student-details/student-details.component';
 import { SuperAdminTenantSettingsComponent } from './features/super-admin/pages/super-admin-tenant-settings/super-admin-tenant-settings.component';
+import { SuperAdminSubscriptionsComponent } from './features/super-admin/pages/super-admin-subscriptions/super-admin-subscriptions.component';
 import { SignupComponent } from './features/auth/pages/signup/signup.component';
 import { CourseBuilderComponent } from './features/teacher/pages/course-builder/course-builder.component';
 import { AuthGuard } from './features/auth/guards/auth.guard';
@@ -43,7 +44,7 @@ import { CourseDetailComponent } from './features/student/pages/course-detail/co
 import { CoursePlayerComponent } from './features/student/pages/course-player/course-player.component';
 
 export const routes: Routes = [
-  { path: '', component: LandingPageComponent },
+  { path: '', component: LandingPageComponent, canActivate: [AuthGuard] },
   {
     path: '',
     component: AuthLayoutComponent,
@@ -118,6 +119,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: SuperadminDashboardComponent },
       { path: 'tenants', component: SuperAdminTenantsComponent },
+      { path: 'subscriptions', component: SuperAdminSubscriptionsComponent },
       { path: 'settings', component: SuperAdminSettingsComponent },
       {
         path: 'tenant-settings/:id',

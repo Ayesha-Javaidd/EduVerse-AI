@@ -1,28 +1,83 @@
 <app-header pageTitle="Student Details"></app-header>
 
-<div class="p-6">
+<div class="p-6 h-full flex flex-col">
   <!-- Sticky Back Arrow -->
   <div class="sticky top-0 z-10 bg-gray-50 py-2">
-    <div class="flex items-center cursor-pointer" (click)="goBack()">
-      <svg class="h-5 w-5 text-blue-500 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+    <div class="flex flex-row items-center cursor-pointer w-fit" (click)="goBack()">
+      <svg class="h-5 w-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
         xmlns="http://www.w3.org/2000/svg">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
       </svg>
-      <span class="text-blue-500 font-medium hover:underline">Back</span>
+      <span class="text-indigo-600 font-medium hover:underline">Back to Students List</span>
     </div>
   </div>
 
-  <h2 class="text-2xl font-bold mb-4 mt-4">{{ student.name }}</h2>
-  <p class="text-gray-600 mb-6">Course: {{ student.course }}</p>
+  <div *ngIf="loading" class="flex justify-center items-center py-12">
+    <svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+    <span class="ml-3 text-indigo-600 font-medium">Loading records...</span>
+  </div>
 
-  <div class="grid md:grid-cols-2 gap-6">
-    <!-- Quizzes Table -->
-    <app-data-table [title]="'Quizzes'" [columns]="quizColumns" [rows]="student.quizzes" [rowClickable]="false"
-      [pageSize]="5" [currentPage]="1" [totalItems]="student.quizzes.length"></app-data-table>
+  <div *ngIf="!loading && error" class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg my-4">
+    <p class="font-medium">Error</p>
+    <p>{{ error }}</p>
+  </div>
 
-    <!-- Assignments Table -->
-    <app-data-table [title]="'Assignments'" [columns]="assignmentColumns" [rows]="student.assignments"
-      [rowClickable]="false" [pageSize]="5" [currentPage]="1"
-      [totalItems]="student.assignments.length"></app-data-table>
+  <div *ngIf="!loading && !error">
+    <div class="flex items-center gap-3 mb-8 mt-4">
+        <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xl font-bold">
+            {{ studentName.charAt(0) }}
+        </div>
+        <h2 class="text-3xl font-bold text-gray-900">{{ studentName }}</h2>
+    </div>
+
+    <div *ngIf="courses.length === 0" class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4">
+        <svg class="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+      </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-1">No Academic Records</h3>
+      <p class="text-gray-500 max-w-sm mx-auto">This student currently isn't enrolled in any of your active courses or has no recorded performance data.</p>
+    </div>
+
+    <!-- Iterate through each course the student is taking under this teacher -->
+    <div *ngFor="let course of courses" class="mb-12 bg-white rounded-xl shadow-sm border border-gray-100 p-6 overflow-hidden hover:shadow-md transition-shadow">
+      <!-- Course Title Header -->
+      <div class="border-b border-gray-100 pb-4 mb-6 relative">
+          <div class="absolute -left-6 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-indigo-500 rounded-r-full"></div>
+          <h3 class="text-xl font-bold text-gray-800 ml-2">Course: <span class="text-indigo-600 ml-1">{{ course.courseName }}</span></h3>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-8">
+        <!-- Quizzes Table -->
+        <div class="w-full">
+            <app-data-table 
+              [title]="'Quizzes'" 
+              [columns]="quizColumns" 
+              [rows]="course.quizzes" 
+              [rowClickable]="false"
+              [pageSize]="5" 
+              [currentPage]="1" 
+              [totalItems]="course.quizzes.length || 0">
+            </app-data-table>
+        </div>
+
+        <!-- Assignments Table -->
+        <div class="w-full">
+            <app-data-table 
+              [title]="'Assignments'" 
+              [columns]="assignmentColumns" 
+              [rows]="course.assignments"
+              [rowClickable]="false" 
+              [pageSize]="5" 
+              [currentPage]="1"
+              [totalItems]="course.assignments.length || 0">
+            </app-data-table>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-progress-snapshot',
@@ -8,6 +8,5 @@ import { Component } from '@angular/core';
   styleUrl: './progress-snapshot.component.css',
 })
 export class ProgressSnapshotComponent {
-  progress = 75;
-  streak = 12;
+  @Input() progress: number = 0;
 }

@@ -7,6 +7,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { EntityModalComponent, FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
+import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-teachers',
@@ -68,7 +69,8 @@ export class TeachersComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private authService: AuthService
+    private authService: AuthService,
+    private confirmDialogService: ConfirmDialogService
   ) { }
 
   ngOnInit() {
@@ -99,6 +101,15 @@ export class TeachersComponent implements OnInit {
     this.isEditMode = false;
     this.modalTitle = 'Add Teacher';
     this.selectedTeacher = null;
+
+    // Reset fields for add mode
+    this.teacherFields = this.teacherFields.map(field => {
+      if (field.name === 'email') return { ...field, disabled: false };
+      if (field.name === 'status') return { ...field, disabled: false };
+      if (field.name === 'password') return { ...field, required: true };
+      return field;
+    });
+
     this.isModalOpen = true;
   }
 
@@ -106,17 +117,27 @@ export class TeachersComponent implements OnInit {
     this.isEditMode = true;
     this.modalTitle = 'Edit Teacher';
     this.selectedTeacher = teacher;
+
+    // Change fields for edit mode
+    this.teacherFields = this.teacherFields.map(field => {
+      if (field.name === 'email') return { ...field, disabled: true };
+      if (field.name === 'status') return { ...field, disabled: false };
+      if (field.name === 'password') return { ...field, required: false };
+      return field;
+    });
+
     this.isModalOpen = true;
   }
 
-  onDeleteTeacher(teacher: any) {
-    if (confirm(`Are you sure you want to delete ${teacher.fullName}?`)) {
+  async onDeleteTeacher(teacher: any) {
+    const isConfirmed = await this.confirmDialogService.confirmDelete(teacher.fullName);
+    if (isConfirmed) {
       this.adminService.deleteTeacher(teacher.id).subscribe({
         next: () => {
           this.loadTeachers();
         },
-        error: (err) => {
-          alert(`Failed to delete teacher: ${err.error?.detail || 'Unknown error'}`);
+        error: async (err) => {
+          await this.confirmDialogService.alert(`Failed to delete teacher: ${err.error?.detail || 'Unknown error'}`, 'Error', 'danger');
         }
       });
     }
@@ -127,10 +148,10 @@ export class TeachersComponent implements OnInit {
     this.selectedTeacher = null;
   }
 
-  onModalSubmit(formData: any) {
+  async onModalSubmit(formData: any) {
     const tenantId = this.authService.getTenantId();
     if (!tenantId) {
-      alert('Tenant ID not found. Please log in again.');
+      await this.confirmDialogService.alert('Tenant ID not found. Please log in again.', 'Error', 'danger');
       return;
     }
 
@@ -162,8 +183,8 @@ export class TeachersComponent implements OnInit {
         this.onModalClose();
         this.loadTeachers();
       },
-      error: (err) => {
-        alert(`Failed to ${this.isEditMode ? 'update' : 'create'} teacher: ${err.error?.detail || 'Unknown error'}`);
+      error: async (err) => {
+        await this.confirmDialogService.alert(`Failed to ${this.isEditMode ? 'update' : 'create'} teacher: ${err.error?.detail || 'Unknown error'}`, 'Error', 'danger');
       }
     });
   }

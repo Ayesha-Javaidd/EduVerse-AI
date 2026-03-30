@@ -7,6 +7,7 @@ export interface ConfirmDialogConfig {
   confirmText?: string;
   cancelText?: string;
   type?: 'info' | 'warning' | 'danger';
+  hideCancel?: boolean;
 }
 
 interface DialogState {
@@ -60,6 +61,19 @@ export class ConfirmDialogService {
       confirmText: 'Delete',
       cancelText: 'Cancel',
       type: 'danger',
+    });
+  }
+
+  /**
+   * Convenience method for purely informational alerts (no cancel button)
+   */
+  alert(message: string, title: string = 'Information', type: 'info' | 'warning' | 'danger' = 'info'): Promise<boolean> {
+    return this.show({
+      title,
+      message,
+      confirmText: 'OK',
+      hideCancel: true,
+      type,
     });
   }
 

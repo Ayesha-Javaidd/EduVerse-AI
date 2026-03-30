@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SuperAdminDashboardComponent } from './super-admin-dashboard.component';
+import { SuperadminDashboardComponent } from './super-admin-dashboard.component';
 
-describe('SuperAdminDashboardComponent', () => {
-  let component: SuperAdminDashboardComponent;
-  let fixture: ComponentFixture<SuperAdminDashboardComponent>;
+describe('SuperadminDashboardComponent', () => {
+  let component: SuperadminDashboardComponent;
+  let fixture: ComponentFixture<SuperadminDashboardComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SuperAdminDashboardComponent]
+      imports: [SuperadminDashboardComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SuperAdminDashboardComponent);
+    fixture = TestBed.createComponent(SuperadminDashboardComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

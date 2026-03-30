@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
@@ -10,9 +10,9 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
   templateUrl: './student-enrollment-chart.component.html',
   styleUrls: ['./student-enrollment-chart.component.css']
 })
-export class StudentEnrollmentChartComponent {
-  subjects = ['Math101', 'HistoryT201', 'CS101', 'English'];
-  enrollments = [25, 22, 20, 30];
+export class StudentEnrollmentChartComponent implements OnChanges {
+  @Input() subjects: string[] = ['Math101', 'HistoryT201', 'CS101', 'English'];
+  @Input() enrollments: number[] = [25, 22, 20, 30];
 
   barChartData: ChartConfiguration<'bar'>['data'] = {
     labels: this.subjects,
@@ -20,8 +20,10 @@ export class StudentEnrollmentChartComponent {
       {
         label: 'Enrolled Students',
         data: this.enrollments,
-        backgroundColor: ['#6366f1', '#22c55e', '#f97316', '#ef4444'],
-        borderRadius: 6,
+        backgroundColor: '#4f46e5',
+        hoverBackgroundColor: '#3730a3',
+        borderRadius: 4,
+        maxBarThickness: 50,
       },
     ],
   };
@@ -44,4 +46,22 @@ export class StudentEnrollmentChartComponent {
       },
     },
   };
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['subjects'] || changes['enrollments']) {
+      this.barChartData = {
+        labels: this.subjects,
+        datasets: [
+          {
+            label: 'Enrolled Students',
+            data: this.enrollments,
+            backgroundColor: '#4f46e5',
+            hoverBackgroundColor: '#3730a3',
+            borderRadius: 4,
+            maxBarThickness: 50,
+          },
+        ],
+      };
+    }
+  }
 }

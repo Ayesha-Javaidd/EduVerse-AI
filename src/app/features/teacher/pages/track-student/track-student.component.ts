@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
@@ -53,7 +54,7 @@ export class TrackStudentComponent implements OnInit {
     { key: 'courseName', label: 'Course Enrolled', type: 'text' },
     { key: 'progress', label: 'Progress', type: 'progress' },
     { key: 'grade', label: 'Grades', type: 'text' },
-    { key: 'action', label: 'Action', type: 'link', link: '/teacher/student-details' },
+    { key: 'action', label: 'Action', type: 'action' },
   ];
 
   constructor(
@@ -112,7 +113,7 @@ export class TrackStudentComponent implements OnInit {
           this.applyFilters();
           this.loading = false;
         },
-        error: (err: any) => {
+        error: (err: HttpErrorResponse | Error) => {
           console.error('Error loading teacher performances', err);
           this.loading = false;
         }
@@ -127,7 +128,7 @@ export class TrackStudentComponent implements OnInit {
           this.applyFilters();
           this.loading = false;
         },
-        error: (err: any) => {
+        error: (err: HttpErrorResponse | Error) => {
           console.error('Error loading tenant performances', err);
           this.loading = false;
         }

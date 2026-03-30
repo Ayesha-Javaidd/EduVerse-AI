@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { NgIf } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
@@ -7,7 +7,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-admin-signup',
   standalone: true,
-  imports: [FormsModule, NgIf],
+  imports: [FormsModule, NgIf, RouterModule],
   templateUrl: './admin-signup.component.html',
   styleUrls: ['./admin-signup.component.css'],
 })
@@ -22,8 +22,11 @@ export class AdminSignupComponent {
   profileImageURL = '';
   tenantName = '';
   tenantLogoUrl = '';
+  showPassword = false;
+  showConfirmPassword = false;
 
   errorMessage = '';
+  successMessage = '';
 
   constructor(private router: Router, private authService: AuthService) {}
 
@@ -46,7 +49,10 @@ export class AdminSignupComponent {
     this.authService.signup(payload, 'admin').subscribe({
       next: (res) => {
         console.log('Signup success:', res);
-        this.router.navigate(['/login']);
+        this.successMessage = 'Admin Registration Successful! Setting up your workspace... 🚀';
+        setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 2000);
       },
       error: (err) => {
         console.error(err);
@@ -69,7 +75,6 @@ export class AdminSignupComponent {
       return this.fail('Passwords do not match.');
     if (!this.contactNo.trim()) return this.fail('Contact number is required.');
     if (!this.country.trim()) return this.fail('Country is required.');
-    if (!this.status.trim()) return this.fail('Status is required.');
     if (!this.tenantName.trim()) return this.fail('Tenant name is required.');
 
     return true;

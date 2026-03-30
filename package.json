@@ -18,6 +18,7 @@
     "@angular/platform-browser": "^19.2.17",
     "@angular/platform-browser-dynamic": "^19.2.17",
     "@angular/router": "^19.2.17",
+    "@stripe/stripe-js": "^9.0.0",
     "chart.js": "3.9.1",
     "ng2-charts": "4.1.1",
     "rxjs": "~7.8.0",

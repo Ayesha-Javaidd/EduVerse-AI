@@ -11,6 +11,7 @@ import {
 import { NgFor, NgIf } from '@angular/common';
 import { CourseService } from '../../../../core/services/course.service';
 import { AuthService } from '../../../auth/services/auth.service';
+import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-generate-courses',
@@ -49,7 +50,8 @@ export class GenerateCoursesComponent {
   constructor(
     private fb: FormBuilder,
     private courseService: CourseService, // UPDATED: Injected CourseService
-    private authService: AuthService      // UPDATED: Injected AuthService
+    private authService: AuthService,      // UPDATED: Injected AuthService
+    private confirmDialogService: ConfirmDialogService
   ) {
     this.courseForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
@@ -92,7 +94,7 @@ export class GenerateCoursesComponent {
     this.uploadedFiles.splice(index, 1);
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.courseForm.valid) {
       const user = this.authService.getUser();
       const tenantId = this.authService.getTenantId();
@@ -117,14 +119,14 @@ export class GenerateCoursesComponent {
             this.courseCreated.emit(res);
             this.isSubmitting = false;
           },
-          error: (err) => {
+          error: async (err) => {
             console.error('Course creation failed', err);
-            alert(`Failed to create course: ${err.error?.detail || 'Unknown error'}`);
+            await this.confirmDialogService.alert(`Failed to create course: ${err.error?.detail || 'Unknown error'}`, 'Error', 'danger');
             this.isSubmitting = false;
           }
         });
       } else {
-        alert('You must be logged in as a teacher to create courses.');
+        await this.confirmDialogService.alert('You must be logged in as a teacher to create courses.', 'Authentication Required', 'warning');
       }
     } else {
       Object.keys(this.courseForm.controls).forEach((key) => {

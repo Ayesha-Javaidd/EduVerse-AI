@@ -20,16 +20,12 @@
         <div>
           <h3 class="text-xl font-bold text-gray-900 flex items-center">
             <i class="fa-solid fa-chart-line text-blue-600 mr-3"></i>
-            Tenant Growth
+            Top Organizations Scale
           </h3>
-          <p class="text-sm text-gray-500 mt-1">Monthly tenant registration overview</p>
+          <p class="text-sm text-gray-500 mt-1">Tenant distribution by active user count</p>
         </div>
         <div class="flex items-center space-x-2">
-          <span
-            class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500 text-white shadow-md">
-            <i class="fa-solid fa-arrow-up mr-1"></i>
-            +12.5%
-          </span>
+           <!-- Dynamic Growth Target Removed -->
         </div>
       </div>
 
@@ -43,7 +39,7 @@
               [style.height.%]="getBarHeight(data.tenants)"></div>
             <!-- Main bar with gradient -->
             <div
-              class="bar-animate absolute bottom-0 w-full bg-gradient-to-t from-blue-600 via-blue-500 to-cyan-400 rounded-t-xl transition-all duration-700 ease-out hover:from-blue-700 hover:via-blue-600 hover:to-cyan-500 flex items-start justify-center pt-3 shadow-lg group-hover:shadow-2xl group-hover:scale-105 cursor-pointer relative overflow-hidden"
+              class="bar-animate absolute bottom-0 w-full bg-gradient-to-t from-blue-600 via-blue-500 to-cyan-400 rounded-t-xl transition-all duration-700 ease-out hover:from-blue-700 hover:via-blue-600 hover:to-cyan-500 flex items-start justify-center pt-3 shadow-lg group-hover:shadow-2xl group-hover:scale-105 cursor-pointer overflow-hidden"
               [style.height.%]="getBarHeight(data.tenants)" [style.animation-delay.ms]="i * 150">
               <!-- Shine effect -->
               <div
@@ -99,18 +95,21 @@
             <circle cx="96" cy="96" r="70" stroke="url(#greenGradient)" stroke-width="24" fill="none"
               [attr.stroke-dasharray]="getPercentage(activityData[0].value) * 4.4 + ' 440'" stroke-linecap="round"
               class="transition-all duration-1000 donut-animate"
+              [style.display]="activityData[0].value > 0 ? 'block' : 'none'"
               style="filter: drop-shadow(0 4px 6px rgba(16, 185, 129, 0.4))" />
             <!-- Pending segment - Yellow -->
             <circle cx="96" cy="96" r="70" stroke="url(#yellowGradient)" stroke-width="24" fill="none"
               [attr.stroke-dasharray]="getPercentage(activityData[1].value) * 4.4 + ' 440'"
               [attr.stroke-dashoffset]="-getPercentage(activityData[0].value) * 4.4" stroke-linecap="round"
               class="transition-all duration-1000 donut-animate"
+              [style.display]="activityData[1].value > 0 ? 'block' : 'none'"
               style="filter: drop-shadow(0 4px 6px rgba(234, 179, 8, 0.4)); animation-delay: 0.3s" />
             <!-- Inactive segment - Red -->
             <circle cx="96" cy="96" r="70" stroke="url(#redGradient)" stroke-width="24" fill="none"
               [attr.stroke-dasharray]="getPercentage(activityData[2].value) * 4.4 + ' 440'"
               [attr.stroke-dashoffset]="-(getPercentage(activityData[0].value) + getPercentage(activityData[1].value)) * 4.4"
               stroke-linecap="round" class="transition-all duration-1000 donut-animate"
+              [style.display]="activityData[2].value > 0 ? 'block' : 'none'"
               style="filter: drop-shadow(0 4px 6px rgba(239, 68, 68, 0.4)); animation-delay: 0.6s" />
 
             <!-- Gradients -->
@@ -165,59 +164,7 @@
     </div>
   </div>
 
-  <!-- Recent Activity Timeline -->
-  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Activities</h3>
-    <div class="space-y-4">
-      <div class="flex items-start space-x-3 pb-4 border-b border-gray-100">
-        <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-          <i class="fa-solid fa-building text-blue-600 text-sm"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm text-gray-900">
-            <span class="font-semibold">TechEd Academy</span> registered as a new tenant
-          </p>
-          <p class="text-xs text-gray-500 mt-1">2 hours ago</p>
-        </div>
-      </div>
-
-      <div class="flex items-start space-x-3 pb-4 border-b border-gray-100">
-        <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-          <i class="fa-solid fa-check text-green-600 text-sm"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm text-gray-900">
-            <span class="font-semibold">Global Learning Institute</span> activated 5 new courses
-          </p>
-          <p class="text-xs text-gray-500 mt-1">5 hours ago</p>
-        </div>
-      </div>
-
-      <div class="flex items-start space-x-3 pb-4 border-b border-gray-100">
-        <div class="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-          <i class="fa-solid fa-users text-purple-600 text-sm"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm text-gray-900">
-            <span class="font-semibold">Innovation School</span> reached 1000 active users
-          </p>
-          <p class="text-xs text-gray-500 mt-1">1 day ago</p>
-        </div>
-      </div>
-
-      <div class="flex items-start space-x-3">
-        <div class="flex-shrink-0 w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-          <i class="fa-solid fa-exclamation text-yellow-600 text-sm"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm text-gray-900">
-            <span class="font-semibold">Digital Education Hub</span> requires license renewal
-          </p>
-          <p class="text-xs text-gray-500 mt-1">2 days ago</p>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Recent Activity Timeline Removed per request until backend tracking engine is implemented -->
 
   <!-- Top Organizations Table -->
   <app-data-table [title]="'Top Organizations'" [columns]="organizationColumns" [rows]="organizationRows"

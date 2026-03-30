@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { NgIf } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-teacher-signup',
   standalone: true,
-  imports: [FormsModule, NgIf],
+  imports: [FormsModule, NgIf, RouterModule],
   templateUrl: './teacher-signup.component.html',
   styleUrls: ['./teacher-signup.component.css'],
 })
@@ -19,6 +19,8 @@ export class TeacherSignupComponent {
   country = '';
   status = 'active';
   profileImageURL = '';
+  showPassword = false;
+  showConfirmPassword = false;
 
   errorMessage = '';
   loading = false;

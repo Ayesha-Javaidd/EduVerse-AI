@@ -10,6 +10,7 @@ import { CourseService, BackendCourse } from '../../../../core/services/course.s
 import { AuthService } from '../../../auth/services/auth.service';
 import { StudentProgressService, CourseProgress } from '../../services/student-progress.service';
 import { forkJoin, map, catchError, of } from 'rxjs';
+import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-explore-courses',
@@ -56,7 +57,8 @@ export class ExploreCoursesComponent implements OnInit {
     private router: Router,
     private courseService: CourseService,
     private authService: AuthService,
-    private progressService: StudentProgressService
+    private progressService: StudentProgressService,
+    private confirmDialogService: ConfirmDialogService
   ) { }
 
   ngOnInit() {
@@ -68,69 +70,55 @@ export class ExploreCoursesComponent implements OnInit {
     const user = this.authService.getUser();
     const tenantId = this.authService.getTenantId();
 
-    if (tenantId) {
-      if (user) {
-        this.profile.name = user.fullName || 'Student';
-        this.profile.initials = this.profile.name.trim().charAt(0).toUpperCase();
+    if (user) {
+      this.profile.name = user.fullName || 'Student';
+      this.profile.initials = this.profile.name.trim().charAt(0).toUpperCase();
 
-        const studentId = user.studentId || user.id;
-        const isStudent = user.role === 'student';
+      const studentId = user.studentId || user.id;
+      const isStudent = user.role === 'student';
 
-        // Prepare observables
-        const courses$ = this.courseService.getCourses(tenantId);
-        const studentCourses$ = isStudent ? this.courseService.getStudentCourses(studentId, tenantId).pipe(catchError(() => of([]))) : of([]);
-        const progress$ = isStudent ? this.progressService.getAllProgress(tenantId).pipe(catchError(() => of([]))) : of([]);
+      // Prepare observables: Fetch all courses globally by passing an empty tenantId
+      const courses$ = this.courseService.getCourses('');
+      const studentCourses$ = isStudent ? this.courseService.getStudentCourses(studentId, tenantId || '').pipe(catchError(() => of([]))) : of([]);
+      const progress$ = isStudent && tenantId ? this.progressService.getAllProgress(tenantId).pipe(catchError(() => of([]))) : of([]);
 
-        forkJoin({
-          all: courses$,
-          enrolled: studentCourses$,
-          progress: progress$
-        }).subscribe({
-          next: ({ all, enrolled, progress }) => {
-            const enrolledMap = new Map(enrolled.map(c => [c._id, c]));
-            const progressMap = new Map<string, CourseProgress>(progress.map(p => [p.courseId, p]));
+      forkJoin({
+        all: courses$,
+        enrolled: studentCourses$,
+        progress: progress$
+      }).subscribe({
+        next: ({ all, enrolled, progress }) => {
+          const enrolledMap = new Map((enrolled || []).map(c => [c._id, c]));
+          const progressMap = new Map<string, CourseProgress>((progress || []).map(p => [p.courseId, p]));
 
-            this.availableCourses = all.map(bc => {
-              const course = this.mapToFrontendCourse(bc);
-              const en = enrolledMap.get(bc._id);
-              if (en) {
-                // Mark as enrolled variant to show progress
-                course.variant = 'enrolled';
-                course.nextLesson = en.nextLesson;
+          this.availableCourses = (all || []).map(bc => {
+            const course = this.mapToFrontendCourse(bc);
+            const en = enrolledMap.get(bc._id);
+            if (en) {
+              // Mark as enrolled variant to show progress
+              course.variant = 'enrolled';
+              course.nextLesson = en.nextLesson;
 
-                const prog = progressMap.get(bc._id);
-                if (prog) {
-                  course.progress = prog.progressPercentage;
-                  course.lessonsCompleted = prog.completedLessons.length;
-                }
+              const prog = progressMap.get(bc._id);
+              if (prog) {
+                course.progress = prog.progressPercentage;
+                course.lessonsCompleted = prog.completedLessons.length;
               }
-              return course;
-            });
+            }
+            return course;
+          });
 
-            this.filteredCourses = [...this.availableCourses];
-            this.loading = false;
-          },
-          error: (err) => {
-            console.error('Error loading courses', err);
-            this.loading = false;
-          }
-        });
+          this.filteredCourses = [...this.availableCourses];
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error loading courses', err);
+          this.loading = false;
+        }
+      });
 
-      } else {
-        // Not logged in - just show all
-        this.courseService.getCourses(tenantId).subscribe({
-          next: (all) => {
-            this.availableCourses = all.map(bc => this.mapToFrontendCourse(bc));
-            this.filteredCourses = [...this.availableCourses];
-            this.loading = false;
-          },
-          error: (err) => {
-            this.loading = false;
-          }
-        });
-      }
     } else {
-      this.loading = false;
+      this.router.navigate(['/login']);
     }
   }
 
@@ -142,11 +130,11 @@ export class ExploreCoursesComponent implements OnInit {
       image: bc.thumbnailUrl || 'assets/images/Web Development.jpeg',
       category: bc.category,
       level: (bc.level as any) || 'Intermediate',
-      rating: 4.5,
       duration: (bc as any).totalDuration || bc.duration || '0m', // Prefer totalDuration from builder
       totalLessons: bc.totalLessons || 0,
       price: bc.isFree ? 0 : (bc.price || 0), // Handle free vs paid
       enrolledStudents: bc.enrolledStudents || 0,
+      tenantId: bc.tenantId,
       description: bc.description || ''
     };
   }
@@ -161,6 +149,7 @@ export class ExploreCoursesComponent implements OnInit {
       filtered = filtered.filter(c =>
         c.title.toLowerCase().includes(query) ||
         c.category.toLowerCase().includes(query) ||
+        (c.tenantId && c.tenantId.toLowerCase().includes(query)) ||
         (c.description && c.description.toLowerCase().includes(query))
       );
     }
@@ -183,31 +172,32 @@ export class ExploreCoursesComponent implements OnInit {
     this.router.navigate(['/student/enroll-course', course.id]);
   }
 
-  onEnrollClick(course: Course) {
+  async onEnrollClick(course: Course) {
     const user = this.authService.getUser();
     const tenantId = this.authService.getTenantId();
 
-    if (user && tenantId) {
-      const confirmEnroll = confirm(`Are you sure you want to enroll in "${course.title}"?`);
+    if (user) {
+      const confirmEnroll = await this.confirmDialogService.confirm('Confirm Enrollment', `Are you sure you want to enroll in "${course.title}"?`);
       if (!confirmEnroll) return;
 
-      // Ensure we use the student-specific ID (studentId) if available
       const studentId = user.studentId || user.id;
 
-      // UPDATED: Now calling real enrollment endpoint
-      this.courseService.enrollStudent(course.id, studentId, tenantId).subscribe({
-        next: (res) => {
+      // Use the course's tenantId for enrollment, not the student's
+      const courseTenantId = course.tenantId || tenantId;
 
-          alert(`Successfully enrolled in: ${course.title}`);
+      // UPDATED: Now calling real enrollment endpoint with global context
+      this.courseService.enrollStudent(course.id, studentId, courseTenantId || '').subscribe({
+        next: async (res) => {
+
+          await this.confirmDialogService.alert(`Successfully enrolled in: ${course.title}`, 'Success', 'info');
           this.router.navigate(['/student/courses']);
         },
-        error: (err) => {
+        error: async (err) => {
           console.error('Enrollment failed', err);
-          alert(`Enrollment failed: ${err.error?.detail || 'Unknown error'}`);
+          await this.confirmDialogService.alert(`Enrollment failed: ${err.error?.detail || 'Unknown error'}`, 'Error', 'danger');
         }
       });
     } else {
-      alert('You must be logged in to enroll in a course.');
       this.router.navigate(['/login']);
     }
   }

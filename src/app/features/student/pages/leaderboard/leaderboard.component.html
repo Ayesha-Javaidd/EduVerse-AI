@@ -36,7 +36,7 @@
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2.5">
               <div class="bg-blue-500 h-2.5 rounded-full transition-all duration-700 ease-in-out"
-                [style.width.%]="100 - (xpToNext() / 5000) * 100"></div>
+                [style.width.%]="(xp() / (xp() + xpToNext())) * 100"></div>
             </div>
             <p class="text-sm text-gray-600 mt-2">
               {{ xpToNext() }} XP to next level
@@ -45,54 +45,59 @@
         </div>
       </div>
 
-      <!-- Badges -->
-      <div class="rounded-2xl border border-gray-100 p-6 bg-purple-50">
-        <h2 class="text-gray-700 text-lg font-semibold mb-6">Badges Earned</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8">
-          <div *ngFor="let badge of badges" class="flex flex-col items-center"
-            [ngClass]="badge.locked ? 'opacity-40' : ''">
-            <div class="flex items-center justify-center h-16 w-16 rounded-full mb-3"
-              [ngClass]="[badge.color, badge.textColor]">
-              <i [class]="badge.icon + ' text-2xl'"></i>
+      <!-- Recent Points History -->
+      <div class="rounded-2xl border border-gray-100 p-6 bg-purple-50 h-96 overflow-y-auto">
+        <h2 class="text-gray-700 text-lg font-semibold mb-6">Recent Points History</h2>
+        
+        <div *ngIf="pointsHistory.length === 0" class="text-center text-gray-500 py-10">
+          No points history yet! Complete activities to earn points.
+        </div>
+
+        <div class="space-y-4">
+          <div *ngFor="let point of pointsHistory" class="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <div class="flex items-center gap-4">
+              <div class="flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 text-blue-600">
+                <i class="fa-solid fa-bolt text-xl"></i>
+              </div>
+              <div>
+                <p class="text-base font-semibold text-gray-800">{{ point.reason }}</p>
+                <p class="text-sm text-gray-500">{{ point.date | date: 'mediumDate' }}</p>
+              </div>
             </div>
-            <p class="text-base font-semibold text-gray-800 text-center">
-              {{ badge.name }}
-            </p>
-            <p class="text-sm text-gray-500 mt-1">{{ badge.date }}</p>
+            <div class="font-bold text-lg text-green-600">
+              +{{ point.points }} XP
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- RIGHT SIDE (Leaderboard aligned properly) -->
-    <div class="rounded-2xl border border-gray-100 p-6 bg-sky-50 flex flex-col justify-start h-auto">
-      <h2 class="text-gray-700 text-lg font-semibold mb-6">Leaderboard</h2>
+    <div class="rounded-2xl border border-gray-100 p-6 bg-sky-50 flex flex-col justify-start h-[100%] overflow-y-auto">
+      <h2 class="text-gray-700 text-lg font-semibold mb-6">Top 5 Leaderboard</h2>
       <div class="space-y-4">
         <div *ngFor="let player of leaderboard" (click)="selectPlayer(player.rank)"
-          class="flex items-center justify-between rounded-xl p-4 cursor-pointer transition-all duration-300" [ngClass]="
+          [ngClass]="
             selectedRank === player.rank
               ? 'border-2 border-blue-500 bg-blue-50 scale-[1.02] shadow-sm'
               : 'border border-gray-200 bg-white hover:bg-gray-100 hover:scale-[1.01]'
-          ">
+          "
+          class="flex items-center justify-between rounded-xl p-4 cursor-pointer transition-all duration-300">
           <div class="flex items-center gap-4">
             <div class="flex items-center justify-center h-11 w-11 rounded-full font-semibold text-lg"
-              [ngClass]="player.color">
+              [ngClass]="player.rank === 1 ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-200 text-gray-600'">
               {{ player.rank }}
             </div>
             <div>
-              <p class="text-base font-semibold" [ngClass]="
-                  selectedRank === player.rank
-                    ? 'text-gray-900'
-                    : 'text-gray-800'
-                ">
-                {{ player.name }}
+              <p class="text-base font-semibold" [ngClass]="selectedRank === player.rank ? 'text-gray-900' : 'text-gray-800'">
+                {{ player.studentName }}
               </p>
               <p class="text-sm text-gray-500">
                 {{ player.points | number }} pts
               </p>
             </div>
           </div>
-          <img [src]="player.avatar" [alt]="player.name"
+          <img [src]="'assets/avatar/' + (player.rank % 5 + 1) + '.png'" [alt]="player.studentName"
             class="h-11 w-11 rounded-full object-cover border transition-all duration-300" [ngClass]="
               selectedRank === player.rank
                 ? 'border-blue-400 shadow-md'
@@ -127,34 +132,21 @@
 
   <!-- Progress & Analytics -->
   <div class="px-6 mt-8">
-    <div class="rounded-2xl border border-gray-100 p-8 bg-blue-50 shadow-sm w-full">
+    <div class="rounded-2xl border border-gray-100 p-8 bg-blue-50 shadow-sm w-full mb-10">
       <h2 class="text-gray-800 text-xl font-semibold mb-6">
-        Progress & Analytics
+        Progress Analytics
       </h2>
       <div class="flex flex-row gap-6 w-full">
-        <div class="bg-white rounded-xl p-6 border border-gray-200 w-2/3 h-[420px] shadow-sm">
+        <div class="bg-white rounded-xl p-6 border border-gray-200 w-full h-[420px] shadow-sm">
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-gray-700 text-lg font-semibold">
-              Course Completion
+              Top Active Course Completion
             </h3>
-            <div class="flex items-center gap-2 text-sm text-gray-600">
-              <span>Compare with Classmates</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" />
-                <div
-                  class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-4 peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all">
-                </div>
-              </label>
-            </div>
           </div>
-          <canvas baseChart [data]="courseCompletionData" [options]="courseCompletionOptions" [type]="'bar'"></canvas>
-        </div>
-
-        <div class="bg-white rounded-xl p-6 border border-gray-200 w-1/3 h-[420px] shadow-sm">
-          <h3 class="text-gray-700 text-lg font-semibold mb-4">
-            Weekly Study Time
-          </h3>
-          <canvas baseChart [data]="weeklyStudyData" [options]="weeklyStudyOptions" [type]="'line'"></canvas>
+          <canvas *ngIf="courseCompletionData.labels.length > 0" baseChart [data]="courseCompletionData" [options]="courseCompletionOptions" [type]="'bar'"></canvas>
+          <div *ngIf="courseCompletionData.labels.length === 0" class="h-full flex items-center justify-center text-gray-500">
+             No course analytics available yet. Make progress in your enrolled courses!
+          </div>
         </div>
       </div>
     </div>

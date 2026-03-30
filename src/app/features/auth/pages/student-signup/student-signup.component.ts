@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule, NgIf } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
@@ -7,7 +7,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-student-signup',
   standalone: true,
-  imports: [FormsModule, CommonModule, NgIf],
+  imports: [FormsModule, CommonModule, NgIf, RouterModule],
   templateUrl: './student-signup.component.html',
   styleUrls: ['./student-signup.component.css'],
 })
@@ -19,8 +19,11 @@ export class StudentSignupComponent {
   contactNo = '';
   country = '';
   status = 'active';
+  showPassword = false;
+  showConfirmPassword = false;
 
   errorMessage = '';
+  successMessage = '';
   loading = false;
 
   constructor(private router: Router, private authService: AuthService) {}
@@ -39,7 +42,6 @@ export class StudentSignupComponent {
       return this.fail('Passwords do not match.');
     if (!this.contactNo.trim()) return this.fail('Contact number is required.');
     if (!this.country.trim()) return this.fail('Country is required.');
-    if (!this.status.trim()) return this.fail('Status is required.');
 
     return true;
   }
@@ -75,9 +77,10 @@ export class StudentSignupComponent {
       next: (res) => {
         console.log('Signup successful:', res);
         this.loading = false;
-        // Navigate to login after successful signup
-        this.router.navigate(['/login']);
-        // Optionally: auto-login using authService.login(payload)
+        this.successMessage = 'Registration successful! Welcome to EduVerse! 🚀';
+        setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 2000);
       },
       error: (err) => {
         console.error('Signup error:', err);

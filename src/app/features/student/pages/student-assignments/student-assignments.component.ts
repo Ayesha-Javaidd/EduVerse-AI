@@ -8,6 +8,7 @@ import {
   StudentProfileService,
   StudentProfile,
 } from '../../services/student-profile.service';
+import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
 
 import { Assignment } from '../../../../shared/models/assignment.model';
 import {
@@ -57,7 +58,8 @@ export class StudentAssignmentsComponent implements OnInit {
     private studentProfileService: StudentProfileService,
     private assignmentService: AssignmentService,
     private courseService: CourseService,
-  ) {}
+    private confirmDialogService: ConfirmDialogService
+  ) { }
 
   ngOnInit(): void {
     this.loadStudentProfile();
@@ -228,10 +230,10 @@ export class StudentAssignmentsComponent implements OnInit {
     });
   }
 
-  handleViewFeedback(assignment: Assignment): void {
+  async handleViewFeedback(assignment: Assignment): Promise<void> {
     const submission = this.submissions.get(assignment.id);
     if (submission?.feedback) {
-      alert(submission.feedback);
+      await this.confirmDialogService.alert(submission.feedback, 'Feedback');
     }
   }
 

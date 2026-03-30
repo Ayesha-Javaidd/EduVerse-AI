@@ -4,9 +4,11 @@ import { HeaderComponent } from '../../../../shared/components/header/header.com
 import { TenantInfoFormComponent } from '../../components/tenant-info-form/tenant-info-form.component';
 import { SubscriptionDetailsComponent } from '../../components/subscription-details/subscription-details.component';
 import { AccountActionsComponent } from '../../components/account-actions/account-actions.component';
-import { TenantService } from '../../services/tenant.service';
+import { TenantService, TenantResponse } from '../../services/tenant.service';
 import { Subscription } from 'rxjs';
-import { ActivatedRoute, ActivatedRouteSnapshot } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
+import { SubscriptionPlansService, SubscriptionPlan } from '../../services/subscription-plans.service';
 
 @Component({
   selector: 'app-super-admin-tenant-settings',
@@ -16,32 +18,29 @@ import { ActivatedRoute, ActivatedRouteSnapshot } from '@angular/router';
   styleUrl: './super-admin-tenant-settings.component.css'
 })
 export class SuperAdminTenantSettingsComponent implements OnInit, OnDestroy {
-  tenant: any = null;
-  subscriptionDetails: any = null;
+  tenant: TenantResponse | null = null;
+  availablePlans: SubscriptionPlan[] = [];
 
   private sub!: Subscription;
 
-  constructor(private tenantService: TenantService, private route: ActivatedRoute) { }
-
-  // Added a route resolver so the tenant data is fetched before page load
-  resolve(route: ActivatedRouteSnapshot) {
-    const id = Number(route.paramMap.get('id'));
-    return this.tenantService.getTenantById(id);
-  }
+  constructor(
+    private tenantService: TenantService,
+    private plansService: SubscriptionPlansService,
+    private route: ActivatedRoute,
+    private confirmDialogService: ConfirmDialogService
+  ) { }
 
   ngOnInit(): void {
-    const tenantId = Number(this.route.snapshot.paramMap.get('id'));
-    const tenant = this.tenantService.getTenantById(tenantId);
-
-    if (tenant) {
-      this.tenantService.setSelectedTenant(tenant);
+    const tenantId = this.route.snapshot.paramMap.get('id');
+    if (tenantId) {
+      this.tenantService.getTenantByIdApi(tenantId).subscribe((t) => {
+        this.tenant = t;
+      });
     }
 
-    this.sub = this.tenantService.getSelectedTenant().subscribe((tenant) => {
-      if (tenant) {
-        this.tenant = tenant;
-        this.subscriptionDetails = tenant.subscription;
-      }
+    // Load available plans for the Assignment Dropdown CTA
+    this.plansService.getAllPlans('active').subscribe(plans => {
+      this.availablePlans = plans;
     });
   }
 
@@ -51,30 +50,66 @@ export class SuperAdminTenantSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  onSaveTenant(payload: any) {
-    this.tenantService.updateTenant(payload);
-    alert('Tenant information updated!');
+  async onSaveTenant(payload: any) {
+    if (!this.tenant) return;
+    this.tenantService.updateTenantApi(this.tenant.id, payload).subscribe({
+      next: async (res) => {
+        this.tenant = res;
+        await this.confirmDialogService.alert('Tenant information updated!');
+      },
+      error: (err) => console.error(err)
+    });
   }
 
-  onUpgrade() {
-    alert('Upgrade flow not implemented in mock.');
-  }
+  async onAssignPlan(planId: string) {
+    if (!this.tenant) return;
+    const selectedPlan = this.availablePlans.find(p => p.id === planId);
+    if (!selectedPlan) return;
 
-  onRenew() {
-    alert('Renewal flow not implemented in mock.');
-  }
-
-  onDeactivate() {
-    if (confirm(`Deactivate tenant "${this.tenant.name}"?`)) {
-      this.tenant.subscription.status = 'Inactive';
-      this.tenantService.updateTenant(this.tenant);
-      alert('Tenant deactivated.');
+    const isConfirmed = await this.confirmDialogService.confirm('Assign Plan', `Upgrade this tenant to the ${selectedPlan.name} plan?`);
+    if (isConfirmed) {
+      this.tenantService.updateTenantApi(this.tenant.id, {
+        subscriptionId: selectedPlan.id,
+        subscriptionPlan: selectedPlan.name,
+        subscriptionCategory: selectedPlan.category,
+        subscriptionBillingCycle: selectedPlan.billingCycle,
+        subscriptionPriceMonthly: selectedPlan.pricePerMonth
+      }).subscribe({
+        next: async (res) => {
+          this.tenant = res;
+          await this.confirmDialogService.alert(`Tenant successfully upgraded to ${selectedPlan.name}!`);
+        },
+        error: (err) => console.error("Error assigning plan", err)
+      });
     }
   }
 
-  onDelete() {
-    if (confirm(`Delete tenant "${this.tenant.name}" permanently?`)) {
-      alert('Tenant deleted (mock).');
+  async onRenew() {
+    await this.confirmDialogService.alert('Renewal cycle logged.');
+  }
+
+  async onDeactivate() {
+    if (!this.tenant) return;
+    const isConfirmed = await this.confirmDialogService.confirm('Deactivate Tenant', `Deactivate tenant "${this.tenant.tenantName}"?`);
+    if (isConfirmed) {
+      this.tenantService.updateTenantApi(this.tenant.id, { status: 'inactive' }).subscribe({
+        next: async (res) => {
+          this.tenant = res;
+          await this.confirmDialogService.alert('Tenant deactivated.');
+        }
+      });
+    }
+  }
+
+  async onDelete() {
+    if (!this.tenant) return;
+    const isConfirmed = await this.confirmDialogService.confirmDelete(this.tenant.tenantName);
+    if (isConfirmed) {
+      this.tenantService.deleteTenantApi(this.tenant.id).subscribe({
+        next: async () => {
+          await this.confirmDialogService.alert('Tenant deleted.');
+        }
+      });
     }
   }
 }

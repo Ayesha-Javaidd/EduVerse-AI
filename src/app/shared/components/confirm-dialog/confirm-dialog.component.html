@@ -35,7 +35,7 @@
 
             <!-- Buttons -->
             <div class="flex gap-3 justify-center">
-                <button (click)="onCancel()"
+                <button *ngIf="!config?.hideCancel" (click)="onCancel()"
                     class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md font-medium transition-colors">
                     {{ config?.cancelText || 'Cancel' }}
                 </button>

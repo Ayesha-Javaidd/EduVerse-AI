@@ -1,8 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { PerformanceService, DetailedCoursePerformance } from '../../../../core/services/performance.service';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-student-details',
@@ -12,8 +15,11 @@ import { DataTableComponent, TableColumn } from '../../../../shared/components/d
   styleUrls: ['./student-details.component.css'],
 })
 export class StudentDetailsComponent implements OnInit {
-  studentId: number | null = null;
-  student: any;
+  studentId: string = '';
+  studentName: string = 'Loading Student...';
+  courses: DetailedCoursePerformance[] = [];
+  loading: boolean = true;
+  error: string | null = null;
 
   // Columns for tables
   quizColumns: TableColumn[] = [
@@ -25,85 +31,51 @@ export class StudentDetailsComponent implements OnInit {
     { key: 'title', label: 'Title', type: 'text' },
     { key: 'scoreDisplay', label: 'Score', type: 'text' },
   ];
-
-  constructor(private route: ActivatedRoute, private router: Router) {}
+  constructor(
+    private route: ActivatedRoute, 
+    private router: Router,
+    private performanceService: PerformanceService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
-    this.studentId = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadStudentData();
+    this.studentId = this.route.snapshot.paramMap.get('id') || '';
+    if (this.studentId) {
+      this.loadStudentData();
+    } else {
+      this.error = 'Invalid Student ID';
+      this.loading = false;
+    }
   }
 
   loadStudentData() {
-    const allStudents = [
-      {
-        id: 1,
-        name: 'John Doe',
-        course: 'Introduction to Algebra',
-        quizzes: [
-          { title: 'Quiz 1', score: 9, total: 10 },
-          { title: 'Quiz 2', score: 8, total: 10 },
-        ],
-        assignments: [
-          { title: 'Assignment 1', score: 18, total: 20 },
-          { title: 'Assignment 2', score: 20, total: 20 },
-        ],
-      },
-      {
-        id: 2,
-        name: 'Jane Smith',
-        course: 'World History',
-        quizzes: [
-          { title: 'Quiz 1', score: 6, total: 10 },
-          { title: 'Quiz 2', score: 5, total: 10 },
-        ],
-        assignments: [
-          { title: 'Assignment 1', score: 14, total: 20 },
-          { title: 'Assignment 2', score: 15, total: 20 },
-        ],
-      },
-      {
-        id: 3,
-        name: 'Mike Johnson',
-        course: 'Physics 101',
-        quizzes: [
-          { title: 'Quiz 1', score: 10, total: 10 },
-          { title: 'Quiz 2', score: 9, total: 10 },
-        ],
-        assignments: [
-          { title: 'Assignment 1', score: 20, total: 20 },
-          { title: 'Assignment 2', score: 19, total: 20 },
-        ],
-      },
-      {
-        id: 4,
-        name: 'Emily Davis',
-        course: 'Introduction to Algebra',
-        quizzes: [
-          { title: 'Quiz 1', score: 4, total: 10 },
-          { title: 'Quiz 2', score: 5, total: 10 },
-        ],
-        assignments: [
-          { title: 'Assignment 1', score: 10, total: 20 },
-          { title: 'Assignment 2', score: 8, total: 20 },
-        ],
-      },
-    ];
+    const user = this.authService.getUser();
+    const tenantId = this.authService.getTenantId();
+    const teacherId = user?.teacherId || user?.id;
 
-    const selected = allStudents.find((s) => s.id === this.studentId);
-
-    if (selected) {
-      // Add scoreDisplay for each quiz/assignment
-      selected.quizzes = selected.quizzes.map((q) => ({
-        ...q,
-        scoreDisplay: `${q.score}/${q.total}`,
-      }));
-      selected.assignments = selected.assignments.map((a) => ({
-        ...a,
-        scoreDisplay: `${a.score}/${a.total}`,
-      }));
+    if (!tenantId || !teacherId) {
+      this.error = 'Authorization missing. Try relogging.';
+      this.loading = false;
+      return;
     }
 
-    this.student = selected;
+    this.loading = true;
+    this.performanceService.getStudentDetailedPerformance(teacherId, this.studentId, tenantId).subscribe({
+      next: (data: DetailedCoursePerformance[]) => {
+        this.courses = data;
+        if (data.length > 0) {
+          this.studentName = data[0].studentName;
+        } else {
+            this.studentName = 'No courses found';
+        }
+        this.loading = false;
+      },
+      error: (err: HttpErrorResponse | Error) => {
+        console.error('Failed to load student details:', err);
+        this.error = 'Failed to load student tracking data.';
+        this.loading = false;
+      }
+    });
   }
 
   // Navigate back to Track Student page

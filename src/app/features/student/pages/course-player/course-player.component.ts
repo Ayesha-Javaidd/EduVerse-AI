@@ -74,8 +74,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     ngOnDestroy() { }
 
     loadCourseAndProgress() {
-        const tenantId = this.authService.getTenantId();
-        if (!tenantId) return;
+        const tenantId = this.authService.getTenantId() || '';
 
         // Load local notes
         const savedNotes = localStorage.getItem(`notes_${this.courseId}`);
@@ -184,13 +183,15 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
     getSafeVideoUrl(url: string): SafeResourceUrl {
         if (!url) return this.sanitizer.bypassSecurityTrustResourceUrl('');
-        // Basic YouTube handling
+        
         let embedUrl = url;
-        if (url.includes('youtube.com/watch?v=')) {
-            embedUrl = url.replace('watch?v=', 'embed/');
-        } else if (url.includes('youtu.be/')) {
-            embedUrl = url.replace('youtu.be/', 'youtube.com/embed/');
+        
+        // Robust YouTube matching
+        const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
+        if (ytMatch && ytMatch[1]) {
+            embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}`;
         }
+        
         return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
     }
 
@@ -209,8 +210,9 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     markComplete() {
         if (!this.activeLesson) return;
         const lessonId = this.activeLesson.id || this.activeLesson._id;
-        const tenantId = this.authService.getTenantId();
-        if (!tenantId || !lessonId) return;
+        const tenantId = this.authService.getTenantId() || '';
+        
+        if (!lessonId) return;
 
         this.progressService.markLessonComplete(this.courseId, lessonId, tenantId).subscribe({
             next: (updatedProgress) => {

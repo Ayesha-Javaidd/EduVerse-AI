@@ -1,0 +1,186 @@
+<div class="pb-12">
+  
+  <div *ngIf="loading" class="flex justify-center items-center h-64">
+    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-blue-600"></i>
+  </div>
+
+  <div *ngIf="!loading && usageData" class="max-w-7xl mx-auto py-2">
+    
+    <!-- Current Plan Banner -->
+    <div class="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 rounded-2xl shadow-xl overflow-hidden mb-8 relative">
+      <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+      <div class="p-8 relative z-10 flex flex-col md:flex-row justify-between items-center">
+        <div>
+          <h2 class="text-xs font-bold text-blue-300 uppercase tracking-widest mb-1">Current Active Plan</h2>
+          <h1 class="text-4xl font-black text-white mb-2">{{ usageData.plan.name }}</h1>
+          <p class="text-blue-100 flex items-center">
+            <span class="bg-blue-700/50 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-semibold border border-blue-500/30">
+              ${{ usageData.plan.pricePerMonth }} / {{ usageData.plan.billingCycle || 'month' }}
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Usage Metrics Grid -->
+    <div class="mb-10">
+      <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+        <i class="fa-solid fa-chart-pie mr-2 text-blue-600"></i> Resource Usage
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Students Usage -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col relative overflow-hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div class="p-3 bg-blue-50 rounded-lg text-blue-600"><i class="fa-solid fa-users text-xl"></i></div>
+            <span class="text-sm font-bold text-gray-500">Students</span>
+          </div>
+          <div class="flex items-end space-x-2">
+            <span class="text-3xl font-black text-gray-900">{{ usageData.usage.students }}</span>
+            <span class="text-sm font-semibold text-gray-500 mb-1">/ {{ isUnlimited(usageData.plan.maxStudents) ? '∞' : usageData.plan.maxStudents }}</span>
+          </div>
+          <div class="mt-4 w-full bg-gray-100 rounded-full h-2">
+            <div class="bg-blue-600 h-2 rounded-full transition-all duration-1000"
+                 [style.width.%]="getUsagePercentage(usageData.usage.students, usageData.plan.maxStudents)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Teachers Usage -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col relative overflow-hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div class="p-3 bg-purple-50 rounded-lg text-purple-600"><i class="fa-solid fa-chalkboard-user text-xl"></i></div>
+            <span class="text-sm font-bold text-gray-500">Teachers</span>
+          </div>
+          <div class="flex items-end space-x-2">
+            <span class="text-3xl font-black text-gray-900">{{ usageData.usage.teachers }}</span>
+            <span class="text-sm font-semibold text-gray-500 mb-1">/ {{ isUnlimited(usageData.plan.maxTeachers) ? '∞' : usageData.plan.maxTeachers }}</span>
+          </div>
+          <div class="mt-4 w-full bg-gray-100 rounded-full h-2">
+            <div class="bg-purple-600 h-2 rounded-full transition-all duration-1000"
+                 [style.width.%]="getUsagePercentage(usageData.usage.teachers, usageData.plan.maxTeachers)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Courses Usage -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col relative overflow-hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div class="p-3 bg-emerald-50 rounded-lg text-emerald-600"><i class="fa-solid fa-book-open text-xl"></i></div>
+            <span class="text-sm font-bold text-gray-500">Courses</span>
+          </div>
+          <div class="flex items-end space-x-2">
+            <span class="text-3xl font-black text-gray-900">{{ usageData.usage.courses }}</span>
+            <span class="text-sm font-semibold text-gray-500 mb-1">/ {{ isUnlimited(usageData.plan.maxCourses) ? '∞' : usageData.plan.maxCourses }}</span>
+          </div>
+          <div class="mt-4 w-full bg-gray-100 rounded-full h-2">
+            <div class="bg-emerald-500 h-2 rounded-full transition-all duration-1000"
+                 [style.width.%]="getUsagePercentage(usageData.usage.courses, usageData.plan.maxCourses)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Storage Usage -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col relative overflow-hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div class="p-3 bg-amber-50 rounded-lg text-amber-600"><i class="fa-solid fa-hard-drive text-xl"></i></div>
+            <span class="text-sm font-bold text-gray-500">Storage</span>
+          </div>
+          <div class="flex items-end space-x-2">
+            <span class="text-3xl font-black text-gray-900">{{ usageData.usage.storageGb }}<span class="text-lg">gb</span></span>
+            <span class="text-sm font-semibold text-gray-500 mb-1">/ {{ isUnlimited(usageData.plan.storageGb) ? '∞' : usageData.plan.storageGb }} gb</span>
+          </div>
+          <div class="mt-4 w-full bg-gray-100 rounded-full h-2">
+            <div class="bg-amber-500 h-2 rounded-full transition-all duration-1000"
+                 [style.width.%]="getUsagePercentage(usageData.usage.storageGb, usageData.plan.storageGb)">
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- Upgrade Tiers -->
+    <div>
+      <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+        <i class="fa-solid fa-rocket mr-2 text-indigo-600"></i> Upgrade Plan
+      </h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div *ngFor="let plan of availablePlans" 
+             class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 flex flex-col relative transition-all duration-300 hover:shadow-xl hover:-translate-y-2"
+             [class.ring-2]="usageData.plan.id === plan.id"
+             [class.ring-blue-600]="usageData.plan.id === plan.id"
+             [class.scale-105]="plan.code === 'pro-monthly' && usageData.plan.id !== plan.id">
+             
+          <!-- Current Plan Badge -->
+          <div *ngIf="usageData.plan.id === plan.id" class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+            CURRENT PLAN
+          </div>
+          
+          <div class="mb-4 text-center mt-2">
+            <h3 class="text-xl font-black text-gray-900">{{ plan.name }}</h3>
+          </div>
+
+          <div class="mb-6 flex items-baseline justify-center">
+            <span class="text-4xl font-extrabold text-gray-900">${{ plan.pricePerMonth }}</span>
+            <span class="text-sm font-medium text-gray-500 ml-1">/mo</span>
+          </div>
+
+          <ul class="space-y-3 mb-8 flex-1 px-2">
+            <li class="flex items-start">
+              <i class="fa-solid fa-check text-green-500 mt-1 mr-3 text-sm"></i>
+              <span class="text-sm text-gray-600 font-medium">{{ isUnlimited(plan.maxStudents) ? 'Unlimited' : plan.maxStudents }} Students</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa-solid fa-check text-green-500 mt-1 mr-3 text-sm"></i>
+              <span class="text-sm text-gray-600 font-medium">{{ isUnlimited(plan.maxTeachers) ? 'Unlimited' : plan.maxTeachers }} Teachers</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa-solid fa-check text-green-500 mt-1 mr-3 text-sm"></i>
+              <span class="text-sm text-gray-600 font-medium">{{ isUnlimited(plan.maxCourses) ? 'Unlimited' : plan.maxCourses }} Courses</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa-solid fa-check text-green-500 mt-1 mr-3 text-sm"></i>
+              <span class="text-sm text-gray-600 font-medium">{{ isUnlimited(plan.storageGb) ? 'Unlimited' : plan.storageGb }} GB Storage</span>
+            </li>
+            <li *ngFor="let extra of plan.features" class="flex items-start">
+               <i class="fa-solid fa-check text-green-500 mt-1 mr-3 text-sm"></i>
+               <span class="text-sm text-gray-600 font-medium">{{ extra }}</span>
+            </li>
+          </ul>
+
+          <button *ngIf="usageData.plan.id !== plan.id" 
+                  (click)="triggerUpgrade(plan)"
+                  [disabled]="checkoutLoadingId === plan.id"
+                  class="w-full py-3 rounded-xl font-bold transition-all flex justify-center items-center"
+                  [ngClass]="plan.code === 'pro-monthly' ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'">
+            <span *ngIf="checkoutLoadingId !== plan.id">
+               {{ usageData.plan.pricePerMonth > plan.pricePerMonth ? 'Downgrade to' : 'Upgrade to' }} {{ plan.name.split(' ')[1] || plan.name }}
+            </span>
+            <i *ngIf="checkoutLoadingId === plan.id" class="fa-solid fa-circle-notch fa-spin text-lg"></i>
+          </button>
+          
+          <button *ngIf="usageData.plan.id === plan.id" disabled class="w-full py-3 bg-gray-50 border border-gray-200 text-gray-400 rounded-xl font-bold cursor-not-allowed">
+            Current Tier
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Notification -->
+  <div *ngIf="successMessage" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg flex items-center shadow-green-500/20 z-50 animate-bounce">
+    <i class="fa-solid fa-check-circle mr-2"></i> {{ successMessage }}
+  </div>
+
+  <!-- Checkout Modal Overlay -->
+  <app-stripe-embedded-modal 
+     *ngIf="showPaymentModal && clientSecret" 
+     [title]="selectedPlan?.name + ' Upgrade'" 
+     [clientSecret]="clientSecret"
+     (cancel)="closeModal()">
+  </app-stripe-embedded-modal>
+
+</div>

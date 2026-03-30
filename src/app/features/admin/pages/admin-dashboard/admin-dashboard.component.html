@@ -47,3 +47,31 @@
     </div>
   </main>
 </div>
+
+<!-- First Time Login Upgrade Prompt -->
+<div *ngIf="showUpgradePrompt" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+  <div class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-lg w-full transform transition-all">
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-center">
+      <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-md">
+        <i class="fa-solid fa-crown text-3xl text-yellow-300"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-white mb-2">Welcome to EduVerse!</h2>
+      <p class="text-blue-100">You are currently on the free Starter Plan.</p>
+    </div>
+    
+    <div class="p-8 text-center space-y-6">
+      <p class="text-gray-600">
+        Unlock unlimited courses, more teacher accounts, and expanded storage by upgrading your SaaS plan today.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row justify-center gap-4">
+        <button (click)="dismissUpgradePrompt()" class="px-6 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors">
+          Later
+        </button>
+        <button (click)="goToBillingSettings()" class="px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold shadow-lg hover:bg-blue-700 shadow-blue-500/30 transition-all flex items-center justify-center group">
+          View Plans <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

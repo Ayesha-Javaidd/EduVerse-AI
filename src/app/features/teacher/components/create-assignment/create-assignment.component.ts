@@ -6,6 +6,7 @@ import {
   Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
+import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-create-assignment',
@@ -34,7 +35,7 @@ export class CreateAssignmentComponent implements OnInit {
 
   attachments: File[] = [];
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder, private confirmDialogService: ConfirmDialogService) { }
 
   ngOnInit(): void {
     this.initForm();
@@ -66,7 +67,7 @@ export class CreateAssignmentComponent implements OnInit {
   passingMarksValidator(group: FormGroup) {
     const totalMarks = group.get('totalMarks')?.value;
     const passingMarks = group.get('passingMarks')?.value;
-    
+
     if (totalMarks && passingMarks && parseInt(passingMarks) > parseInt(totalMarks)) {
       return { passingMarksExceeded: true };
     }
@@ -105,19 +106,19 @@ export class CreateAssignmentComponent implements OnInit {
     this.close.emit();
   }
 
-  saveAssignment(): void {
+  async saveAssignment(): Promise<void> {
     if (this.assignmentForm.invalid) {
-      alert('Please fill all required fields correctly.');
+      await this.confirmDialogService.alert('Please fill all required fields correctly.', 'Validation Error', 'warning');
       return;
     }
 
     if (this.assignmentForm.errors?.['passingMarksExceeded']) {
-      alert('Passing marks cannot be greater than total marks.');
+      await this.confirmDialogService.alert('Passing marks cannot be greater than total marks.', 'Validation Error', 'warning');
       return;
     }
 
     const formValue = this.assignmentForm.getRawValue();
-    
+
     // Add ID if creating new
     if (!formValue.id) {
       formValue.id = Date.now();

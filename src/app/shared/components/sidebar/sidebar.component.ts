@@ -120,6 +120,7 @@ export class SidebarComponent implements OnChanges {
           path: 'dashboard',
         },
         { icon: 'fa-solid fa-building', label: 'Tenants', path: 'tenants' },
+        { icon: 'fa-solid fa-credit-card', label: 'Subscriptions', path: 'subscriptions' },
         { icon: 'fa-solid fa-cog', label: 'Settings', path: 'settings' },
       ];
     } else {

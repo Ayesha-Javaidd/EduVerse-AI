@@ -13,9 +13,24 @@ export interface StudentPerformance {
     marks: number;
     totalMarks: number;
     grade: string;
-    attendance: number;
     progress: number;
     lastUpdated?: string;
+}
+
+export interface GenericScoreItem {
+    id: string;
+    title: string;
+    score: number | string;
+    total: number;
+    scoreDisplay: string;
+}
+
+export interface DetailedCoursePerformance {
+    courseId: string;
+    courseName: string;
+    studentName: string;
+    assignments: GenericScoreItem[];
+    quizzes: GenericScoreItem[];
 }
 
 @Injectable({
@@ -42,6 +57,13 @@ export class PerformanceService {
     // Get performances for a specific teacher's courses
     getTeacherPerformances(teacherId: string, tenantId: string): Observable<StudentPerformance[]> {
         return this.http.get<StudentPerformance[]>(`${ENDPOINTS.PERFORMANCE.BASE}/teacher/${teacherId}?tenantId=${tenantId}`, {
+            headers: this.getHeaders()
+        });
+    }
+
+    // Get detailed aggregate performances for a specific student across a teacher's courses
+    getStudentDetailedPerformance(teacherId: string, studentId: string, tenantId: string): Observable<DetailedCoursePerformance[]> {
+        return this.http.get<DetailedCoursePerformance[]>(`${ENDPOINTS.PERFORMANCE.BASE}/teacher/${teacherId}/student/${studentId}/details?tenantId=${tenantId}`, {
             headers: this.getHeaders()
         });
     }

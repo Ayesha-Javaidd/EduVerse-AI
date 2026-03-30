@@ -1,19 +1,31 @@
-<div class="space-y-3 bg-gray-100 p-5 rounded-lg">
-  <h2 class="text-blue-950 font-bold text-xl">Notifications</h2>
+<div class="space-y-3 bg-gray-100 p-5 rounded-lg h-full">
+  <h2 class="text-blue-950 font-bold text-xl mb-4">Pending Deadlines</h2>
+
+  <div *ngIf="pendingTasks.length === 0" class="text-center py-6">
+    <i class="fa-solid fa-check-circle text-4xl text-gray-300 mb-2"></i>
+    <p class="text-gray-500 font-medium">You're all caught up!</p>
+  </div>
+
   <div
-    *ngFor="let n of notifications"
-    class="flex items-start p-4 rounded-2xl shadow-sm transition hover:shadow-md"
-    [ngClass]="n.bgClass"
+    *ngFor="let t of pendingTasks"
+    class="flex items-start p-4 rounded-2xl shadow-sm transition hover:shadow-md cursor-pointer"
+    [ngClass]="t.bgClass"
+    (click)="goToTask(t.route)"
   >
     <div
-      class="flex items-center justify-center w-10 h-10 rounded-full mr-4"
-      [ngClass]="[n.iconBgClass, n.iconColorClass]"
+      class="flex items-center justify-center w-10 h-10 rounded-full mr-4 flex-shrink-0"
+      [ngClass]="[t.iconBgClass, t.iconColorClass]"
     >
-      <i [class]="n.icon"></i>
+      <i [class]="t.icon"></i>
     </div>
-    <div>
-      <h4 class="font-semibold text-gray-800">{{ n.title }}</h4>
-      <p class="text-gray-600 text-sm">{{ n.message }}</p>
+    <div class="flex-grow">
+      <div class="flex justify-between items-start gap-2">
+        <h4 class="font-semibold text-gray-800 line-clamp-1">{{ t.title }}</h4>
+        <span class="text-xs font-bold whitespace-nowrap" [ngClass]="t.iconColorClass">
+          {{ t.dueDate | date: 'MMM d' }}
+        </span>
+      </div>
+      <p class="text-gray-600 text-sm line-clamp-1">{{ t.courseName }}</p>
     </div>
   </div>
 </div>
