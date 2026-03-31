@@ -1,9 +1,9 @@
-<div *ngIf="isVisible" class="fixed inset-0 z-[110] flex items-center justify-center">
+<div *ngIf="isVisible" class="fixed inset-0 z-[110] flex items-center justify-center animate-fade-in">
     <!-- Backdrop -->
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="onCancel()"></div>
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" (click)="onCancel()"></div>
 
     <!-- Dialog -->
-    <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 animate-scale-in">
+    <div class="relative bg-white rounded-[24px] shadow-2xl max-w-md w-full mx-4 transform transition-all">
         <div class="p-6">
             <!-- Icon -->
             <div class="flex justify-center mb-4">
@@ -34,12 +34,12 @@
             </p>
 
             <!-- Buttons -->
-            <div class="flex gap-3 justify-center">
+            <div class="flex gap-3 justify-center pt-2">
                 <button *ngIf="!config?.hideCancel" (click)="onCancel()"
-                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md font-medium transition-colors">
+                    class="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-medium transition-colors">
                     {{ config?.cancelText || 'Cancel' }}
                 </button>
-                <button (click)="onConfirm()" class="px-4 py-2 rounded-md font-medium transition-colors"
+                <button (click)="onConfirm()" class="px-6 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
                     [ngClass]="getConfirmButtonClass()">
                     {{ config?.confirmText || 'Confirm' }}
                 </button>

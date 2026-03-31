@@ -1,10 +1,10 @@
-<section class="bg-white rounded-xl shadow-lg p-8">
-  <h2 class="text-2xl font-semibold text-gray-900 mb-6">Profile Settings</h2>
+<section class="bg-white rounded-[14px] shadow-sm border border-[#e2e8f0] p-8">
+  <h2 class="text-2xl font-bold text-[#181F39] tracking-tight mb-6">Profile Settings</h2>
 
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="space-y-6">
     <!-- Profile Picture -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-3">
+      <label class="block text-[14px] font-medium text-[#181F39] mb-3">
         Profile Picture
       </label>
       <div class="flex items-center space-x-4">
@@ -14,7 +14,7 @@
           class="h-16 w-16 rounded-full border object-cover"
         />
         <label
-          class="cursor-pointer bg-blue-950 text-white px-4 py-2 rounded-md shadow hover:bg-gray-500 active:bg-black text-sm font-medium transition-all duration-200"
+          class="cursor-pointer bg-[#23A997] text-white px-5 py-2.5 rounded-xl shadow-md shadow-[#23A997]/20 hover:bg-[#1f9686] text-[14px] font-medium transition-all"
         >
           <i class="fas fa-upload mr-2"></i> Upload
           <input
@@ -29,12 +29,12 @@
 
     <!-- Full Name -->
     <div>
-      <label class="block text-sm font-medium text-gray-700">Full Name</label>
+      <label class="block text-[14px] font-medium text-[#181F39]">Full Name</label>
       <input
         type="text"
         formControlName="fullName"
         [placeholder]="profileForm.value.fullName || 'Enter full name'"
-        class="mt-1 block w-full rounded-lg border-gray-300 px-4 py-2 text-gray-900 shadow-sm focus:border-blue-950 focus:ring focus:ring-blue-900 focus:ring-opacity-40"
+        class="mt-1 block w-full h-[46px] rounded-xl border border-[#cbd5e1] bg-white px-4 text-[#181F39] text-[15px] focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all"
       />
       <p
         *ngIf="
@@ -49,13 +49,13 @@
 
     <!-- Email -->
     <div>
-      <label class="block text-sm font-medium text-gray-700"
+      <label class="block text-[14px] font-medium text-[#181F39]"
         >Email Address</label
       >
       <input
         type="email"
         formControlName="email"
-        class="mt-1 block w-full rounded-lg border-gray-300 bg-gray-100 cursor-not-allowed px-4 py-2 text-gray-500 shadow-sm focus:outline-none"
+        class="mt-1 block w-full h-[46px] rounded-xl border border-[#cbd5e1] bg-gray-50 cursor-not-allowed px-4 text-gray-500 text-[15px]"
       />
       <p
         *ngIf="
@@ -69,14 +69,14 @@
 
     <!-- Phone -->
     <div>
-      <label class="block text-sm font-medium text-gray-700"
+      <label class="block text-[14px] font-medium text-[#181F39]"
         >Phone Number</label
       >
       <input
         type="tel"
         formControlName="phone"
         [placeholder]="profileForm.value.phone || 'Enter phone number'"
-        class="mt-1 block w-full rounded-lg border-gray-300 px-4 py-2 text-gray-900 shadow-sm focus:border-blue-950 focus:ring focus:ring-blue-900 focus:ring-opacity-40"
+        class="mt-1 block w-full h-[46px] rounded-xl border border-[#cbd5e1] bg-white px-4 text-[#181F39] text-[15px] focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all"
       />
       <p
         *ngIf="
@@ -90,10 +90,10 @@
 
     <!-- Country -->
     <div>
-      <label class="block text-sm font-medium text-gray-700">Country</label>
+      <label class="block text-[14px] font-medium text-[#181F39]">Country</label>
       <select
         formControlName="country"
-        class="mt-1 block w-full cursor-pointer rounded-lg border-gray-300 px-4 py-2 text-gray-900 shadow-sm focus:border-blue-950 focus:ring focus:ring-blue-900 focus:ring-opacity-40"
+        class="mt-1 block w-full h-[46px] cursor-pointer rounded-xl border border-[#cbd5e1] bg-white px-4 text-[#181F39] text-[15px] focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all"
       >
         <option value="" disabled>Select country</option>
         <option value="pk">Pakistan</option>
@@ -117,7 +117,7 @@
     <div class="pt-6 flex justify-end space-x-3">
       <!-- Save Button -->
       <app-button
-        customColor="bg-blue-950 text-white hover:bg-gray-500 cursor-pointer px-6 py-2 rounded-lg"
+        customColor="bg-[#23A997] text-white hover:bg-[#1f9686] transition-all shadow-md shadow-[#23A997]/20 rounded-xl font-medium"
         size="md"
         type="submit"
       >
@@ -126,7 +126,7 @@
 
       <!-- Cancel Button -->
       <app-button
-        customColor="bg-gray-200 text-gray-700 hover:bg-gray-300 px-6 py-2 rounded-lg"
+        customColor="bg-slate-100 text-[#475569] hover:bg-slate-200 transition-all rounded-xl font-medium"
         size="md"
         type="button"
       >

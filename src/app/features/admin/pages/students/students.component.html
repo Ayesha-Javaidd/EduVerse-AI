@@ -1,20 +1,18 @@
-<div class="transition-all min-h-screen bg-gray-50">
+<div class="flex flex-col h-full animate-fade-in">
   <app-header pageTitle="Students"></app-header>
 
   <main class="p-6">
 
-    <div class="flex items-center justify-between">
-      <app-filters class="flex-grow" [dropdowns]="[
+    <div class="mb-8">
+      <app-filters [dropdowns]="[
               {key: 'status', label: 'Status', options: ['Active', 'Enrolled', 'Graduated', 'Dropped']}
           ]" searchPlaceholder="Search by name or email" (filtersChange)="onFiltersChange($event)"></app-filters>
     </div>
 
-    <br>
-
     <app-data-table title="Manage Students" [columns]="studentColumns" [rows]="filteredStudents" [showViewAll]="false"
       [enableActions]="true" [visibleActions]="['delete']" [rowClickable]="true" (delete)="onRemoveStudent($event)"
       [totalItems]="filteredStudents.length" [pageSize]="5" [currentPage]="currentPage"
-      (pageChange)="onPageChange($event)">
+      (pageChange)="onPageChange($event)" [highlightedRowId]="highlightedRowId">
     </app-data-table>
 
   </main>

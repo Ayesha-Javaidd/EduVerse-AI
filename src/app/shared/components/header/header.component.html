@@ -1,16 +1,21 @@
-<header class="shadow-sm border-b" [ngClass]="isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200'">
-  <div class="flex items-center justify-between p-4">
-    <h1 class="text-2xl font-bold" [ngClass]="{'ml-12': isMobile, 'text-white': isDark, 'text-slate-900': !isDark}">
-      {{ pageTitle }}
-    </h1>
+<header class="sticky top-0 z-40 border-b backdrop-blur-md transition-colors duration-300"
+  [ngClass]="isDark ? 'bg-[#181F39]/90 border-slate-800' : 'bg-white/80 border-[#e2e8f0]'">
+  <div class="flex items-center justify-between p-4 px-6">
+    <div class="flex items-center">
+      <!-- Add a spacer for mobile so the hamburger doesn't overlap text -->
+      <div *ngIf="isMobile" class="w-10 mr-2"></div>
+      <h1 class="text-[24px] font-bold tracking-tight" [ngClass]="{'text-white': isDark, 'text-[#181F39]': !isDark}">
+        {{ pageTitle }}
+      </h1>
+    </div>
 
     <div class="flex items-center space-x-4">
       <div class="flex items-center space-x-3">
         <div class="relative">
           <div *ngIf="!displayProfile.avatar; else avatarImg"
-            class="h-10 w-10 rounded-full flex items-center justify-center font-semibold text-sm cursor-pointer"
-            [ngClass]="isDark ? 'bg-slate-800 text-white' : 'bg-slate-900 text-white'" (click)="onProfileClick()">
-            <span class="text-sm font-semibold">
+            class="h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm cursor-pointer shadow-sm transition-transform hover:scale-105"
+            [ngClass]="isDark ? 'bg-slate-800 text-white' : 'bg-[#23A997] text-white'" (click)="onProfileClick()">
+            <span class="text-sm font-bold tracking-wide">
               {{ displayProfile.initials }}
             </span>
           </div>
@@ -21,8 +26,8 @@
           </ng-template>
         </div>
 
-        <span class="text-sm font-medium cursor-pointer hover:text-gray-400"
-          [ngClass]="isDark ? 'text-slate-300' : 'text-slate-900'" (click)="onProfileClick()">
+        <span class="text-sm font-semibold cursor-pointer transition-colors"
+          [ngClass]="isDark ? 'text-slate-300 hover:text-white' : 'text-[#181F39] hover:text-[#23A997]'" (click)="onProfileClick()">
           {{ displayProfile.name }}
         </span>
       </div>

@@ -1,48 +1,58 @@
-<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+<div class="bg-white rounded-[14px] shadow-sm border border-[#e2e8f0] overflow-hidden relative">
   <!-- Header -->
-  <div class="flex items-center justify-between p-6 border-b border-gray-200">
-    <h3 class="text-lg font-semibold text-gray-900">
-      {{ title }}
-    </h3>
+  <div class="flex items-center justify-between px-6 pt-6 pb-2">
+    <div>
+      <h3 class="text-[18px] font-bold text-[#181F39] tracking-tight">
+        {{ title }}
+      </h3>
+    </div>
 
     <app-button *ngIf="showViewAll" (buttonClick)="onViewAllClick()"
-      customColor="bg-blue-950 text-white hover:bg-gray-500 cursor-pointer focus:ring-blue-800">
+      customColor="bg-[#23A997] hover:bg-[#1e9585] text-white font-medium cursor-pointer shadow-sm transition-all rounded-xl focus:ring-2 focus:ring-[#23A997]/50 flex-shrink-0 px-8 h-[46px] ml-4 flex items-center justify-center">
       View All
     </app-button>
   </div>
 
   <!-- Table -->
-  <div class="overflow-x-auto">
-    <table class="w-full">
-      <thead class="bg-blue-100">
+  <div class="overflow-x-auto min-w-full">
+    <table class="w-full text-left border-collapse table-fixed">
+      <thead class="bg-[#f8fafc] border-y border-[#e2e8f0]">
         <tr>
-          <th *ngFor="let col of columns" class="px-6 py-3 text-left text-sm font-medium text-gray-500 tracking-wider">
+          <th *ngFor="let col of columns" [style.width]="col.width" 
+              class="px-6 py-3.5 text-[12px] font-bold text-[#475569] uppercase tracking-wider"
+              [ngClass]="{'text-center': col.type === 'action', 'text-left': col.type !== 'action'}">
             {{ col.label }}
           </th>
-          <th *ngIf="enableActions" class="px-6 py-3 text-left text-sm font-medium text-gray-500 tracking-wider">
+          <th *ngIf="enableActions" [style.width]="'15%'" class="px-6 py-3.5 text-center text-[12px] font-bold text-[#475569] uppercase tracking-wider">
             Actions
           </th>
         </tr>
       </thead>
 
-      <tbody class="bg-white divide-y divide-gray-200">
-        <tr *ngFor="let row of pagedRows" class="hover:bg-gray-50" [class.cursor-pointer]="rowClickable">
-          <td *ngFor="let col of columns" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+      <tbody class="divide-y divide-[#e2e8f0]">
+        <tr *ngFor="let row of pagedRows" 
+            class="hover:bg-slate-50 transition-colors duration-200" 
+            [ngClass]="getHighlightClass(row)"
+            [class.cursor-pointer]="rowClickable">
+          <td *ngFor="let col of columns" class="px-6 py-4 whitespace-nowrap overflow-hidden text-ellipsis text-sm text-[#181F39] font-medium"
+              [ngClass]="{'text-center': col.type === 'action'}">
             <!-- Avatar -->
             <ng-container *ngIf="col.type === 'avatar'">
               <div class="flex items-center">
                 <div
-                  class="h-10 w-10 rounded-full bg-gray-500 flex items-center justify-center text-white font-semibold text-sm">
+                  class="h-10 w-10 min-w-10 rounded-full bg-[#23A997]/10 flex items-center justify-center text-[#23A997] font-bold text-[14px] tracking-wide relative">
+                  <!-- Light subtle green inner shadow simulation to match mockup -->
+                  <div class="absolute inset-0 rounded-full border border-[#23A997]/20"></div>
                   {{ (row[col.key] && row[col.key] !== 'SP') ? row[col.key].charAt(0).toUpperCase() :
                   (row['fullName'] ? row['fullName'].charAt(0).toUpperCase() :
                   (row['studentName'] ? row['studentName'].charAt(0).toUpperCase() :
                   (row['name'] ? row['name'].charAt(0).toUpperCase() : 'S'))) }}
                 </div>
-                <div class="ml-4">
-                  <div class="text-sm font-medium text-gray-900">
+                <div class="ml-4 truncate">
+                  <div class="text-[14px] font-bold text-[#181F39] truncate">
                     {{ row["fullName"] || row["studentName"] || row["name"] }}
                   </div>
-                  <div class="text-sm text-gray-500">
+                  <div class="text-[13px] text-[#64748b] font-medium mt-0.5 truncate border-transparent">
                     {{ row["email"] }}
                   </div>
                 </div>
@@ -62,8 +72,12 @@
 
             <!-- Badge -->
             <ng-container *ngIf="col.type === 'badge'">
-              <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                [ngClass]="col.badgeColors?.[row[col.key]]">
+              <span class="inline-flex px-3 py-1 text-[11px] font-bold uppercase rounded-[6px] border shadow-sm"
+                [ngClass]="{
+                  'bg-[#23A997]/10 text-[#23A997] border-[#23A997]/20': ['active', 'published', 'enrolled', 'upcoming'].includes(row[col.key]?.toLowerCase()),
+                  'bg-slate-100 text-[#64748b] border-slate-200': ['inactive', 'draft', 'dropped', 'graduated', 'completed'].includes(row[col.key]?.toLowerCase()),
+                  'bg-[#f8fafc] text-[#181F39] border-[#e2e8f0]': !['active', 'published', 'enrolled', 'upcoming', 'inactive', 'draft', 'dropped', 'graduated', 'completed'].includes(row[col.key]?.toLowerCase())
+                }">
                 {{ row[col.key] }}
               </span>
             </ng-container>
@@ -75,15 +89,22 @@
 
             <!-- Default text -->
             <ng-container *ngIf="!col.type || col.type === 'text'">
-              {{ row[col.key] !== null && row[col.key] !== undefined ? row[col.key] : "" }}
+              <span *ngIf="col.key === 'courses' || col.key === 'courseCount'" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-[#181F39] font-bold text-sm">
+                {{ row[col.key] !== null && row[col.key] !== undefined ? row[col.key] : '1' }}
+              </span>
+              <span *ngIf="col.key !== 'courses' && col.key !== 'courseCount'" class="text-[#64748b] font-medium whitespace-nowrap">
+                {{ row[col.key] !== null && row[col.key] !== undefined ? row[col.key] : "" }}
+              </span>
             </ng-container>
 
             <!-- Action as button (default for other tables) -->
             <ng-container *ngIf="col.type === 'action'">
-              <app-button size="sm" customColor="bg-blue-950 hover:bg-blue-800 text-white"
-                (buttonClick)="onActionClick(row)">
-                View
-              </app-button>
+              <div class="flex items-center justify-center">
+                <button class="text-[#23A997] hover:bg-[#23A997]/10 p-2 rounded-lg transition-colors tooltip tooltip-primary"
+                  (click)="onActionClick(row)" title="View Details">
+                  <i class="fas fa-eye text-[16px]"></i>
+                </button>
+              </div>
             </ng-container>
 
             <!-- Action as link -->
@@ -94,20 +115,17 @@
             </ng-container>
           </td>
 
-          <td class="px-6 py-4 text-center" *ngIf="enableActions">
-            <button *ngIf="visibleActions.includes('view')" class="text-blue-900 hover:text-blue-600 mr-3"
-              (click)="view.emit(row)" title="View">
-              <i class="fas fa-eye"></i>
-            </button>
-            <button *ngIf="visibleActions.includes('edit')" class="text-blue-900 hover:text-blue-600 mr-3"
-              (click)="onEdit(row)" title="Edit">
-              <i class="fas fa-edit"></i>
-            </button>
-
-            <button *ngIf="visibleActions.includes('delete')" class="text-red-600 hover:text-red-800"
-              (click)="onDelete(row)" title="Delete">
-              <i class="fas fa-trash"></i>
-            </button>
+          <td class="px-6 py-4" *ngIf="enableActions">
+            <div class="flex items-center justify-center gap-2">
+              <button *ngIf="visibleActions.includes('edit')" class="text-[#23A997] hover:bg-[#23A997]/10 p-2 rounded-lg transition-colors"
+                (click)="onEdit(row)" title="Edit">
+                <i class="fas fa-edit text-[16px]"></i>
+              </button>
+              <button *ngIf="visibleActions.includes('delete')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                (click)="onDelete(row)" title="Delete">
+                <i class="fas fa-trash-alt text-[16px]"></i>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -115,7 +133,7 @@
   </div>
 
   <!-- Pagination Footer -->
-  <div class="p-4 border-t border-gray-200 flex justify-end">
+  <div class="p-4 border-t border-gray-100 bg-white flex justify-end">
     <app-pagination *ngIf="totalItems > pageSize" [currentPage]="currentPage" [pageSize]="pageSize"
       [totalItems]="totalItems" (pageChange)="pageChange.emit($event)">
     </app-pagination>

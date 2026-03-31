@@ -10,6 +10,7 @@ export interface FormField {
   options?: { value: string; label: string }[];
   placeholder?: string;
   disabled?: boolean;
+  colSpan?: 1 | 2;
 }
 
 @Component({
@@ -57,7 +58,7 @@ export class EntityModalComponent implements OnInit {
         const initialArray = this.initialData?.[field.name];
         this.formData[field.name] = Array.isArray(initialArray) ? [...initialArray] : [''];
       } else {
-        this.formData[field.name] = this.initialData?.[field.name] || '';
+        this.formData[field.name] = this.initialData?.[field.name] ?? '';
       }
     });
   }
@@ -88,7 +89,8 @@ export class EntityModalComponent implements OnInit {
 
   isFormInvalid(): boolean {
     return this.fields.some(field => {
-      if (field.required) {
+      const isPasswordInEdit = this.isEditMode && field.type === 'password';
+      if (field.required && !isPasswordInEdit) {
         const val = this.formData[field.name];
         if (field.type === 'array') {
           return !val || val.length === 0 || val.every((i: string) => !i || i.trim() === '');
@@ -103,7 +105,7 @@ export class EntityModalComponent implements OnInit {
     if (!this.isEditMode || !this.initialData) return true;
 
     for (const field of this.fields) {
-      if (field.type === 'password' && field.required === false) {
+      if (field.type === 'password') {
         if (this.formData[field.name]) return true;
         continue;
       }

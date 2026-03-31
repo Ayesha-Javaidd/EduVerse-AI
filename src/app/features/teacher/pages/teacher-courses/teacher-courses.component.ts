@@ -39,20 +39,12 @@ export class TeacherCoursesComponent implements OnInit {
     { 
       key: 'visibility', 
       label: 'Visibility', 
-      type: 'badge',
-      badgeColors: {
-        'public': 'bg-green-100 text-green-800',
-        'private': 'bg-gray-100 text-gray-800'
-      }
+      type: 'badge'
     },
     { 
       key: 'status', 
       label: 'Status', 
-      type: 'badge',
-      badgeColors: {
-        'draft': 'bg-yellow-100 text-yellow-800',
-        'published': 'bg-green-100 text-green-800'
-      }
+      type: 'badge'
     },
   ];
 

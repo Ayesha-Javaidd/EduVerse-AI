@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
-import { AdminService } from '../../../../core/services/admin.service';
+import { AdminService, AdminStudent } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
 import { FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
@@ -30,32 +31,26 @@ export class StudentsComponent implements OnInit {
       key: 'status',
       label: 'Status',
       type: 'badge',
-      badgeColors: {
-        Enrolled: 'bg-green-100 text-green-800',
-        active: 'bg-green-100 text-green-800',
-        Graduated: 'bg-blue-100 text-blue-800',
-        Dropped: 'bg-red-100 text-red-800',
-        Active: 'bg-green-100 text-green-800',
-      },
     },
   ];
 
-  students: any[] = [];
-  filteredStudents: any[] = [];
+  students: AdminStudent[] = [];
+  filteredStudents: AdminStudent[] = [];
   loading: boolean = true;
+  highlightedRowId: string | null = null;
 
   // Modal state
   isModalOpen = false;
   isEditMode = false;
   modalTitle = 'Add Student';
-  selectedStudent: any = null;
+  selectedStudent: AdminStudent | null = null;
 
   studentFields: FormField[] = [
     { name: 'fullName', label: 'Full Name', type: 'text', required: true, placeholder: 'Enter full name' },
     { name: 'email', label: 'Email', type: 'email', required: true, placeholder: 'Enter email address' },
     { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'Enter password (min 6 characters)' },
-    { name: 'country', label: 'Country', type: 'text', placeholder: 'Enter country' },
     { name: 'contactNo', label: 'Contact Number', type: 'text', placeholder: 'Enter contact number' },
+    { name: 'country', label: 'Country', type: 'text', placeholder: 'Enter country' },
     {
       name: 'status', label: 'Status', type: 'select', options: [
         { value: 'active', label: 'Active' },
@@ -68,10 +63,16 @@ export class StudentsComponent implements OnInit {
   constructor(
     private adminService: AdminService,
     private authService: AuthService,
-    private confirmDialogService: ConfirmDialogService
+    private confirmDialogService: ConfirmDialogService,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['highlight']) {
+        this.highlightedRowId = params['highlight'];
+      }
+    });
     this.loadStudents();
   }
 
@@ -101,16 +102,16 @@ export class StudentsComponent implements OnInit {
     this.isModalOpen = true;
   }
 
-  onEditStudent(student: any) {
+  onEditStudent(student: AdminStudent) {
     this.isEditMode = true;
     this.modalTitle = 'Edit Student';
     this.selectedStudent = student;
     this.isModalOpen = true;
   }
 
-  async onRemoveStudent(student: any) {
+  async onRemoveStudent(student: AdminStudent) {
     const isConfirmed = await this.confirmDialogService.confirmDelete(student.fullName);
-    if (isConfirmed) {
+    if (isConfirmed && student.id) {
       this.adminService.deleteStudent(student.id).subscribe({
         next: () => {
           this.loadStudents();
@@ -127,14 +128,14 @@ export class StudentsComponent implements OnInit {
     this.selectedStudent = null;
   }
 
-  async onModalSubmit(formData: any) {
+  async onModalSubmit(formData: Partial<AdminStudent>) {
     const tenantId = this.authService.getTenantId();
     if (!tenantId) {
       await this.confirmDialogService.alert('Tenant ID not found. Please log in again.', 'Error', 'danger');
       return;
     }
 
-    const studentData = {
+    const studentData: Partial<AdminStudent> = {
       ...formData,
       tenantId,
       role: 'student'
@@ -150,8 +151,13 @@ export class StudentsComponent implements OnInit {
       if (!studentData.status) studentData.status = 'active';
     }
 
+    if (this.isEditMode && (!this.selectedStudent || !this.selectedStudent.id)) {
+      await this.confirmDialogService.alert('Cannot update: Student ID missing', 'Error', 'danger');
+      return;
+    }
+
     const request = this.isEditMode
-      ? this.adminService.updateStudent(this.selectedStudent.id, studentData)
+      ? this.adminService.updateStudent(this.selectedStudent!.id!, studentData)
       : this.adminService.createStudent(studentData);
 
     request.subscribe({

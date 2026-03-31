@@ -33,6 +33,8 @@ export class StripeEmbeddedModalComponent implements OnInit, OnDestroy {
   constructor(private http: HttpClient) {}
 
   async ngOnInit() {
+    document.body.classList.add('overflow-hidden');
+    
     if (!this.clientSecret) {
       this.error = "Invalid checkout session. Please try again.";
       this.loading = false;
@@ -76,6 +78,8 @@ export class StripeEmbeddedModalComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    document.body.classList.remove('overflow-hidden');
+    
     if (this.checkoutInstance) {
       try {
         this.checkoutInstance.destroy();

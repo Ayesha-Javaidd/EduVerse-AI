@@ -1,168 +1,173 @@
 <div class="pb-12">
   
   <div *ngIf="loading" class="flex justify-center items-center h-64">
-    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-blue-600"></i>
+    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-[#23A997]"></i>
   </div>
 
   <div *ngIf="!loading && usageData" class="max-w-7xl mx-auto py-2">
     
-    <!-- Current Plan Banner -->
-    <div class="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 rounded-2xl shadow-xl overflow-hidden mb-8 relative">
-      <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-      <div class="p-8 relative z-10 flex flex-col md:flex-row justify-between items-center">
-        <div>
-          <h2 class="text-xs font-bold text-blue-300 uppercase tracking-widest mb-1">Current Active Plan</h2>
-          <h1 class="text-4xl font-black text-white mb-2">{{ usageData.plan.name }}</h1>
-          <p class="text-blue-100 flex items-center">
-            <span class="bg-blue-700/50 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-semibold border border-blue-500/30">
-              ${{ usageData.plan.pricePerMonth }} / {{ usageData.plan.billingCycle || 'month' }}
-            </span>
-          </p>
-        </div>
+    <!-- Header -->
+    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div>
+        <h2 class="text-[28px] font-semibold text-[#181F39] tracking-tight leading-none mb-2">Billing & Overview</h2>
+        <p class="text-[15px] font-medium text-[#64748b]">Manage your subscriptions and monitor tenant limits</p>
+      </div>
+      <div class="flex items-center space-x-3 bg-white border border-[#e2e8f0] px-4 py-2 rounded-xl shadow-sm">
+        <span class="text-[13px] font-medium text-[#64748b]">Active Plan</span>
+        <span class="text-[15px] font-semibold text-[#23A997]">{{ usageData.plan.name }}</span>
       </div>
     </div>
 
-    <!-- Usage Metrics Grid -->
-    <div class="mb-10">
-      <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
-        <i class="fa-solid fa-chart-pie mr-2 text-blue-600"></i> Resource Usage
+    <!-- Usage Metrics Bento Box -->
+    <div class="mb-12">
+      <h3 class="text-[18px] font-semibold text-[#181F39] mb-4 flex items-center">
+        Resource Limits
       </h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-[#e2e8f0] border border-[#e2e8f0] rounded-[16px] overflow-hidden shadow-sm">
         
         <!-- Students Usage -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col relative overflow-hidden">
-          <div class="flex justify-between items-center mb-4">
-            <div class="p-3 bg-blue-50 rounded-lg text-blue-600"><i class="fa-solid fa-users text-xl"></i></div>
-            <span class="text-sm font-bold text-gray-500">Students</span>
+        <div class="bg-white p-7 flex flex-col transition-colors hover:bg-slate-50">
+          <div class="flex justify-between items-center mb-5">
+            <span class="text-[14px] font-medium text-[#64748b]">Students</span>
+            <div class="text-[#23A997]"><i class="fa-solid fa-users text-lg"></i></div>
           </div>
-          <div class="flex items-end space-x-2">
-            <span class="text-3xl font-black text-gray-900">{{ usageData.usage.students }}</span>
-            <span class="text-sm font-semibold text-gray-500 mb-1">/ {{ isUnlimited(usageData.plan.maxStudents) ? '∞' : usageData.plan.maxStudents }}</span>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-[36px] font-semibold text-[#181F39] tracking-tight leading-none">{{ usageData.usage.students }}</span>
+            <span class="text-[15px] font-medium text-slate-400">/ {{ isUnlimited(usageData.plan.maxStudents) ? '∞' : usageData.plan.maxStudents }}</span>
           </div>
-          <div class="mt-4 w-full bg-gray-100 rounded-full h-2">
-            <div class="bg-blue-600 h-2 rounded-full transition-all duration-1000"
+          <div class="mt-5 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-gradient-to-r from-[#23A997] to-[#1f9686] h-full rounded-full transition-all duration-1000 ease-out"
                  [style.width.%]="getUsagePercentage(usageData.usage.students, usageData.plan.maxStudents)">
             </div>
           </div>
         </div>
 
         <!-- Teachers Usage -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col relative overflow-hidden">
-          <div class="flex justify-between items-center mb-4">
-            <div class="p-3 bg-purple-50 rounded-lg text-purple-600"><i class="fa-solid fa-chalkboard-user text-xl"></i></div>
-            <span class="text-sm font-bold text-gray-500">Teachers</span>
+        <div class="bg-white p-7 flex flex-col transition-colors hover:bg-slate-50">
+          <div class="flex justify-between items-center mb-5">
+            <span class="text-[14px] font-medium text-[#64748b]">Teachers</span>
+            <div class="text-[#23A997]"><i class="fa-solid fa-chalkboard-user text-lg"></i></div>
           </div>
-          <div class="flex items-end space-x-2">
-            <span class="text-3xl font-black text-gray-900">{{ usageData.usage.teachers }}</span>
-            <span class="text-sm font-semibold text-gray-500 mb-1">/ {{ isUnlimited(usageData.plan.maxTeachers) ? '∞' : usageData.plan.maxTeachers }}</span>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-[36px] font-semibold text-[#181F39] tracking-tight leading-none">{{ usageData.usage.teachers }}</span>
+            <span class="text-[15px] font-medium text-slate-400">/ {{ isUnlimited(usageData.plan.maxTeachers) ? '∞' : usageData.plan.maxTeachers }}</span>
           </div>
-          <div class="mt-4 w-full bg-gray-100 rounded-full h-2">
-            <div class="bg-purple-600 h-2 rounded-full transition-all duration-1000"
+          <div class="mt-5 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-gradient-to-r from-[#23A997] to-[#1f9686] h-full rounded-full transition-all duration-1000 ease-out"
                  [style.width.%]="getUsagePercentage(usageData.usage.teachers, usageData.plan.maxTeachers)">
             </div>
           </div>
         </div>
 
         <!-- Courses Usage -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col relative overflow-hidden">
-          <div class="flex justify-between items-center mb-4">
-            <div class="p-3 bg-emerald-50 rounded-lg text-emerald-600"><i class="fa-solid fa-book-open text-xl"></i></div>
-            <span class="text-sm font-bold text-gray-500">Courses</span>
+        <div class="bg-white p-7 flex flex-col transition-colors hover:bg-slate-50">
+          <div class="flex justify-between items-center mb-5">
+            <span class="text-[14px] font-medium text-[#64748b]">Courses</span>
+            <div class="text-[#23A997]"><i class="fa-solid fa-book-open text-lg"></i></div>
           </div>
-          <div class="flex items-end space-x-2">
-            <span class="text-3xl font-black text-gray-900">{{ usageData.usage.courses }}</span>
-            <span class="text-sm font-semibold text-gray-500 mb-1">/ {{ isUnlimited(usageData.plan.maxCourses) ? '∞' : usageData.plan.maxCourses }}</span>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-[36px] font-semibold text-[#181F39] tracking-tight leading-none">{{ usageData.usage.courses }}</span>
+            <span class="text-[15px] font-medium text-slate-400">/ {{ isUnlimited(usageData.plan.maxCourses) ? '∞' : usageData.plan.maxCourses }}</span>
           </div>
-          <div class="mt-4 w-full bg-gray-100 rounded-full h-2">
-            <div class="bg-emerald-500 h-2 rounded-full transition-all duration-1000"
+          <div class="mt-5 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-gradient-to-r from-[#23A997] to-[#1f9686] h-full rounded-full transition-all duration-1000 ease-out"
                  [style.width.%]="getUsagePercentage(usageData.usage.courses, usageData.plan.maxCourses)">
             </div>
           </div>
         </div>
 
         <!-- Storage Usage -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col relative overflow-hidden">
-          <div class="flex justify-between items-center mb-4">
-            <div class="p-3 bg-amber-50 rounded-lg text-amber-600"><i class="fa-solid fa-hard-drive text-xl"></i></div>
-            <span class="text-sm font-bold text-gray-500">Storage</span>
+        <div class="bg-white p-7 flex flex-col transition-colors hover:bg-slate-50">
+          <div class="flex justify-between items-center mb-5">
+            <span class="text-[14px] font-medium text-[#64748b]">Storage</span>
+            <div class="text-[#23A997]"><i class="fa-solid fa-hard-drive text-lg"></i></div>
           </div>
-          <div class="flex items-end space-x-2">
-            <span class="text-3xl font-black text-gray-900">{{ usageData.usage.storageGb }}<span class="text-lg">gb</span></span>
-            <span class="text-sm font-semibold text-gray-500 mb-1">/ {{ isUnlimited(usageData.plan.storageGb) ? '∞' : usageData.plan.storageGb }} gb</span>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-[36px] font-semibold text-[#181F39] tracking-tight leading-none">{{ usageData.usage.storageGb }}<span class="text-[20px] ml-1">GB</span></span>
+            <span class="text-[15px] font-medium text-slate-400">/ {{ isUnlimited(usageData.plan.storageGb) ? '∞' : usageData.plan.storageGb }} GB</span>
           </div>
-          <div class="mt-4 w-full bg-gray-100 rounded-full h-2">
-            <div class="bg-amber-500 h-2 rounded-full transition-all duration-1000"
+          <div class="mt-5 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-gradient-to-r from-[#23A997] to-[#1f9686] h-full rounded-full transition-all duration-1000 ease-out"
                  [style.width.%]="getUsagePercentage(usageData.usage.storageGb, usageData.plan.storageGb)">
             </div>
           </div>
         </div>
-
+        
       </div>
     </div>
 
 
     <!-- Upgrade Tiers -->
-    <div>
-      <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
-        <i class="fa-solid fa-rocket mr-2 text-indigo-600"></i> Upgrade Plan
-      </h3>
+    <div class="mt-16">
+      <div class="mb-10 text-center">
+        <h3 class="text-[28px] font-semibold text-[#181F39] tracking-tight leading-none mb-3">Upgrade Plan</h3>
+        <p class="text-[15px] font-medium text-[#64748b]">Select the right tier to securely scale your academy</p>
+      </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center max-w-6xl mx-auto">
         <div *ngFor="let plan of availablePlans" 
-             class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 flex flex-col relative transition-all duration-300 hover:shadow-xl hover:-translate-y-2"
-             [class.ring-2]="usageData.plan.id === plan.id"
-             [class.ring-blue-600]="usageData.plan.id === plan.id"
-             [class.scale-105]="plan.code === 'pro-monthly' && usageData.plan.id !== plan.id">
+             class="bg-white rounded-[24px] p-8 flex flex-col relative transition-all duration-300 group"
+             [ngClass]="plan.code === 'pro-monthly' ? 'shadow-2xl shadow-[#23A997]/15 ring-1 ring-[#23A997] scale-[1.03] z-10' : 'shadow-sm border border-[#e2e8f0] hover:shadow-xl hover:-translate-y-1 hover:border-[#cbd5e1]'">
              
-          <!-- Current Plan Badge -->
-          <div *ngIf="usageData.plan.id === plan.id" class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
-            CURRENT PLAN
+          <!-- Badges -->
+          <div *ngIf="plan.code === 'pro-monthly'" class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#23A997] to-[#1f9686] text-white px-5 py-1.5 rounded-full text-[12px] font-medium shadow-sm tracking-wide whitespace-nowrap">
+            Most Popular
+          </div>
+          <div *ngIf="usageData.plan.id === plan.id && plan.code !== 'pro-monthly'" class="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#181F39] text-white px-5 py-1.5 rounded-full text-[12px] font-medium shadow-sm tracking-wide whitespace-nowrap">
+            Current Plan
+          </div>
+          <div *ngIf="usageData.plan.id === plan.id && plan.code === 'pro-monthly'" class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-[#181F39] text-white px-5 py-1.5 rounded-full text-[12px] font-medium shadow-sm tracking-wide whitespace-nowrap">
+            Current Plan
           </div>
           
-          <div class="mb-4 text-center mt-2">
-            <h3 class="text-xl font-black text-gray-900">{{ plan.name }}</h3>
+          <div class="mb-6 text-center mt-2">
+            <h3 class="text-[20px] font-semibold text-[#181F39] tracking-tight">{{ plan.name }}</h3>
           </div>
 
-          <div class="mb-6 flex items-baseline justify-center">
-            <span class="text-4xl font-extrabold text-gray-900">${{ plan.pricePerMonth }}</span>
-            <span class="text-sm font-medium text-gray-500 ml-1">/mo</span>
+          <div class="mb-8 flex items-baseline justify-center">
+            <span class="text-[48px] font-bold text-[#181F39] tracking-tight leading-none">${{ plan.pricePerMonth }}</span>
+            <span class="text-[15px] font-medium text-slate-400 ml-1">/mo</span>
           </div>
 
-          <ul class="space-y-3 mb-8 flex-1 px-2">
-            <li class="flex items-start">
-              <i class="fa-solid fa-check text-green-500 mt-1 mr-3 text-sm"></i>
-              <span class="text-sm text-gray-600 font-medium">{{ isUnlimited(plan.maxStudents) ? 'Unlimited' : plan.maxStudents }} Students</span>
-            </li>
-            <li class="flex items-start">
-              <i class="fa-solid fa-check text-green-500 mt-1 mr-3 text-sm"></i>
-              <span class="text-sm text-gray-600 font-medium">{{ isUnlimited(plan.maxTeachers) ? 'Unlimited' : plan.maxTeachers }} Teachers</span>
-            </li>
-            <li class="flex items-start">
-              <i class="fa-solid fa-check text-green-500 mt-1 mr-3 text-sm"></i>
-              <span class="text-sm text-gray-600 font-medium">{{ isUnlimited(plan.maxCourses) ? 'Unlimited' : plan.maxCourses }} Courses</span>
-            </li>
-            <li class="flex items-start">
-              <i class="fa-solid fa-check text-green-500 mt-1 mr-3 text-sm"></i>
-              <span class="text-sm text-gray-600 font-medium">{{ isUnlimited(plan.storageGb) ? 'Unlimited' : plan.storageGb }} GB Storage</span>
-            </li>
-            <li *ngFor="let extra of plan.features" class="flex items-start">
-               <i class="fa-solid fa-check text-green-500 mt-1 mr-3 text-sm"></i>
-               <span class="text-sm text-gray-600 font-medium">{{ extra }}</span>
-            </li>
-          </ul>
+          <div class="border-t border-[#e2e8f0] pt-8 mb-8 flex-1">
+            <ul class="space-y-4">
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-[#23A997] mr-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                <span class="text-[15px] text-[#475569] font-medium">{{ isUnlimited(plan.maxStudents) ? 'Unlimited' : plan.maxStudents }} Students</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-[#23A997] mr-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                <span class="text-[15px] text-[#475569] font-medium">{{ isUnlimited(plan.maxTeachers) ? 'Unlimited' : plan.maxTeachers }} Teachers</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-[#23A997] mr-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                <span class="text-[15px] text-[#475569] font-medium">{{ isUnlimited(plan.maxCourses) ? 'Unlimited' : plan.maxCourses }} Courses</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-[#23A997] mr-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                <span class="text-[15px] text-[#475569] font-medium">{{ isUnlimited(plan.storageGb) ? 'Unlimited' : plan.storageGb }} GB Storage</span>
+              </li>
+              <li *ngFor="let extra of plan.features" class="flex items-start">
+                <svg class="w-5 h-5 text-[#23A997] mr-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                 <span class="text-[15px] text-[#475569] font-medium">{{ extra }}</span>
+              </li>
+            </ul>
+          </div>
 
           <button *ngIf="usageData.plan.id !== plan.id" 
                   (click)="triggerUpgrade(plan)"
                   [disabled]="checkoutLoadingId === plan.id"
-                  class="w-full py-3 rounded-xl font-bold transition-all flex justify-center items-center"
-                  [ngClass]="plan.code === 'pro-monthly' ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'">
+                  class="w-full h-[46px] rounded-xl font-medium text-[15px] transition-all flex justify-center items-center"
+                  [ngClass]="plan.code === 'pro-monthly' ? 'bg-[#23A997] text-white hover:bg-[#1f9686] shadow-sm hover:shadow-md' : 'bg-white border text-[#181F39] border-[#e2e8f0] hover:border-[#cbd5e1] hover:bg-slate-50'">
             <span *ngIf="checkoutLoadingId !== plan.id">
                {{ usageData.plan.pricePerMonth > plan.pricePerMonth ? 'Downgrade to' : 'Upgrade to' }} {{ plan.name.split(' ')[1] || plan.name }}
             </span>
-            <i *ngIf="checkoutLoadingId === plan.id" class="fa-solid fa-circle-notch fa-spin text-lg"></i>
+            <span *ngIf="checkoutLoadingId === plan.id" class="flex items-center">
+              <i class="fa-solid fa-circle-notch fa-spin text-lg mr-2"></i> Processing...
+            </span>
           </button>
           
-          <button *ngIf="usageData.plan.id === plan.id" disabled class="w-full py-3 bg-gray-50 border border-gray-200 text-gray-400 rounded-xl font-bold cursor-not-allowed">
+          <button *ngIf="usageData.plan.id === plan.id" disabled class="w-full h-[46px] bg-slate-50 text-[#94a3b8] rounded-xl font-medium text-[15px] cursor-not-allowed border border-[#e2e8f0]">
             Current Tier
           </button>
         </div>

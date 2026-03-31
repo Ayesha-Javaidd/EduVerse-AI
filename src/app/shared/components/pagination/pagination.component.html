@@ -3,7 +3,7 @@
   <app-button
     (buttonClick)="goToPage(currentPage - 1)"
     [disabled]="currentPage === 1"
-    customColor="bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+    customColor="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
   >
     Prev
   </app-button>
@@ -15,8 +15,8 @@
       (buttonClick)="goToPage(page)"
       [customColor]="
         page === currentPage
-          ? 'bg-slate-800 text-white'
-          : 'bg-gray-100 text-gray-700 hover:bg-gray-300'
+          ? 'bg-indigo-600 text-white shadow-md'
+          : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors'
       "
     >
       {{ page }}
@@ -27,7 +27,7 @@
   <app-button
     (buttonClick)="goToPage(currentPage + 1)"
     [disabled]="currentPage === totalPages"
-    customColor="bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+    customColor="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
   >
     Next
   </app-button>

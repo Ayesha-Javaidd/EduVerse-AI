@@ -1,84 +1,113 @@
-<!-- Hamburger Button (Visible on all screens) -->
-<button
-  (click)="toggleSidebarAction()"
-  class="fixed top-4 left-4 z-[70] bg-slate-900 text-white p-2 rounded-md"
->
-  <i class="fa-solid fa-bars text-xl"></i>
+<!-- Hamburger Button (Mobile only) -->
+<button *ngIf="isMobile && !isMobileSidebarVisible" (click)="toggleSidebarAction()"
+  class="fixed top-4 left-4 z-[70] bg-[#181F39] text-white p-2.5 rounded-lg shadow-lg border border-white/10">
+  <i class="fa-solid fa-bars text-lg"></i>
 </button>
 
 <!-- Background Overlay for Mobile -->
-<div
-  *ngIf="isMobile && isMobileSidebarVisible"
-  (click)="closeMobileSidebar()"
-  class="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-[60]"
-></div>
+<div *ngIf="isMobile && isMobileSidebarVisible" (click)="closeMobileSidebar()"
+  class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]"></div>
 
 <!-- Sidebar -->
-<div
-  class="bg-slate-900 text-white fixed top-0 left-0 h-screen flex flex-col z-[70] transition-all duration-300 ease-in-out"
+<div class="sidebar-root fixed top-0 left-0 z-[70] h-screen flex flex-col transition-all duration-300 ease-in-out bg-[#181F39]"
   [ngClass]="{
-    'w-64': !isMobile && isOpen,
+    'w-[250px]': !isMobile && isOpen,
     'w-20': !isMobile && !isOpen,
+    'translate-x-0 w-[250px]': isMobile && isMobileSidebarVisible,
+    '-translate-x-full w-[250px]': isMobile && !isMobileSidebarVisible
+  }">
 
-    'translate-x-0 w-4/5': isMobile && isMobileSidebarVisible,
-    '-translate-x-full w-4/5': isMobile && !isMobileSidebarVisible
-  }"
->
-  <!-- Header -->
-  <div class="p-6 border-b border-slate-800 flex items-center justify-between">
-    <!-- Logo -->
-    <h1
-      class="text-xl font-bold text-gray-50 transition-all duration-300"
-      [class.hidden]="!isMobile && !isOpen"
-    >
-      EduVerse
-    </h1>
+  <!-- Logo Area -->
+  <div class="pt-8 pb-8 flex items-center" [ngClass]="{'pl-7 pr-6 justify-between': isOpen || isMobile, 'justify-center px-0': !isOpen && !isMobile}">
+    <div class="flex items-center" [class.hidden]="!isMobile && !isOpen">
+      <div class="bg-[#23A997] text-white h-[32px] w-[32px] min-w-[32px] rounded-[10px] flex items-center justify-center mr-3">
+        <i class="fa-solid fa-book-open text-[15px]"></i>
+      </div>
+      <span class="text-[22px] font-bold text-white tracking-tight leading-none">Edu<span class="text-[#23A997]">Verse</span></span>
+    </div>
 
-    <!-- Desktop Hamburger (aligned right inside header) -->
-    <button
-      (click)="toggleDesktopSidebar()"
-      class="hidden md:block text-gray-300 hover:text-white"
-    >
-      <i class="fa-solid fa-bars text-2xl"></i>
+    <!-- Collapsed: just show logo icon -->
+    <div *ngIf="!isMobile && !isOpen" class="bg-[#23A997] text-white h-[36px] w-[36px] min-w-[36px] rounded-[10px] flex items-center justify-center cursor-pointer" (click)="toggleDesktopSidebar()">
+      <i class="fa-solid fa-book-open text-[17px]"></i>
+    </div>
+
+    <!-- Desktop hamburger (Added right margin for spacing from logo) -->
+    <button *ngIf="!isMobile && isOpen" (click)="toggleDesktopSidebar()" class="text-[#64748b] hover:text-white transition-colors ml-4 mr-2">
+      <i class="fa-solid fa-bars text-[18px]"></i>
     </button>
 
-    <!-- Mobile Close Button -->
-    <button
-      *ngIf="isMobile"
-      (click)="closeMobileSidebar()"
-      class="text-gray-300 hover:text-white md:hidden"
-    >
-      <i class="fa-solid fa-xmark text-2xl"></i>
+    <!-- Mobile close -->
+    <button *ngIf="isMobile" (click)="closeMobileSidebar()" class="text-[#64748b] hover:text-white transition-colors ml-4 mr-2">
+      <i class="fa-solid fa-xmark text-xl"></i>
     </button>
   </div>
 
   <!-- Navigation -->
-  <nav class="flex-1 py-4 overflow-y-auto">
-    <ul class="space-y-2">
+  <nav class="flex-1 overflow-y-auto mt-2">
+    <ul class="flex flex-col gap-1">
       <li *ngFor="let item of menuItems">
-        <a
-          [routerLink]="item.path"
-          routerLinkActive="bg-slate-700 text-white"
-          [routerLinkActiveOptions]="{ exact: true }"
-          class="flex items-center px-6 py-3 text-gray-300 hover:bg-slate-700 hover:text-white transition-colors"
-          (click)="closeMobileSidebar()"
-        >
-          <i class="{{ item.icon }} mr-3 text-lg"></i>
-          <span [class.hidden]="!isMobile && !isOpen">{{ item.label }}</span>
+        <a [routerLink]="item.path"
+          routerLinkActive="active-nav-item"
+          class="nav-link flex items-center py-[14px] cursor-pointer text-[#e2e8f0] hover:text-white transition-all duration-200 text-[15px] font-normal"
+          [ngClass]="{
+            'pl-5 pr-5 mx-3': isOpen || isMobile,
+            'justify-center mx-[18px]': !isOpen && !isMobile
+          }"
+          (click)="closeMobileSidebar()">
+          
+          <!-- Explicit Outline SVGs accurately matching the design -->
+          <ng-container [ngSwitch]="item.label">
+            <svg *ngSwitchCase="'Dashboard'" class="svg-icon transition-all duration-200 w-[20px] h-[20px]" [ngClass]="{'mr-3': isOpen || isMobile}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <!-- Custom unequal grid to match design exactly -->
+              <rect x="3" y="3" width="7" height="10" rx="1.5"></rect>
+              <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+              <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+              <rect x="14" y="11" width="7" height="10" rx="1.5"></rect>
+            </svg>
+            <svg *ngSwitchCase="'Teachers'" class="svg-icon transition-all duration-200 w-[20px] h-[20px]" [ngClass]="{'mr-3': isOpen || isMobile}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+            </svg>
+            <svg *ngSwitchCase="'Students'" class="svg-icon transition-all duration-200 w-[20px] h-[20px]" [ngClass]="{'mr-3': isOpen || isMobile}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <svg *ngSwitchCase="'Courses'" class="svg-icon transition-all duration-200 w-[20px] h-[20px]" [ngClass]="{'mr-3': isOpen || isMobile}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+            </svg>
+            <svg *ngSwitchCase="'Settings'" class="svg-icon transition-all duration-200 w-[20px] h-[20px]" [ngClass]="{'mr-3': isOpen || isMobile}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <i *ngSwitchDefault class="{{ item.icon }} text-[18px] transition-all duration-200" [ngClass]="{'mr-3 w-[20px]': isOpen || isMobile, 'w-[20px]': !isOpen && !isMobile}"></i>
+          </ng-container>
+
+          <span *ngIf="isOpen || isMobile" class="font-normal">{{ item.label }}</span>
         </a>
       </li>
     </ul>
   </nav>
 
   <!-- Logout -->
-  <div class="p-4 border-t border-slate-800">
-    <app-button
-      customColor="bg-red-700 text-white"
-      [fullWidth]="true"
-      (buttonClick)="logout()"
-    >
-      <i class="fa-solid fa-right-from-bracket mr-2"></i>
-      <span *ngIf="isMobile || isOpen">Logout</span>
-    </app-button>
+  <div class="mt-auto border-t border-[#232b45] pt-5 mb-6"
+    [ngClass]="{
+      'ml-[20px] mr-[28px]': isOpen || isMobile,
+      'mx-[18px]': !isOpen && !isMobile
+    }">
+    <button class="flex items-center text-[#e2e8f0] hover:text-red-400 transition-colors w-full text-[15px] font-normal group rounded-2xl py-[14px] hover:bg-white/5"
+      [ngClass]="{
+        'px-[22px] text-left': isOpen || isMobile,
+        'justify-center': !isOpen && !isMobile
+      }"
+      (click)="logout()">
+      <svg class="svg-icon transition-all duration-200 group-hover:text-red-400 group-hover:stroke-red-400 stroke-current w-[20px] h-[20px]" [ngClass]="{'mr-3': isOpen || isMobile}" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+      <span *ngIf="isOpen || isMobile">Logout</span>
+    </button>
   </div>
 </div>

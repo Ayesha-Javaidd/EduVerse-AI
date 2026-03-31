@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
-import { AdminService } from '../../../../core/services/admin.service';
+import { AdminService, AdminTeacher } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { BackendCourse } from '../../../../core/services/course.service';
 import { EntityModalComponent, FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
@@ -32,29 +33,20 @@ export class CoursesComponent implements OnInit {
       key: 'status',
       label: 'Status',
       type: 'badge',
-      badgeColors: {
-        Active: 'bg-green-100 text-green-800',
-        active: 'bg-green-100 text-green-800',
-        Inactive: 'bg-red-100 text-red-800',
-        inactive: 'bg-red-100 text-red-800',
-        Upcoming: 'bg-blue-100 text-blue-800',
-        upcoming: 'bg-blue-100 text-blue-800',
-        Completed: 'bg-gray-100 text-gray-800',
-        completed: 'bg-gray-100 text-gray-800',
-      },
     },
   ];
 
   courses: BackendCourse[] = [];
   filteredCourses: BackendCourse[] = [];
-  teachers: any[] = [];
+  teachers: AdminTeacher[] = [];
   loading: boolean = true;
+  highlightedRowId: string | null = null;
 
   // Modal state
   isModalOpen = false;
   isEditMode = true; // Admin can only edit, not create
   modalTitle = 'Edit Course';
-  selectedCourse: any = null;
+  selectedCourse: BackendCourse | null = null;
 
   // Admin can only edit status - simplified fields
   courseFields: FormField[] = [
@@ -73,20 +65,26 @@ export class CoursesComponent implements OnInit {
   constructor(
     private adminService: AdminService,
     private authService: AuthService,
-    private confirmDialogService: ConfirmDialogService
+    private confirmDialogService: ConfirmDialogService,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['highlight']) {
+        this.highlightedRowId = params['highlight'];
+      }
+    });
     // Load teachers first to have data for mapping names
     this.loadTeachers();
   }
 
   loadTeachers() {
     this.adminService.getTeachers().subscribe({
-      next: (teachers: any[]) => {
+      next: (teachers: AdminTeacher[]) => {
         this.teachers = teachers;
         const teacherOptions = teachers.map(t => ({
-          value: t.id || t._id,
+          value: t.id || t._id || '',
           label: t.fullName
         }));
 
@@ -109,8 +107,8 @@ export class CoursesComponent implements OnInit {
   loadCourses() {
     this.loading = true;
     this.adminService.getCourses().subscribe({
-      next: (data: any[]) => {
-        this.courses = data.map((c: any) => {
+      next: (data: BackendCourse[]) => {
+        this.courses = data.map(c => {
           // Try to find teacher name if missing
           const teacher = this.teachers.find(t => (t.id || t._id) === c.teacherId);
           return {
@@ -140,7 +138,7 @@ export class CoursesComponent implements OnInit {
   async onDeleteCourse(course: BackendCourse) {
     const isConfirmed = await this.confirmDialogService.confirmDelete(course.title);
     if (isConfirmed) {
-      this.adminService.deleteCourse((course as any).id || (course as any)._id).subscribe({
+      this.adminService.deleteCourse(course.id || course._id!).subscribe({
         next: () => {
           this.loadCourses();
         },
@@ -156,7 +154,7 @@ export class CoursesComponent implements OnInit {
     this.selectedCourse = null;
   }
 
-  onModalSubmit(formData: any) {
+  onModalSubmit(formData: Partial<BackendCourse>) {
     // Admin can update title and status
     const courseData = {
       title: formData.title,
@@ -164,7 +162,7 @@ export class CoursesComponent implements OnInit {
     };
 
     const request = this.adminService.updateCourse(
-      (this.selectedCourse as any).id || (this.selectedCourse as any)._id,
+      this.selectedCourse!.id || this.selectedCourse!._id!,
       courseData
     );
 
@@ -183,7 +181,7 @@ export class CoursesComponent implements OnInit {
   onFiltersChange(filters: { [key: string]: string }) {
     this.currentPage = 1;
     this.filteredCourses = this.courses.filter((c: BackendCourse) => {
-      const instructorName = (c as any).instructorName || 'TBD';
+      const instructorName = c.instructorName || 'TBD';
       const matchesSearch = !filters['search'] ||
         (c.title && c.title.toLowerCase().includes(filters['search'].toLowerCase())) ||
         (instructorName.toLowerCase().includes(filters['search'].toLowerCase())) ||

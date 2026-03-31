@@ -29,6 +29,16 @@ export class DataTableComponent {
   /** Route to navigate when "View All" is clicked */
   @Input() viewAllRoute?: string;
 
+  @Input() highlightedRowId?: string | null;
+
+  getHighlightClass(row: any): string {
+    const rowId = row._id || row.id;
+    if (this.highlightedRowId && rowId === this.highlightedRowId) {
+      return 'bg-[#23A997]/10 border-l-4 border-l-[#23A997] transition-all duration-300';
+    }
+    return '';
+  }
+
   /** Optional row click event */
   @Input() rowClickable: boolean = false;
 
@@ -90,6 +100,6 @@ export interface TableColumn {
   key: string;                        // property name in row object
   label: string;                      // column header label
   type?: 'text' | 'badge' | 'avatar' | 'date' | 'action' | 'progress' | 'link';
-  badgeColors?: { [key: string]: string }; // used only when type = 'badge'
   link?: string;                       // used when type = 'link'
+  width?: string;                      // NEW: explicit width (e.g., '30%', '150px')
 }

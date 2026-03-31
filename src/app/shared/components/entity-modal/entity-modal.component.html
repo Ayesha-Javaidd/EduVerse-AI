@@ -1,112 +1,130 @@
-<div *ngIf="isOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+<!-- Backdrop Overlay -->
+<div *ngIf="isOpen" class="fixed inset-0 bg-black/30 backdrop-blur-[2px] flex items-center justify-center z-[100] transition-opacity duration-300 p-6"
     (click)="onBackdropClick($event)">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+
+    <!-- Modal Panel -->
+    <div class="bg-white rounded-[24px] shadow-2xl border border-[#e2e8f0] w-full max-w-2xl max-h-full flex flex-col transform transition-all overflow-hidden"
         (click)="$event.stopPropagation()">
+
         <!-- Header -->
-        <div class="flex justify-between items-center p-6 border-b">
-            <h2 class="text-2xl font-bold text-gray-800">{{ title }}</h2>
-            <button (click)="close()" class="text-gray-400 hover:text-gray-600">
+        <div class="flex justify-between items-center p-5 sm:p-6 border-b border-[#e2e8f0] flex-shrink-0">
+            <h2 class="text-xl font-bold text-[#181F39]">{{ title }}</h2>
+            <button type="button" (click)="close()" class="text-gray-400 hover:text-gray-600 transition-colors">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
 
-        <!-- Form -->
-        <form (ngSubmit)="onSubmit()" class="p-6 space-y-4">
-            <div *ngFor="let field of fields" class="space-y-2">
-                <!-- Text/Email/Password Input -->
-                <div *ngIf="field.type === 'text' || field.type === 'email' || field.type === 'password'">
-                    <label class="block text-sm font-medium text-gray-700">
-                        {{ field.label }}
-                        <span *ngIf="field.required" class="text-red-500">*</span>
-                    </label>
-                    <div class="relative mt-1">
-                        <input [type]="field.type === 'password' ? (showPasswords[field.name] ? 'text' : 'password') : field.type" 
-                            [(ngModel)]="formData[field.name]" [name]="field.name"
-                            [required]="!!field.required" [placeholder]="field.placeholder || ''"
-                            [disabled]="!!field.disabled"
-                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
-                        
-                        <!-- Password Visibility Toggle -->
-                        <button *ngIf="field.type === 'password'" type="button" 
-                            (click)="togglePassword(field.name)"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">
-                            <svg *ngIf="!showPasswords[field.name]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <svg *ngIf="showPasswords[field.name]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
+        <!-- Form Wrapper -->
+        <form (ngSubmit)="onSubmit()" class="flex flex-col flex-1 min-h-0 overflow-hidden">
 
-                <!-- Textarea -->
-                <div *ngIf="field.type === 'textarea'">
-                    <label class="block text-sm font-medium text-gray-700">
-                        {{ field.label }}
-                        <span *ngIf="field.required" class="text-red-500">*</span>
-                    </label>
-                    <textarea [(ngModel)]="formData[field.name]" [name]="field.name" [required]="!!field.required"
-                        [placeholder]="field.placeholder || ''" rows="3" [disabled]="!!field.disabled"
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"></textarea>
-                </div>
+            <!-- Scrollable Body -->
+            <div class="p-5 sm:p-6 overflow-y-auto flex-1 min-h-0 custom-scrollbar">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div *ngFor="let field of fields" 
+                         [ngClass]="(field.colSpan === 2 || (!field.colSpan && (field.type === 'textarea' || field.type === 'array'))) ? 'col-span-1 md:col-span-2' : 'col-span-1'">
 
-                <!-- Select Dropdown -->
-                <div *ngIf="field.type === 'select'">
-                    <label class="block text-sm font-medium text-gray-700">
-                        {{ field.label }}
-                        <span *ngIf="field.required" class="text-red-500">*</span>
-                    </label>
-                    <select [(ngModel)]="formData[field.name]" [name]="field.name" [required]="!!field.required"
-                        [disabled]="!!field.disabled"
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
-                        <option value="" disabled>Select {{ field.label }}</option>
-                        <option *ngFor="let opt of field.options" [value]="opt.value">{{ opt.label }}</option>
-                    </select>
-                </div>
+                        <!-- Text/Email/Password Input -->
+                        <div *ngIf="field.type === 'text' || field.type === 'email' || field.type === 'password'">
+                            <label class="block text-sm font-semibold text-[#181F39] mb-1.5">
+                                {{ field.label }}
+                                <span *ngIf="field.required" class="text-red-500">*</span>
+                            </label>
+                            <div class="relative mt-1">
+                                <input [type]="field.type === 'password' ? (showPasswords[field.name] ? 'text' : 'password') : field.type"
+                                    [(ngModel)]="formData[field.name]" [name]="field.name"
+                                    [required]="!!field.required" [placeholder]="field.placeholder || ''"
+                                    [disabled]="!!field.disabled"
+                                    [ngClass]="field.type === 'password' ? 'pl-4 pr-12' : 'px-4'"
+                                    class="block w-full h-[46px] bg-white border border-[#cbd5e1] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all disabled:bg-gray-50 disabled:text-gray-400 placeholder-gray-400" />
 
-                <!-- Array Input (for qualifications, subjects, etc.) -->
-                <div *ngIf="field.type === 'array'">
-                    <label class="block text-sm font-medium text-gray-700">
-                        {{ field.label }}
-                        <span *ngIf="field.required" class="text-red-500">*</span>
-                    </label>
-                    <div class="space-y-2">
-                        <div *ngFor="let item of formData[field.name]; let i = index; trackBy: trackByFn"
-                            class="flex gap-2">
-                            <input type="text" [(ngModel)]="formData[field.name][i]" [name]="field.name + '_' + i"
-                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                [placeholder]="field.placeholder || 'Enter ' + field.label" />
-                            <button type="button" (click)="removeArrayItem(field.name, i)"
-                                class="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                                <!-- Password Visibility Toggle -->
+                                <button *ngIf="field.type === 'password'" type="button"
+                                    (click)="togglePassword(field.name)"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-[#23A997] transition-colors">
+                                    <svg *ngIf="!showPasswords[field.name]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <svg *ngIf="showPasswords[field.name]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
-                        <button type="button" (click)="addArrayItem(field.name)"
-                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                            <i class="fas fa-plus mr-2"></i>Add {{ field.label }}
-                        </button>
-                    </div>
-                </div>
-            </div>
+
+                        <!-- Textarea -->
+                        <div *ngIf="field.type === 'textarea'">
+                            <label class="block text-sm font-semibold text-[#181F39]">
+                                {{ field.label }}
+                                <span *ngIf="field.required" class="text-red-500">*</span>
+                            </label>
+                            <textarea [(ngModel)]="formData[field.name]" [name]="field.name" [required]="!!field.required"
+                                [placeholder]="field.placeholder || ''" rows="3" [disabled]="!!field.disabled"
+                                class="mt-1 block w-full px-4 py-3 bg-white border border-[#cbd5e1] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all disabled:bg-gray-50 disabled:text-gray-400 placeholder-gray-400"></textarea>
+                        </div>
+
+                        <!-- Select Dropdown -->
+                        <div *ngIf="field.type === 'select'">
+                            <label class="block text-sm font-semibold text-[#181F39]">
+                                {{ field.label }}
+                                <span *ngIf="field.required" class="text-red-500">*</span>
+                            </label>
+                            <select [(ngModel)]="formData[field.name]" [name]="field.name" [required]="!!field.required"
+                                [disabled]="!!field.disabled"
+                                class="mt-1 block w-full px-4 h-[46px] bg-white border border-[#cbd5e1] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all disabled:bg-gray-50 disabled:text-gray-400">
+                                <option value="" disabled>Select {{ field.label }}</option>
+                                <option *ngFor="let opt of field.options" [value]="opt.value">{{ opt.label }}</option>
+                            </select>
+                        </div>
+
+                        <!-- Array Input -->
+                        <div *ngIf="field.type === 'array'">
+                            <label class="block text-sm font-semibold text-[#181F39]">
+                                {{ field.label }}
+                                <span *ngIf="field.required" class="text-red-500">*</span>
+                            </label>
+                            <div class="space-y-3 mt-1">
+                                <div *ngFor="let item of formData[field.name]; let i = index; trackBy: trackByFn"
+                                    class="flex gap-2">
+                                    <input type="text" [(ngModel)]="formData[field.name][i]" [name]="field.name + '_' + i"
+                                        class="flex-1 px-4 h-[46px] bg-white border border-[#cbd5e1] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all"
+                                        [placeholder]="field.placeholder || 'Enter ' + field.label" />
+                                    <button type="button" (click)="removeArrayItem(field.name, i)"
+                                        class="px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 hover:text-red-700 transition-colors flex items-center justify-center">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                <button type="button" (click)="addArrayItem(field.name)"
+                                    class="px-4 py-3 w-full bg-[#23A997]/5 border border-dashed border-[#23A997]/30 text-[#23A997] rounded-xl hover:bg-[#23A997]/10 hover:border-[#23A997]/50 transition-colors font-semibold flex items-center justify-center">
+                                    <i class="fas fa-plus mr-2"></i>Add Another {{ field.label }}
+                                </button>
+                            </div>
+                        </div>
+
+                    </div><!-- /ngFor field -->
+                </div><!-- /space-y-5 -->
+            </div><!-- /scrollable body -->
 
             <!-- Error Message -->
-            <div *ngIf="errorMessage" class="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                {{ errorMessage }}
+            <div *ngIf="errorMessage" class="px-6 pb-4">
+                <div class="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl flex items-center gap-2 text-sm font-medium">
+                    <i class="fas fa-circle-exclamation"></i> {{ errorMessage }}
+                </div>
             </div>
 
-            <!-- Actions -->
-            <div class="flex justify-end gap-3 pt-4">
+            <!-- Actions (Sticky Bottom) -->
+            <div class="flex justify-end gap-3 p-6 border-t border-[#e2e8f0] bg-slate-50 flex-shrink-0">
                 <button type="button" (click)="close()"
-                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    class="px-6 py-2.5 rounded-[12px] font-bold text-slate-600 bg-white border border-[#e2e8f0] hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#23A997]/20 shadow-sm">
                     Cancel
                 </button>
                 <button type="submit" [disabled]="loading || isFormInvalid() || (isEditMode && !hasUnsavedChanges())"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400">
-                    {{ loading ? 'Saving...' : (isEditMode ? 'Update' : 'Create') }}
+                    class="px-8 py-2.5 bg-[#23A997] hover:bg-[#1e9585] border border-transparent text-white rounded-[12px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(35,169,151,0.2)] focus:outline-none focus:ring-2 focus:ring-[#23A997]/50">
+                    <span *ngIf="loading"><i class="fas fa-circle-notch fa-spin mr-2"></i>Saving...</span>
+                    <span *ngIf="!loading">{{ isEditMode ? 'Update' : 'Create' }}</span>
                 </button>
             </div>
-        </form>
-    </div>
-</div>
+
+        </form><!-- /form -->
+    </div><!-- /modal panel -->
+</div><!-- /backdrop -->

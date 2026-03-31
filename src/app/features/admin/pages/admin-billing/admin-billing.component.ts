@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AdminService } from '../../../../core/services/admin.service';
+import { AdminService, BillingPlan, BillingUsage, CheckoutResponse } from '../../../../core/services/admin.service';
 import { HttpClientModule } from '@angular/common/http';
 import { StripeEmbeddedModalComponent } from '../../../../shared/components/stripe-embedded-modal/stripe-embedded-modal.component';
 
@@ -14,12 +14,12 @@ import { StripeEmbeddedModalComponent } from '../../../../shared/components/stri
 export class AdminBillingComponent implements OnInit {
   
   loading = true;
-  usageData: any = null;
-  availablePlans: any[] = [];
+  usageData: BillingUsage | null = null;
+  availablePlans: BillingPlan[] = [];
   
   // Modal state
   showPaymentModal: boolean = false;
-  selectedPlan: any = null;
+  selectedPlan: BillingPlan | null = null;
   clientSecret: string = '';
   
   checkoutLoadingId: string | null = null;
@@ -57,18 +57,19 @@ export class AdminBillingComponent implements OnInit {
     });
   }
 
-  getUsagePercentage(used: number, max: number): number {
-    if (max <= 0 || max === null || max === undefined) return 0; // Unlimited
+  getUsagePercentage(used: number | undefined, max: number | undefined): number {
+    if (used === undefined) used = 0;
+    if (max === undefined || max <= 0 || max === null) return 0; // Unlimited
     const percent = (used / max) * 100;
     return percent > 100 ? 100 : percent;
   }
 
-  isUnlimited(val: number): boolean {
+  isUnlimited(val: number | undefined | null): boolean {
     return val === -1 || val === null || val === undefined;
   }
 
   // User clicked "Upgrade" on a tier card
-  triggerUpgrade(plan: any): void {
+  triggerUpgrade(plan: BillingPlan): void {
     this.selectedPlan = plan;
     this.checkoutLoadingId = plan.id;
     
