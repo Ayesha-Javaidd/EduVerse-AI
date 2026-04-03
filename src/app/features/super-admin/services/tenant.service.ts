@@ -19,6 +19,7 @@ export interface TenantResponse {
   subscriptionPriceMonthly?: number;
   subscriptionStartDate?: string;
   subscriptionExpiryDate?: string;
+  gracePeriodUntil?: string;
   subscriptionNotes?: string;
   courses: number;
   teachers: number;
@@ -34,7 +35,7 @@ export class TenantService {
   private apiUrl = `${API_BASE_URL}/tenants`;
   private selectedTenant$ = new BehaviorSubject<TenantResponse | null>(null);
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /** Fetch live list from Backend */
   getTenantsApi(

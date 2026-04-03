@@ -1,53 +1,30 @@
 <div class="flex flex-col h-full animate-fade-in">
+  <app-subscription-expiry-dialog *ngIf="isSubscriptionExpired"></app-subscription-expiry-dialog>
   <app-header pageTitle="Admin Dashboard"></app-header>
 
   <main class="p-6">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <app-stat-card 
-        *ngFor="let stat of statsCards" 
-        [title]="stat.title" 
-        [value]="stat.value" 
-        [icon]="stat.icon"
-        [iconBgClass]="stat.iconBgClass" 
-        [iconColorClass]="stat.iconColorClass">
+      <app-stat-card *ngFor="let stat of statsCards" [title]="stat.title" [value]="stat.value" [icon]="stat.icon"
+        [iconBgClass]="stat.iconBgClass" [iconColorClass]="stat.iconColorClass">
       </app-stat-card>
     </div>
 
     <div class="mb-8">
-      <app-data-table
-        title="Teachers"
-        [columns]="teacherColumns"
-        [rows]="teachers"
-        [showViewAll]="true"
-        viewAllRoute="admin/teachers"
-        [enableActions]="false"
-        (actionClick)="navigateToEntity('teachers', $event)"
-      ></app-data-table>
+      <app-data-table title="Teachers" [columns]="teacherColumns" [rows]="teachers" [showViewAll]="true"
+        viewAllRoute="admin/teachers" [enableActions]="false"
+        (actionClick)="navigateToEntity('teachers', $event)"></app-data-table>
     </div>
-    
+
     <div class="mb-8">
-      <app-data-table
-        title="Students"
-        [columns]="studentColumns"
-        [rows]="students"
-        [showViewAll]="true"
-        viewAllRoute="admin/students"
-        [enableActions]="false"
-        (actionClick)="navigateToEntity('students', $event)"
-      ></app-data-table>
+      <app-data-table title="Students" [columns]="studentColumns" [rows]="students" [showViewAll]="true"
+        viewAllRoute="admin/students" [enableActions]="false"
+        (actionClick)="navigateToEntity('students', $event)"></app-data-table>
     </div>
-    
+
     <div class="mb-8">
-      <app-data-table
-        title="Courses"
-        [columns]="courseColumns"
-        [rows]="courses"
-        [showViewAll]="true"
-        viewAllRoute="admin/courses"
-        [enableActions]="false"
-        (actionClick)="navigateToEntity('courses', $event)"
-      ></app-data-table>
+      <app-data-table title="Courses" [columns]="courseColumns" [rows]="courses" [showViewAll]="true"
+        viewAllRoute="admin/courses" [enableActions]="false"
+        (actionClick)="navigateToEntity('courses', $event)"></app-data-table>
     </div>
   </main>
 </div>
-

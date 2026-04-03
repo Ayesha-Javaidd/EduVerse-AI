@@ -2,8 +2,8 @@
   <app-sidebar role="admin" (toggleSidebar)="onSidebarToggle($event)"></app-sidebar>
 
   <div class="transition-all duration-300 w-full min-h-screen relative" [ngClass]="{
-      'pl-[16rem]': !isMobile && isSidebarOpen,
-      'pl-[5rem]': !isMobile && !isSidebarOpen,
+      'pl-[250px]': !isMobile && isSidebarOpen,
+      'pl-[80px]': !isMobile && !isSidebarOpen,
       'pl-0': isMobile
     }">
     <router-outlet></router-outlet>

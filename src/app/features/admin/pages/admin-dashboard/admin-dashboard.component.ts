@@ -9,6 +9,7 @@ import { AdminService, AdminTeacher, AdminStudent } from '../../../../core/servi
 import { BackendCourse } from '../../../../core/services/course.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { Router } from '@angular/router';
+import { SubscriptionExpiryDialogComponent } from '../../../../shared/components/subscription-expiry-dialog/subscription-expiry-dialog.component';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -17,7 +18,8 @@ import { Router } from '@angular/router';
     CommonModule,
     HeaderComponent,
     StatCardComponent,
-    DataTableComponent
+    DataTableComponent,
+    SubscriptionExpiryDialogComponent
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css',
@@ -97,6 +99,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   courses: BackendCourse[] = [];
   loading: boolean = true;
+  isSubscriptionExpired: boolean = false;
 
   constructor(
     private adminService: AdminService, // UPDATED: Injected AdminService
@@ -110,9 +113,21 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       .subscribe(user => {
         // Only load data if user is actually an admin and has a tenantId
         if (user && (user.role === 'admin' || user.role === 'super_admin') && user.tenantId) {
+          this.checkSubscriptionStatus();
           this.loadAdminData(user.tenantId);
         }
       });
+  }
+
+  private checkSubscriptionStatus() {
+    this.adminService.getBillingStatus().subscribe({
+      next: (status) => {
+        this.isSubscriptionExpired = !status.isActive;
+      },
+      error: (err) => {
+        console.error('Failed to check subscription status', err);
+      }
+    });
   }
 
   ngOnDestroy() {

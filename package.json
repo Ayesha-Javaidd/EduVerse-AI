@@ -20,9 +20,10 @@
     "@angular/router": "^19.2.17",
     "@stripe/stripe-js": "^9.0.0",
     "chart.js": "3.9.1",
-    "marked": "^17.0.5",
+    "intl-tel-input": "^26.9.1",
+    "marked": "^15.0.0",
     "ng2-charts": "4.1.1",
-    "ngx-markdown": "^21.1.0",
+    "ngx-markdown": "^19.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

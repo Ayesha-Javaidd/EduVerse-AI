@@ -30,36 +30,32 @@ export class SuperadminDashboardComponent implements OnInit {
 
   stats = [
     {
-      title: 'Total Tenants',
+      title: 'Total Organizations',
       value: 0 as string | number,
       icon: 'fa-solid fa-building',
-      iconBgClass: 'bg-blue-100',
-      iconColorClass: 'text-blue-600',
-      bgColor: 'bg-white'
+      iconBgClass: 'bg-[#23A997]/10',
+      iconColorClass: 'text-[#23A997]',
     },
     {
-      title: 'Active Users',
-      value: '0' as string | number,
-      icon: 'fa-solid fa-users',
-      iconBgClass: 'bg-green-100',
-      iconColorClass: 'text-green-600',
-      bgColor: 'bg-white'
-    },
-    {
-      title: 'Total Courses',
+      title: 'Active',
       value: 0 as string | number,
-      icon: 'fa-solid fa-book',
-      iconBgClass: 'bg-purple-100',
-      iconColorClass: 'text-purple-600',
-      bgColor: 'bg-white'
+      icon: 'fa-solid fa-circle-check',
+      iconBgClass: 'bg-green-500/10',
+      iconColorClass: 'text-green-500',
+    },
+    {
+      title: 'Inactive',
+      value: 0 as string | number,
+      icon: 'fa-solid fa-circle-xmark',
+      iconBgClass: 'bg-red-500/10',
+      iconColorClass: 'text-red-500',
     },
     {
       title: 'Revenue',
       value: '$0' as string | number,
       icon: 'fa-solid fa-dollar-sign',
-      iconBgClass: 'bg-yellow-100',
-      iconColorClass: 'text-yellow-600',
-      bgColor: 'bg-white'
+      iconBgClass: 'bg-[#23A997]/10',
+      iconColorClass: 'text-[#23A997]',
     }
   ];
 
@@ -68,8 +64,9 @@ export class SuperadminDashboardComponent implements OnInit {
 
   organizationColumns: TableColumn[] = [
     { key: 'name', label: 'Organization Name', type: 'text' },
-    { key: 'activeCourses', label: 'Active Courses', type: 'text' },
-    { key: 'users', label: 'Users', type: 'text' }
+    { key: 'teachers', label: 'Teachers', type: 'text' },
+    { key: 'students', label: 'Students', type: 'text' },
+    { key: 'courses', label: 'Courses', type: 'text' }
   ];
 
   organizationRows: OrganizationRow[] = [];
@@ -79,8 +76,11 @@ export class SuperadminDashboardComponent implements OnInit {
     this.dashboardService.getDashboardStats().subscribe({
       next: (data) => {
         this.stats[0].value = data.totalTenants;
-        this.stats[1].value = data.activeUsers;
-        this.stats[2].value = data.totalCourses;
+        // Pull Active and Inactive from activityData
+        const activeItem = data.activityData.find(a => a.category === 'Active');
+        const inactiveItem = data.activityData.find(a => a.category === 'Inactive');
+        this.stats[1].value = activeItem?.value ?? 0;
+        this.stats[2].value = inactiveItem?.value ?? 0;
         this.stats[3].value = data.revenue;
 
         this.tenantGrowthData = data.tenantGrowthData;
@@ -97,13 +97,36 @@ export class SuperadminDashboardComponent implements OnInit {
     return Math.max(...this.tenantGrowthData.map(d => d.tenants));
   }
 
+  /** Round up to a "nice" max for clean Y-axis ticks */
+  get niceMax(): number {
+    const raw = this.maxTenantValue;
+    if (raw <= 4) return Math.max(raw, 1); // Keep exact for small values
+    if (raw <= 10) return Math.ceil(raw / 2) * 2; // Round to nearest 2
+    return Math.ceil(raw / 5) * 5; // Round to nearest 5
+  }
+
+  /** Generate Y-axis tick values (top to bottom), avoiding duplicates */
+  get yAxisTicks(): number[] {
+    const max = this.niceMax;
+    // For small values (≤4), use integer steps: [max, max-1, ..., 0]
+    if (max <= 4) {
+      const ticks: number[] = [];
+      for (let i = max; i >= 0; i--) { ticks.push(i); }
+      return ticks;
+    }
+    // For larger values, use 4 even divisions
+    const step = max / 4;
+    return [max, Math.round(step * 3), Math.round(step * 2), Math.round(step), 0];
+  }
+
   get totalActivityValue(): number {
     return this.activityData.reduce((sum, item) => sum + item.value, 0);
   }
 
-  getBarHeight(value: number): number {
-    if (this.maxTenantValue === 0) return 0;
-    return (value / this.maxTenantValue) * 100;
+  /** Returns pixel height for a bar (280px = chart area height) */
+  getBarHeightPx(value: number): number {
+    if (this.niceMax === 0) return 0;
+    return (value / this.niceMax) * 280;
   }
 
   getPercentage(value: number): number {

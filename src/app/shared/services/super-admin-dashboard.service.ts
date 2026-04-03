@@ -11,8 +11,9 @@ export interface ActivityDataPoint {
 
 export interface OrganizationRow {
   name: string;
-  activeCourses: number;
-  users: number;
+  teachers: number;
+  students: number;
+  courses: number;
 }
 
 export interface TenantGrowthPoint {

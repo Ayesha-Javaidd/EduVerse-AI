@@ -93,24 +93,20 @@
         </div>
 
         <!-- Contact No -->
-        <input
-          type="text"
-          name="contactNo"
-          [(ngModel)]="contactNo"
-          placeholder="Contact Number"
-          required
-          class="w-full px-4 py-3 border rounded-md mb-2"
-        />
+        <div class="mb-2">
+          <app-phone-input name="contactNo" [(ngModel)]="contactNo" placeholder="Contact Number"></app-phone-input>
+        </div>
 
         <!-- Country -->
-        <input
-          type="text"
+        <select
           name="country"
           [(ngModel)]="country"
-          placeholder="Country"
           required
-          class="w-full px-4 py-3 border rounded-md mb-2"
-        />
+          class="w-full px-4 py-3 border rounded-md mb-2 bg-white"
+        >
+          <option value="" disabled>Select Country</option>
+          <option *ngFor="let c of countries" [value]="c">{{ c }}</option>
+        </select>
 
         <!-- Status -->
         <select

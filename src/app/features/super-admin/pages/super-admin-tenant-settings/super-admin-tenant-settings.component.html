@@ -1,4 +1,4 @@
-<div class="transition-all min-h-screen bg-gray-50">
+<div class="flex flex-col h-full animate-fade-in">
     <app-header pageTitle="Tenant Settings"></app-header>
 
     <main class="max-w-6xl mx-auto p-6 space-y-6">
@@ -9,16 +9,19 @@
                 <!-- Tenant Info -->
                 <app-tenant-info-form [tenant]="tenant" (save)="onSaveTenant($event)"></app-tenant-info-form>
 
-                <app-account-actions (deactivate)="onDeactivate()" (delete)="onDelete()"></app-account-actions>
+                <app-account-actions 
+                    [isActive]="tenant?.status === 'active'" 
+                    (deactivate)="onDeactivate()" 
+                    (activate)="onActivate()" 
+                    (grantGracePeriod)="onGrantGracePeriod()"
+                    (delete)="onDelete()">
+                </app-account-actions>
             </div>
 
             <!-- right: subscription details -->
             <div>
-                <app-subscription-details 
-                    [tenant]="tenant" 
-                    [availablePlans]="availablePlans" 
-                    (assignPlan)="onAssignPlan($event)"
-                    (renew)="onRenew()">
+                <app-subscription-details [tenant]="tenant" [availablePlans]="availablePlans"
+                    (assignPlan)="onAssignPlan($event)" (renew)="onRenew()">
                 </app-subscription-details>
             </div>
         </div>

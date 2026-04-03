@@ -1,111 +1,70 @@
-<div class="transition-all min-h-screen bg-gray-50 flex flex-col">
-  <app-header pageTitle="Super Admin Settings"></app-header>
-  
-  <main class="max-w-4xl mx-auto w-full p-6 lg:p-10 space-y-8 flex-1">
-    
-    <!-- Skeleton loader for initialization -->
-    <div *ngIf="loading" class="animate-pulse space-y-6">
-      <div class="h-32 bg-gray-200 rounded-xl w-full"></div>
-      <div class="h-48 bg-gray-200 rounded-xl w-full"></div>
-    </div>
-    
-    <!-- Profile & Settings Form UI -->
-    <div *ngIf="!loading" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      
-      <!-- Top aesthetic header for personal profile -->
-      <div class="bg-gradient-to-r from-blue-900 to-indigo-800 p-8 text-white relative flex justify-between items-center">
-        <!-- Floating shapes for aesthetics -->
-        <div class="absolute top-0 right-0 p-8 pointer-events-none opacity-20">
-          <i class="fa-solid fa-cube text-8xl transform rotate-12"></i>
-        </div>
-        
-        <div>
-          <h2 class="text-2xl font-black mb-1">My Profile Configuration</h2>
-          <p class="text-blue-200 text-sm">Update your global system credentials and security keys.</p>
-        </div>
-        
-        <div class="h-20 w-20 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border-2 border-white/20 shadow-lg">
-          <span class="text-3xl font-bold">{{ profileForm.get('fullName')?.value.charAt(0) || 'S' | uppercase }}</span>
-        </div>
-      </div>
+<div class="flex flex-col h-full animate-fade-in">
+  <app-header pageTitle="Settings"></app-header>
+  <main class="p-6">
+    <div class="max-w-6xl mx-auto space-y-6">
 
-      <div class="p-8">
-        <form [formGroup]="profileForm" (ngSubmit)="onSave()" class="space-y-6">
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Profile Information -->
+      <div *ngIf="!loading" class="bg-white rounded-[14px] shadow-sm border border-[#e2e8f0] p-6">
+        <h3 class="text-lg font-bold text-[#181F39] mb-6 flex items-center">
+          <i class="fa-solid fa-user-gear text-[#23A997] mr-2"></i> Profile Information
+        </h3>
+
+        <form [formGroup]="profileForm" (ngSubmit)="onSave()" class="space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <!-- Full Name -->
-            <div class="space-y-1">
-              <label class="text-sm font-semibold text-gray-700">Full Name</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                  <i class="fa-solid fa-user"></i>
-                </span>
-                <input formControlName="fullName" type="text"
-                  class="pl-10 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2.5 transition-all outline-none" placeholder="John Doe">
-              </div>
+            <div class="space-y-1.5">
+              <label class="text-sm font-semibold text-[#181F39]">Full Name</label>
+              <input formControlName="fullName" type="text" placeholder="John Doe"
+                class="w-full h-[46px] px-4 border border-[#cbd5e1] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all placeholder-gray-400">
               <div *ngIf="profileForm.get('fullName')?.invalid && profileForm.get('fullName')?.touched" class="text-red-500 text-xs mt-1">
                 Full name is required (min 2 characters).
               </div>
             </div>
 
             <!-- Email (Disabled) -->
-            <div class="space-y-1">
-              <label class="text-sm font-semibold text-gray-700">Login Email (Read-Only)</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                  <i class="fa-solid fa-envelope"></i>
-                </span>
-                <input formControlName="email" type="email"
-                  class="pl-10 w-full rounded-lg border-gray-200 bg-gray-50 text-gray-500 shadow-sm py-2.5 cursor-not-allowed outline-none">
-              </div>
+            <div class="space-y-1.5">
+              <label class="text-sm font-semibold text-[#181F39]">Email (Read-Only)</label>
+              <input formControlName="email" type="email"
+                class="w-full h-[46px] px-4 border border-[#e2e8f0] rounded-xl bg-slate-50 text-gray-400 cursor-not-allowed">
             </div>
 
             <!-- Contact Number -->
-            <div class="space-y-1">
-              <label class="text-sm font-semibold text-gray-700">Contact Number</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                  <i class="fa-solid fa-phone"></i>
-                </span>
-                <input formControlName="contactNo" type="text"
-                  class="pl-10 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2.5 outline-none" placeholder="+1 (555) 123-4567">
-              </div>
+            <div class="space-y-1.5">
+              <label class="text-sm font-semibold text-[#181F39]">Contact Number</label>
+              <app-phone-input formControlName="contactNo" placeholder="Enter phone number"></app-phone-input>
             </div>
 
             <!-- Country -->
-            <div class="space-y-1">
-              <label class="text-sm font-semibold text-gray-700">Origin Country</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                  <i class="fa-solid fa-globe"></i>
-                </span>
-                <input formControlName="country" type="text"
-                  class="pl-10 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2.5 outline-none" placeholder="United States">
-              </div>
+            <div class="space-y-1.5">
+              <label class="text-sm font-semibold text-[#181F39]">Country</label>
+              <select formControlName="country"
+                class="w-full h-[46px] px-4 border border-[#cbd5e1] rounded-xl bg-white focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all cursor-pointer">
+                <option value="" disabled>Select country</option>
+                <option *ngFor="let c of countries" [value]="c">{{ c }}</option>
+              </select>
             </div>
           </div>
 
-          <div class="flex justify-end pt-4 border-t border-gray-100">
+          <div class="flex justify-end pt-4 border-t border-[#e2e8f0]">
             <button type="submit" [disabled]="profileForm.invalid"
-              class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:ring-4 focus:ring-blue-100 outline-none">
-              Save Identity
+              class="bg-[#23A997] hover:bg-[#1e9585] text-white font-bold h-[46px] px-8 rounded-xl shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:ring-4 focus:ring-[#23A997]/20">
+              Save Changes
             </button>
           </div>
         </form>
       </div>
-      
-    </div>
 
-    <!-- Security Panel -->
-    <div *ngIf="!loading" class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-      <h3 class="text-lg font-bold text-gray-900 mb-2 flex items-center">
-        <i class="fa-solid fa-shield-halved text-green-500 mr-2"></i> Security Access
-      </h3>
-      <p class="text-sm text-gray-500 mb-6">Modify your primary password token.</p>
-      
-      <!-- Change password embedded -->
-      <app-change-password [isSuperAdmin]="true" (ngSubmit)="onPasswordChanged($event)"></app-change-password>
-    </div>
+      <!-- Change Password -->
+      <div *ngIf="!loading">
+        <app-change-password [isSuperAdmin]="true"></app-change-password>
+      </div>
 
+      <!-- Skeleton loader -->
+      <div *ngIf="loading" class="animate-pulse space-y-6">
+        <div class="h-64 bg-gray-200 rounded-[14px] w-full"></div>
+        <div class="h-48 bg-gray-200 rounded-[14px] w-full"></div>
+      </div>
+
+    </div>
   </main>
 </div>

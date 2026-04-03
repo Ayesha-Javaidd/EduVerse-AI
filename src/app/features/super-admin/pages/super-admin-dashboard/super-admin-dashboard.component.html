@@ -1,173 +1,148 @@
-<!-- Header -->
-<app-header [pageTitle]="pageTitle" [notificationCount]="notificationCount"></app-header>
+<div class="flex flex-col h-full animate-fade-in">
+  <app-header [pageTitle]="pageTitle"></app-header>
 
-<!-- Main Content -->
-<div class="p-6 space-y-6 bg-gray-50 min-h-screen">
+  <main class="p-6 space-y-6">
 
-  <!-- Stats Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    <app-stat-card *ngFor="let stat of stats" [title]="stat.title" [value]="stat.value" [icon]="stat.icon"
-      [iconBgClass]="stat.iconBgClass" [iconColorClass]="stat.iconColorClass" [bgColor]="stat.bgColor"></app-stat-card>
-  </div>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <app-stat-card *ngFor="let stat of stats" [title]="stat.title" [value]="stat.value" [icon]="stat.icon"
+        [iconBgClass]="stat.iconBgClass" [iconColorClass]="stat.iconColorClass"></app-stat-card>
+    </div>
 
-  <!-- Charts Row -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-    <!-- Tenant Growth Chart -->
-    <div
-      class="lg:col-span-2 bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-lg border border-blue-100 p-6 hover:shadow-xl transition-all duration-300">
-      <div class="flex items-center justify-between mb-8">
-        <div>
-          <h3 class="text-xl font-bold text-gray-900 flex items-center">
-            <i class="fa-solid fa-chart-line text-blue-600 mr-3"></i>
-            Top Organizations Scale
-          </h3>
-          <p class="text-sm text-gray-500 mt-1">Tenant distribution by active user count</p>
+      <!-- Bar Chart: Top Organizations Scale -->
+      <div
+        class="lg:col-span-2 bg-white rounded-[14px] shadow-sm border border-[#e2e8f0] p-6 hover:shadow-md transition-all duration-300">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-lg font-bold text-[#181F39] flex items-center">
+              <i class="fa-solid fa-chart-bar text-[#23A997] mr-2"></i>
+              Top Organizations Scale
+            </h3>
+            <p class="text-sm text-[#64748b] mt-1">Distribution by total members</p>
+          </div>
         </div>
-        <div class="flex items-center space-x-2">
-           <!-- Dynamic Growth Target Removed -->
+
+        <!-- Bar Chart with Axes -->
+        <div class="flex">
+          <!-- Y-Axis Labels -->
+          <div class="flex flex-col justify-between items-end pr-3 text-xs text-[#64748b] font-medium" style="height: 280px; min-width: 28px;">
+            <span *ngFor="let tick of yAxisTicks">{{ tick }}</span>
+          </div>
+
+          <!-- Chart Area -->
+          <div class="flex-1">
+            <!-- Grid lines + Bars -->
+            <div class="relative border-l border-b border-[#e2e8f0]" style="height: 280px;">
+              <!-- Dynamic horizontal grid lines (one per tick) -->
+              <ng-container *ngFor="let tick of yAxisTicks; let i = index">
+                <div *ngIf="i < yAxisTicks.length - 1"
+                  class="absolute w-full border-t border-dashed border-[#e2e8f0]"
+                  [style.top.%]="(i / (yAxisTicks.length - 1)) * 100">
+                </div>
+              </ng-container>
+
+              <!-- Bars container -->
+              <div class="absolute inset-0 flex items-end justify-around px-6">
+                <div *ngFor="let data of tenantGrowthData"
+                  class="flex flex-col items-center group cursor-pointer">
+                  <!-- Value label above bar -->
+                  <span class="text-xs font-bold text-[#181F39] mb-1">{{ data.tenants }}</span>
+                  <!-- Bar -->
+                  <div class="w-12 bg-[#23A997] rounded-t-lg group-hover:bg-[#1e9585] transition-colors duration-200"
+                    [style.height.px]="getBarHeightPx(data.tenants)"
+                    [style.min-height.px]="data.tenants > 0 ? 6 : 0">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- X-Axis Labels -->
+            <div class="flex justify-around px-6 mt-2">
+              <div *ngFor="let data of tenantGrowthData" class="text-center" style="min-width: 48px;">
+                <span class="text-xs text-[#64748b] font-medium truncate block">{{ data.month }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Axis descriptors -->
+        <div class="flex justify-between mt-3 px-1">
+          <p class="text-[11px] text-[#94a3b8] italic">↑ Total Members (Teachers + Students)</p>
+          <p class="text-[11px] text-[#94a3b8] italic">Organizations →</p>
         </div>
       </div>
 
-      <!-- Enhanced Bar Chart with 3D effect -->
-      <div class="h-72 flex items-end justify-between space-x-3 px-2">
-        <div *ngFor="let data of tenantGrowthData; let i = index" class="flex-1 flex flex-col items-center group">
-          <div class="w-full relative" style="height: 230px;">
-            <!-- Shadow/3D effect -->
-            <div
-              class="absolute bottom-0 w-full bg-gradient-to-t from-gray-300 to-gray-200 rounded-t-xl opacity-30 transform translate-y-1"
-              [style.height.%]="getBarHeight(data.tenants)"></div>
-            <!-- Main bar with gradient -->
-            <div
-              class="bar-animate absolute bottom-0 w-full bg-gradient-to-t from-blue-600 via-blue-500 to-cyan-400 rounded-t-xl transition-all duration-700 ease-out hover:from-blue-700 hover:via-blue-600 hover:to-cyan-500 flex items-start justify-center pt-3 shadow-lg group-hover:shadow-2xl group-hover:scale-105 cursor-pointer overflow-hidden"
-              [style.height.%]="getBarHeight(data.tenants)" [style.animation-delay.ms]="i * 150">
-              <!-- Shine effect -->
-              <div
-                class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-30 transform -skew-x-12 group-hover:translate-x-full transition-all duration-1000">
-              </div>
+      <!-- Donut Chart: Tenant Status -->
+      <div
+        class="bg-white rounded-[14px] shadow-sm border border-[#e2e8f0] p-6 hover:shadow-md transition-all duration-300">
+        <div class="mb-6">
+          <h3 class="text-lg font-bold text-[#181F39] flex items-center">
+            <i class="fa-solid fa-chart-pie text-[#23A997] mr-2"></i>
+            Tenant Status
+          </h3>
+          <p class="text-sm text-[#64748b] mt-1">Current tenant distribution</p>
+        </div>
 
-              <!-- Value badge -->
-              <span
-                class="relative z-10 text-white text-sm font-bold bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/30">
-                {{ data.tenants }}
+        <!-- Donut Chart -->
+        <div class="flex items-center justify-center mb-6 relative">
+          <div class="relative w-44 h-44">
+            <svg class="w-full h-full transform -rotate-90">
+              <!-- Background circle -->
+              <circle cx="88" cy="88" r="64" stroke="#f1f5f9" stroke-width="22" fill="none" />
+
+              <!-- Active segment - Teal -->
+              <circle *ngIf="activityData.length > 0 && activityData[0].value > 0"
+                cx="88" cy="88" r="64" stroke="#23A997" stroke-width="22" fill="none"
+                [attr.stroke-dasharray]="getPercentage(activityData[0].value) * 4.02 + ' 402'"
+                stroke-linecap="round"
+                class="transition-all duration-700" />
+
+              <!-- Inactive segment - Red -->
+              <circle *ngIf="activityData.length > 1 && activityData[1].value > 0"
+                cx="88" cy="88" r="64" stroke="#ef4444" stroke-width="22" fill="none"
+                [attr.stroke-dasharray]="getPercentage(activityData[1].value) * 4.02 + ' 402'"
+                [attr.stroke-dashoffset]="-getPercentage(activityData[0].value) * 4.02"
+                stroke-linecap="round"
+                class="transition-all duration-700" />
+            </svg>
+
+            <!-- Center content -->
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-center">
+                <p class="text-2xl font-black text-[#181F39]">{{ totalOrganizations }}</p>
+                <p class="text-xs text-[#64748b] font-medium">Total</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="space-y-2.5">
+          <div *ngFor="let item of activityData"
+            class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-[#e2e8f0]">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-3 h-3 rounded-full" [ngClass]="item.color"></div>
+              <span class="text-sm font-medium text-[#475569]">{{ item.category }}</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-sm font-bold text-[#181F39]">{{ item.value }}</span>
+              <span class="text-xs text-[#64748b] bg-slate-100 px-2 py-0.5 rounded-full">
+                {{ getPercentage(item.value).toFixed(1) }}%
               </span>
             </div>
-
-            <!-- Glow effect on hover -->
-            <div
-              class="absolute bottom-0 w-full h-2 bg-gradient-to-t from-blue-400 to-transparent opacity-0 group-hover:opacity-60 blur-xl transition-all duration-500">
-            </div>
-          </div>
-          <span class="text-sm text-gray-700 mt-3 font-semibold group-hover:text-blue-600 transition-colors">
-            {{ data.month }}
-          </span>
-        </div>
-      </div>
-
-      <!-- Gradient line at bottom -->
-      <div class="mt-6 h-1 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 rounded-full"></div>
-    </div>
-
-    <!-- Enhanced Activity Distribution -->
-    <div
-      class="bg-gradient-to-br from-white to-purple-50 rounded-xl shadow-lg border border-purple-100 p-6 hover:shadow-xl transition-all duration-300">
-      <div class="mb-6">
-        <h3 class="text-xl font-bold text-gray-900 flex items-center">
-          <i class="fa-solid fa-chart-pie text-purple-600 mr-3"></i>
-          Tenant Status
-        </h3>
-        <p class="text-sm text-gray-500 mt-1">Current tenant distribution</p>
-      </div>
-
-      <!-- Enhanced Donut Chart with animations -->
-      <div class="flex items-center justify-center mb-8 relative">
-        <div class="relative w-48 h-48">
-          <!-- Outer glow ring -->
-          <div
-            class="absolute inset-0 rounded-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 opacity-20 blur-xl animate-pulse">
-          </div>
-
-          <!-- Enhanced SVG Donut -->
-          <svg class="w-full h-full transform -rotate-90 drop-shadow-lg">
-            <!-- Background circle -->
-            <circle cx="96" cy="96" r="70" stroke="#f3f4f6" stroke-width="24" fill="none" />
-            <!-- Active segment - Green -->
-            <circle cx="96" cy="96" r="70" stroke="url(#greenGradient)" stroke-width="24" fill="none"
-              [attr.stroke-dasharray]="getPercentage(activityData[0].value) * 4.4 + ' 440'" stroke-linecap="round"
-              class="transition-all duration-1000 donut-animate"
-              [style.display]="activityData[0].value > 0 ? 'block' : 'none'"
-              style="filter: drop-shadow(0 4px 6px rgba(16, 185, 129, 0.4))" />
-            <!-- Pending segment - Yellow -->
-            <circle cx="96" cy="96" r="70" stroke="url(#yellowGradient)" stroke-width="24" fill="none"
-              [attr.stroke-dasharray]="getPercentage(activityData[1].value) * 4.4 + ' 440'"
-              [attr.stroke-dashoffset]="-getPercentage(activityData[0].value) * 4.4" stroke-linecap="round"
-              class="transition-all duration-1000 donut-animate"
-              [style.display]="activityData[1].value > 0 ? 'block' : 'none'"
-              style="filter: drop-shadow(0 4px 6px rgba(234, 179, 8, 0.4)); animation-delay: 0.3s" />
-            <!-- Inactive segment - Red -->
-            <circle cx="96" cy="96" r="70" stroke="url(#redGradient)" stroke-width="24" fill="none"
-              [attr.stroke-dasharray]="getPercentage(activityData[2].value) * 4.4 + ' 440'"
-              [attr.stroke-dashoffset]="-(getPercentage(activityData[0].value) + getPercentage(activityData[1].value)) * 4.4"
-              stroke-linecap="round" class="transition-all duration-1000 donut-animate"
-              [style.display]="activityData[2].value > 0 ? 'block' : 'none'"
-              style="filter: drop-shadow(0 4px 6px rgba(239, 68, 68, 0.4)); animation-delay: 0.6s" />
-
-            <!-- Gradients -->
-            <defs>
-              <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#34d399;stop-opacity:1" />
-              </linearGradient>
-              <linearGradient id="yellowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#eab308;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1" />
-              </linearGradient>
-              <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#f87171;stop-opacity:1" />
-              </linearGradient>
-            </defs>
-          </svg>
-
-          <!-- Center content with animation -->
-          <div class="absolute inset-0 flex items-center justify-center">
-            <div
-              class="text-center bg-white rounded-full w-28 h-28 flex flex-col items-center justify-center shadow-lg border-4 border-gray-100">
-              <p
-                class="text-3xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent count-up">
-                {{ totalOrganizations }}
-              </p>
-              <p class="text-xs text-gray-500 font-semibold mt-1">Total</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Enhanced Legend -->
-      <div class="space-y-3">
-        <div *ngFor="let item of activityData; let i = index"
-          class="flex items-center justify-between p-3 rounded-lg bg-white/60 backdrop-blur-sm hover:bg-white transition-all duration-300 hover:shadow-md cursor-pointer group"
-          [style.animation-delay.ms]="i * 100">
-          <div class="flex items-center space-x-3">
-            <div class="w-4 h-4 rounded-full shadow-md group-hover:scale-125 transition-transform duration-300"
-              [ngClass]="item.color"></div>
-            <span class="text-sm font-medium text-gray-700 group-hover:text-gray-900">{{ item.category }}</span>
-          </div>
-          <div class="flex items-center space-x-2">
-            <span class="text-base font-bold text-gray-900">{{ item.value }}</span>
-            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-              {{ getPercentage(item.value).toFixed(1) }}%
-            </span>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Recent Activity Timeline Removed per request until backend tracking engine is implemented -->
+    <!-- Top Organizations Table -->
+    <div class="mt-2">
+      <app-data-table [title]="'Top Organizations'" [columns]="organizationColumns" [rows]="organizationRows"
+        [showViewAll]="true" [viewAllRoute]="'/super-admin/tenants'"></app-data-table>
+    </div>
 
-  <!-- Top Organizations Table -->
-  <app-data-table [title]="'Top Organizations'" [columns]="organizationColumns" [rows]="organizationRows"
-    [showViewAll]="true" [viewAllRoute]="'/super-admin/tenants'"></app-data-table>
-
+  </main>
 </div>

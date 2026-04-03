@@ -101,6 +101,31 @@ export class SuperAdminTenantSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
+  async onActivate() {
+    if (!this.tenant) return;
+    this.tenantService.updateTenantApi(this.tenant.id, { status: 'active' }).subscribe({
+      next: async (res) => {
+        this.tenant = res;
+        await this.confirmDialogService.alert('Tenant activated successfully.');
+      }
+    });
+  }
+
+  async onGrantGracePeriod() {
+    if (!this.tenant) return;
+    const isConfirmed = await this.confirmDialogService.confirm('Grant Grace Period', 'Grant a 7-day manual grace period to this tenant?');
+    if (isConfirmed) {
+      const now = new Date();
+      now.setDate(now.getDate() + 7);
+      this.tenantService.updateTenantApi(this.tenant.id, { gracePeriodUntil: now.toISOString() }).subscribe({
+        next: async (res) => {
+          this.tenant = res;
+          await this.confirmDialogService.alert('7-day grace period granted.');
+        }
+      });
+    }
+  }
+
   async onDelete() {
     if (!this.tenant) return;
     const isConfirmed = await this.confirmDialogService.confirmDelete(this.tenant.tenantName);

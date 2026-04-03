@@ -23,14 +23,13 @@ import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog
   styleUrl: './super-admin-tenants.component.css',
 })
 export class SuperAdminTenantsComponent implements OnInit {
-  stats: any[] = [
+  stats = [
     {
       title: 'Loading Data...',
-      value: '-',
+      value: '-' as string | number,
       icon: 'fa-solid fa-building',
-      bgColor: 'bg-blue-50',
-      iconBgClass: 'bg-blue-100',
-      iconColorClass: 'text-blue-600',
+      iconBgClass: 'bg-[#23A997]/10',
+      iconColorClass: 'text-[#23A997]',
     }
   ];
 
@@ -42,7 +41,7 @@ export class SuperAdminTenantsComponent implements OnInit {
     { key: 'students', label: 'Students', type: 'text' },
     {
       key: 'subscriptionStatusLabel',
-      label: 'Subscription',
+      label: 'Plan',
       type: 'badge',
     },
   ];
@@ -71,19 +70,36 @@ export class SuperAdminTenantsComponent implements OnInit {
         // Map data to create derived properties for UI like subscriptionStatusLabel
         this.tenants = data.map(t => ({
           ...t,
-          subscriptionStatusLabel: t.subscriptionPlan ? 'Paid' : 'No Plan'
+          subscriptionStatusLabel: t.subscriptionPlan || 'No Plan'
         }));
         this.totalItems = this.tenants.length; // Actually, server should return total count. But array slice length works for now.
         
-        // Update basic top stat
+        // Update stats from loaded tenant data
+        const totalTeachers = data.reduce((sum, t) => sum + (t.teachers || 0), 0);
+        const totalStudents = data.reduce((sum, t) => sum + (t.students || 0), 0);
+        const totalCourses = data.reduce((sum, t) => sum + (t.courses || 0), 0);
+
         this.stats = [
           {
-            title: 'Total Organizations',
-            value: this.tenants.length,
-            icon: 'fa-solid fa-building',
-            bgColor: 'bg-blue-50',
-            iconBgClass: 'bg-blue-100',
-            iconColorClass: 'text-blue-600',
+            title: 'Total Teachers',
+            value: totalTeachers,
+            icon: 'fa-solid fa-chalkboard-user',
+            iconBgClass: 'bg-[#23A997]/10',
+            iconColorClass: 'text-[#23A997]',
+          },
+          {
+            title: 'Total Students',
+            value: totalStudents,
+            icon: 'fa-solid fa-user-graduate',
+            iconBgClass: 'bg-blue-500/10',
+            iconColorClass: 'text-blue-500',
+          },
+          {
+            title: 'Total Courses',
+            value: totalCourses,
+            icon: 'fa-solid fa-book-open',
+            iconBgClass: 'bg-amber-500/10',
+            iconColorClass: 'text-amber-500',
           }
         ];
       },

@@ -70,6 +70,13 @@ export interface BillingUsage {
     };
 }
 
+export interface BillingStatus {
+    isActive: boolean;
+    expiryDate: string | null;
+    gracePeriodUntil: string | null;
+    status: string;
+}
+
 export interface CheckoutResponse {
     clientSecret?: string;
     success?: boolean;
@@ -215,6 +222,13 @@ export class AdminService {
     getBillingUsage(): Observable<BillingUsage> {
         const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
         return this.http.get<BillingUsage>(`${baseUrl}/billing/usage`, {
+            headers: this.getHeaders()
+        });
+    }
+
+    getBillingStatus(): Observable<BillingStatus> {
+        const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
+        return this.http.get<BillingStatus>(`${baseUrl}/billing/status`, {
             headers: this.getHeaders()
         });
     }

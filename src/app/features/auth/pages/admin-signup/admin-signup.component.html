@@ -1,16 +1,12 @@
 <div class="flex inset-0 fixed">
   <!-- Left Section -->
-  <div
-    class="flex-1 bg-slate-900 text-white h-screen flex flex-col text-center justify-center"
-  >
+  <div class="flex-1 bg-slate-900 text-white h-screen flex flex-col text-center justify-center">
     <h1 class="text-white text-4xl font-bold">Join as an Admin</h1>
     <p class="p-5">Fill in your organization details to get started.</p>
   </div>
 
   <!-- Right Section -->
-  <div
-    class="flex-1 bg-white text-slate-900 h-screen overflow-y-auto flex flex-col justify-center items-center"
-  >
+  <div class="flex-1 bg-white text-slate-900 h-screen overflow-y-auto flex flex-col justify-center items-center">
     <div class="p-10 w-full max-w-md">
       <h1 class="text-3xl font-bold mt-32 mb-5">Admin Signup</h1>
       <p class="text-slate-500 text-sm mb-4">Let's get you started!</p>
@@ -21,156 +17,101 @@
         </div>
 
         <!-- Full Name -->
-        <input
-          type="text"
-          name="fullName"
-          [(ngModel)]="fullName"
-          placeholder="Full Name"
-          required
-          class="w-full px-4 py-3 border rounded-md mb-2"
-        />
+        <input type="text" name="fullName" [(ngModel)]="fullName" placeholder="Full Name" required
+          class="w-full px-4 py-3 border rounded-md mb-2" />
 
         <!-- Email -->
-        <input
-          type="email"
-          name="email"
-          [(ngModel)]="email"
-          placeholder="Email"
-          required
-          class="w-full px-4 py-3 border rounded-md mb-2"
-        />
+        <input type="email" name="email" [(ngModel)]="email" placeholder="Email" required
+          class="w-full px-4 py-3 border rounded-md mb-2" />
 
         <!-- Password -->
         <div class="relative mb-2">
-          <input
-            [type]="showPassword ? 'text' : 'password'"
-            name="password"
-            [(ngModel)]="password"
-            placeholder="Password"
-            minlength="6"
-            required
-            class="w-full px-4 py-3 border rounded-md pr-12"
-          />
-          <button
-            type="button"
-            (click)="showPassword = !showPassword"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1"
-          >
-            <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+          <input [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password"
+            placeholder="Password" minlength="6" required class="w-full px-4 py-3 border rounded-md pr-12" />
+          <button type="button" (click)="showPassword = !showPassword"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1">
+            <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+            <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
             </svg>
           </button>
         </div>
 
         <!-- Confirm Password -->
         <div class="relative mb-2">
-          <input
-            [type]="showConfirmPassword ? 'text' : 'password'"
-            name="confirmPassword"
-            [(ngModel)]="confirmPassword"
-            placeholder="Confirm Password"
-            minlength="6"
-            required
-            class="w-full px-4 py-3 border rounded-md pr-12"
-          />
-          <button
-            type="button"
-            (click)="showConfirmPassword = !showConfirmPassword"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1"
-          >
-            <svg *ngIf="!showConfirmPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+          <input [type]="showConfirmPassword ? 'text' : 'password'" name="confirmPassword" [(ngModel)]="confirmPassword"
+            placeholder="Confirm Password" minlength="6" required class="w-full px-4 py-3 border rounded-md pr-12" />
+          <button type="button" (click)="showConfirmPassword = !showConfirmPassword"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1">
+            <svg *ngIf="!showConfirmPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <svg *ngIf="showConfirmPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+            <svg *ngIf="showConfirmPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
             </svg>
           </button>
         </div>
 
         <!-- Contact No -->
-        <input
-          type="text"
-          name="contactNo"
-          [(ngModel)]="contactNo"
-          placeholder="Contact Number"
-          required
-          class="w-full px-4 py-3 border rounded-md mb-2"
-        />
+        <input type="text" name="contactNo" [(ngModel)]="contactNo" placeholder="Contact Number" required
+          class="w-full px-4 py-3 border rounded-md mb-2" />
 
         <!-- Country -->
-        <input
-          type="text"
-          name="country"
-          [(ngModel)]="country"
-          placeholder="Country"
-          required
-          class="w-full px-4 py-3 border rounded-md mb-2"
-        />
+        <input type="text" name="country" [(ngModel)]="country" placeholder="Country" required
+          class="w-full px-4 py-3 border rounded-md mb-2" />
 
 
         <!-- Profile Image URL -->
-        <input
-          type="text"
-          name="profileImageURL"
-          [(ngModel)]="profileImageURL"
-          placeholder="Profile Image URL (optional)"
-          class="w-full px-4 py-3 border rounded-md mb-2"
-        />
+        <input type="text" name="profileImageURL" [(ngModel)]="profileImageURL"
+          placeholder="Profile Image URL (optional)" class="w-full px-4 py-3 border rounded-md mb-2" />
 
         <!-- Tenant Name -->
-        <input
-          type="text"
-          name="tenantName"
-          [(ngModel)]="tenantName"
-          placeholder="Organization/Tenant Name"
-          required
-          class="w-full px-4 py-3 border rounded-md mb-2"
-        />
+        <input type="text" name="tenantName" [(ngModel)]="tenantName" placeholder="Organization/Tenant Name" required
+          class="w-full px-4 py-3 border rounded-md mb-2" />
 
         <!-- Tenant Logo URL -->
-        <input
-          type="text"
-          name="tenantLogoUrl"
-          [(ngModel)]="tenantLogoUrl"
-          placeholder="Tenant Logo URL (optional)"
-          class="w-full px-4 py-3 border rounded-md mb-4"
-        />
+        <input type="text" name="tenantLogoUrl" [(ngModel)]="tenantLogoUrl" placeholder="Tenant Logo URL (optional)"
+          class="w-full px-4 py-3 border rounded-md mb-4" />
 
-        <button
-          type="button"
-          (click)="onSignup()"
-          class="w-full py-3.5 bg-slate-900 text-white rounded-md hover:bg-slate-800"
-        >
+        <button type="button" (click)="onSignup()"
+          class="w-full py-3.5 bg-slate-900 text-white rounded-md hover:bg-slate-800">
           Sign Up
         </button>
 
         <p class="text-center text-gray-600 text-sm mt-2">
           Already have an account?
-          <a
-            routerLink="/login"
-            class="text-blue-950 cursor-pointer font-medium hover:underline"
-          >
+          <a routerLink="/login" class="text-blue-950 cursor-pointer font-medium hover:underline">
             Login
           </a>
         </p>
       </form>
-  </div>
+    </div>
 
-  <!-- Success Overlay -->
-  <div *ngIf="successMessage" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-500">
-    <div class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center justify-center transform transition-all duration-500 scale-100 opacity-100 max-w-sm text-center">
-      <div class="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6 animate-bounce shadow-inner">
-        <svg fill="none" class="w-10 h-10" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
-        </svg>
+    <!-- Success Overlay -->
+    <div *ngIf="successMessage"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-500">
+      <div
+        class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center justify-center transform transition-all duration-500 scale-100 opacity-100 max-w-sm text-center">
+        <div
+          class="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6 animate-bounce shadow-inner">
+          <svg fill="none" class="w-10 h-10" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Success!</h2>
+        <p class="text-gray-600 font-medium">{{ successMessage }}</p>
       </div>
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">Success!</h2>
-      <p class="text-gray-600 font-medium">{{ successMessage }}</p>
     </div>
   </div>
-</div>

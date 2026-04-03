@@ -1,4 +1,4 @@
-<section class="bg-white rounded-lg shadow-sm p-6 border border-red-50">
+<section class="bg-white rounded-[14px] shadow-sm p-6 border border-red-100">
     <div class="flex items-center space-x-3 mb-3">
         <i class="fa-solid fa-triangle-exclamation text-red-500 text-xl"></i>
         <h4 class="text-lg font-semibold text-red-600">Account Actions</h4>
@@ -9,11 +9,28 @@
     </p>
 
     <div class="flex flex-wrap gap-3">
+        <!-- Toggle Deactivate / Activate -->
         <app-button
+            *ngIf="isActive"
             customColor="bg-red-600 text-white hover:bg-red-700 px-4 py-2"
-            (buttonClick)="confirmDeactivate()"
+            (buttonClick)="confirmToggleStatus()"
         >
             <i class="fa-solid fa-power-off mr-2"></i> Deactivate Account
+        </app-button>
+
+        <app-button
+            *ngIf="!isActive"
+            customColor="bg-green-600 text-white hover:bg-green-700 px-4 py-2"
+            (buttonClick)="confirmToggleStatus()"
+        >
+            <i class="fa-solid fa-circle-check mr-2"></i> Activate Account
+        </app-button>
+
+        <app-button
+            customColor="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2"
+            (buttonClick)="grantGracePeriod.emit()"
+        >
+            <i class="fa-solid fa-clock mr-2"></i> Grant Grace Period
         </app-button>
 
         <app-button

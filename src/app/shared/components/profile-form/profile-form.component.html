@@ -8,21 +8,12 @@
         Profile Picture
       </label>
       <div class="flex items-center space-x-4">
-        <img
-          [src]="profilePreview || 'assets/images/profile.png'"
-          alt="Profile Picture"
-          class="h-16 w-16 rounded-full border object-cover"
-        />
+        <img [src]="profilePreview || 'assets/images/profile.png'" alt="Profile Picture"
+          class="h-16 w-16 rounded-full border object-cover" />
         <label
-          class="cursor-pointer bg-[#23A997] text-white px-5 py-2.5 rounded-xl shadow-md shadow-[#23A997]/20 hover:bg-[#1f9686] text-[14px] font-medium transition-all"
-        >
+          class="cursor-pointer bg-[#23A997] text-white px-5 py-2.5 rounded-xl shadow-md shadow-[#23A997]/20 hover:bg-[#1f9686] text-[14px] font-medium transition-all">
           <i class="fas fa-upload mr-2"></i> Upload
-          <input
-            type="file"
-            accept="image/*"
-            (change)="onFileChange($event)"
-            class="hidden"
-          />
+          <input type="file" accept="image/*" (change)="onFileChange($event)" class="hidden" />
         </label>
       </div>
     </div>
@@ -30,71 +21,44 @@
     <!-- Full Name -->
     <div>
       <label class="block text-[14px] font-medium text-[#181F39]">Full Name</label>
-      <input
-        type="text"
-        formControlName="fullName"
-        [placeholder]="profileForm.value.fullName || 'Enter full name'"
-        class="mt-1 block w-full h-[46px] rounded-xl border border-[#cbd5e1] bg-white px-4 text-[#181F39] text-[15px] focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all"
-      />
-      <p
-        *ngIf="
+      <input type="text" formControlName="fullName" [placeholder]="profileForm.value.fullName || 'Enter full name'"
+        class="mt-1 block w-full h-[46px] rounded-xl border border-[#cbd5e1] bg-white px-4 text-[#181F39] text-[15px] focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all" />
+      <p *ngIf="
           profileForm.get('fullName')?.touched &&
           profileForm.get('fullName')?.invalid
-        "
-        class="mt-1 text-red-500 text-sm"
-      >
+        " class="mt-1 text-red-500 text-sm">
         Name is required (min 3 characters).
       </p>
     </div>
 
     <!-- Email -->
     <div>
-      <label class="block text-[14px] font-medium text-[#181F39]"
-        >Email Address</label
-      >
-      <input
-        type="email"
-        formControlName="email"
-        class="mt-1 block w-full h-[46px] rounded-xl border border-[#cbd5e1] bg-gray-50 cursor-not-allowed px-4 text-gray-500 text-[15px]"
-      />
-      <p
-        *ngIf="
+      <label class="block text-[14px] font-medium text-[#181F39]">Email Address</label>
+      <input type="email" formControlName="email"
+        class="mt-1 block w-full h-[46px] rounded-xl border border-[#cbd5e1] bg-gray-50 cursor-not-allowed px-4 text-gray-500 text-[15px]" />
+      <p *ngIf="
           profileForm.get('email')?.touched && profileForm.get('email')?.invalid
-        "
-        class="mt-1 text-red-500 text-sm"
-      >
+        " class="mt-1 text-red-500 text-sm">
         Enter a valid email address.
       </p>
     </div>
 
     <!-- Phone -->
     <div>
-      <label class="block text-[14px] font-medium text-[#181F39]"
-        >Phone Number</label
-      >
-      <input
-        type="tel"
-        formControlName="phone"
-        [placeholder]="profileForm.value.phone || 'Enter phone number'"
-        class="mt-1 block w-full h-[46px] rounded-xl border border-[#cbd5e1] bg-white px-4 text-[#181F39] text-[15px] focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all"
-      />
-      <p
-        *ngIf="
+      <label class="block text-[14px] font-medium text-[#181F39]">Phone Number</label>
+      <app-phone-input formControlName="phone" [placeholder]="profileForm.value.phone || 'Enter phone number'" class="mt-1 block w-full"></app-phone-input>
+      <p *ngIf="
           profileForm.get('phone')?.touched && profileForm.get('phone')?.invalid
-        "
-        class="mt-1 text-red-500 text-sm"
-      >
-        Enter a valid phone number (10-15 digits).
+        " class="mt-1 text-red-500 text-sm">
+        Enter a valid phone number.
       </p>
     </div>
 
     <!-- Country -->
     <div>
       <label class="block text-[14px] font-medium text-[#181F39]">Country</label>
-      <select
-        formControlName="country"
-        class="mt-1 block w-full h-[46px] cursor-pointer rounded-xl border border-[#cbd5e1] bg-white px-4 text-[#181F39] text-[15px] focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all"
-      >
+      <select formControlName="country"
+        class="mt-1 block w-full h-[46px] cursor-pointer rounded-xl border border-[#cbd5e1] bg-white px-4 text-[#181F39] text-[15px] focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all">
         <option value="" disabled>Select country</option>
         <option value="pk">Pakistan</option>
         <option value="ger">Germany</option>
@@ -102,13 +66,10 @@
         <option value="uk">United Kingdom</option>
         <option value="in">India</option>
       </select>
-      <p
-        *ngIf="
+      <p *ngIf="
           profileForm.get('country')?.touched &&
           profileForm.get('country')?.invalid
-        "
-        class="mt-1 text-red-500 text-sm"
-      >
+        " class="mt-1 text-red-500 text-sm">
         Country is required.
       </p>
     </div>
@@ -118,18 +79,13 @@
       <!-- Save Button -->
       <app-button
         customColor="bg-[#23A997] text-white hover:bg-[#1f9686] transition-all shadow-md shadow-[#23A997]/20 rounded-xl font-medium"
-        size="md"
-        type="submit"
-      >
+        size="md" type="submit">
         Save Changes
       </app-button>
 
       <!-- Cancel Button -->
-      <app-button
-        customColor="bg-slate-100 text-[#475569] hover:bg-slate-200 transition-all rounded-xl font-medium"
-        size="md"
-        type="button"
-      >
+      <app-button customColor="bg-slate-100 text-[#475569] hover:bg-slate-200 transition-all rounded-xl font-medium"
+        size="md" type="button">
         Cancel
       </app-button>
     </div>

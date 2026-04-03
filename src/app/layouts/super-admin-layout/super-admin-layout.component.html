@@ -1,19 +1,11 @@
-<div class="flex">
-  <app-sidebar
-    role="super-admin"
-    (toggleSidebar)="onSidebarToggle($event)"
-  ></app-sidebar>
+<div class="min-h-screen bg-[#f8f9fc]">
+  <app-sidebar role="super-admin" (toggleSidebar)="onSidebarToggle($event)"></app-sidebar>
 
-  <div
-    class="transition-all duration-300 min-h-screen bg-gray-50 w-full"
-    [ngClass]="{
-      'ml-64': !isMobile && isSidebarOpen,
-      'ml-20': !isMobile && !isSidebarOpen,
-      'ml-0': isMobile
-    }"
-  >
-    <div>
-      <router-outlet></router-outlet>
-    </div>
+  <div class="transition-all duration-300 w-full min-h-screen" [ngClass]="{
+      'pl-[250px]': !isMobile && isSidebarOpen,
+      'pl-[80px]': !isMobile && !isSidebarOpen,
+      'pl-0': isMobile
+    }">
+    <router-outlet></router-outlet>
   </div>
 </div>

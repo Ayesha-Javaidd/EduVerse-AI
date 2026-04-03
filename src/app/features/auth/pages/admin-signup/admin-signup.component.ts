@@ -28,7 +28,7 @@ export class AdminSignupComponent {
   errorMessage = '';
   successMessage = '';
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(private router: Router, private authService: AuthService) { }
 
   onSignup() {
     if (!this.validateForm()) return;
