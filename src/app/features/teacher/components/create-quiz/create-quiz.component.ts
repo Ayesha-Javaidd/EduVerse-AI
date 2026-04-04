@@ -13,11 +13,12 @@ import {
 // Import Course model
 import { Course } from '../../../../shared/models/course.model';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
 
 @Component({
   selector: 'app-create-quiz',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonComponent],
   templateUrl: './create-quiz.component.html',
   styleUrls: ['./create-quiz.component.css'],
 })

@@ -27,6 +27,7 @@
         </app-button>
 
         <app-button
+            *ngIf="canGrantGracePeriod"
             customColor="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2"
             (buttonClick)="grantGracePeriod.emit()"
         >

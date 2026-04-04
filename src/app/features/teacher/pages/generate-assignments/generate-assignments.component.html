@@ -1,126 +1,115 @@
-<app-header pageTitle="Assignments"></app-header>
+<div class="flex min-h-screen flex-col animate-fade-in">
+  <app-header pageTitle="Assignments"></app-header>
 
-<div class="min-h-screen bg-white p-6 max-w-7xl mx-auto">
-  <!-- Loading overlay -->
-  <div
-    *ngIf="loading"
-    class="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-50"
-  >
-    <div
-      class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-b-4"
-    ></div>
-  </div>
-  <!-- Top section -->
-  <div class="flex justify-between items-center mb-4">
-    <app-button
-      [routerLink]="'/teacher/grade-assignment'"
-      customColor="bg-green-600  p-3 text-white hover:bg-green-700"
-    >
-      <i class="fa-solid fa-pen-to-square mr-2"></i>
-      Grade Assignments
-    </app-button>
+  <main class="relative p-6">
+    <div class="mx-auto flex max-w-7xl flex-col gap-6">
+      <section
+        *ngIf="loading"
+        class="absolute inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-[1px]">
+        <div class="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-[#23A997]"></div>
+      </section>
 
-    <p class="text-blue-700 px-8 bg-blue-50 p-2 rounded-md">
-      Create and manage student assignments
-    </p>
-    <app-button
-      (buttonClick)="openCreateModal()"
-      customColor="bg-blue-950 p-3 text-white hover:bg-gray-500"
-    >
-      <i class="fa-solid fa-plus mr-2"></i> Create Assignment
-    </app-button>
-  </div>
+      <section
+        *ngIf="errorMessage"
+        class="rounded-[24px] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 shadow-sm">
+        {{ errorMessage }}
+      </section>
 
-  <!-- Error Box (Red) -->
-  <div
-    *ngIf="errorMessage"
-    class="alert alert-danger"
-    style="
-      background-color: #fbe3e5;
-      color: #b3303b;
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 10px;
-    "
-  >
-    {{ errorMessage }}
-  </div>
+      <section
+        *ngIf="successMessage"
+        class="rounded-[24px] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-700 shadow-sm">
+        {{ successMessage }}
+      </section>
 
-  <!-- Success Box (Green) -->
-  <div
-    *ngIf="successMessage"
-    class="alert alert-success"
-    style="
-      background-color: #ddf6eb;
-      color: #14643f;
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 10px;
-    "
-  >
-    {{ successMessage }}
-  </div>
+      <section class="grid gap-6 md:grid-cols-2">
+        <app-stat-card
+          icon="fa-solid fa-file-alt"
+          [value]="totalAssignmentsCount"
+          title="Total Assignments"
+          bgColor="bg-[#ecf9f6]"
+          iconBgClass="bg-[#d7f4ee]"
+          iconColorClass="text-[#23A997]">
+        </app-stat-card>
 
-  <!-- Stats -->
-  <div class="grid md:grid-cols-2 gap-10 mb-6 px-20">
-    <app-stat-card
-      icon="fa-solid fa-file-alt"
-      [value]="totalAssignmentsCount"
-      title="Total Assignments"
-      bgColor="bg-purple-50"
-      iconBgClass="bg-purple-100"
-      iconColorClass="text-purple-600"
-    ></app-stat-card>
+        <app-stat-card
+          icon="fa-solid fa-check-circle"
+          [value]="totalSubmissionsCount"
+          title="Total Submissions"
+          bgColor="bg-slate-50"
+          iconBgClass="bg-slate-100"
+          iconColorClass="text-slate-600">
+        </app-stat-card>
+      </section>
 
-    <app-stat-card
-      icon="fa-solid fa-check-circle"
-      [value]="totalSubmissionsCount"
-      title="Total Submissions"
-      bgColor="bg-green-50"
-      iconBgClass="bg-green-100"
-      iconColorClass="text-green-600"
-    ></app-stat-card>
-  </div>
+      <app-filters
+        *ngIf="assignments.length > 0"
+        [dropdowns]="assignmentDropdowns"
+        [searchPlaceholder]="'Search assignments...'"
+        (filtersChange)="onFiltersChange($event)">
+        <app-button
+          toolbar-actions
+          [routerLink]="'/teacher/grade-assignment'"
+          variant="outline"
+          [class]="'gap-2 rounded-xl border-[#23A997]/30 text-[#23A997] hover:text-[#1f9686] hover:border-[#23A997] hover:bg-[#23A997]/5'">
+          <i class="fa-solid fa-pen-to-square"></i>
+          Grade Assignments
+        </app-button>
 
-  <!-- Filters Component -->
-  <app-filters
-    [dropdowns]="assignmentDropdowns"
-    [searchPlaceholder]="'Search assignments...'"
-    (filtersChange)="onFiltersChange($event)"
-  ></app-filters>
+        <app-button
+          toolbar-actions
+          (buttonClick)="openCreateModal()"
+          customColor="bg-[#23A997] text-white shadow-[0_10px_24px_rgba(35,169,151,0.22)] hover:bg-[#1f9686]">
+          <i class="fa-solid fa-plus mr-2"></i>
+          Create Assignment
+        </app-button>
+      </app-filters>
 
-  <div class="mt-8"></div>
-  <!-- Empty state -->
-  <app-empty-state
-    *ngIf="filteredAssignments.length === 0"
-    (createClick)="openCreateModal()"
-  ></app-empty-state>
+      <app-empty-state
+        *ngIf="!loading && assignments.length === 0"
+        (createClick)="openCreateModal()">
+      </app-empty-state>
 
-  <!-- Assignment cards -->
-  <div
-    *ngIf="filteredAssignments.length > 0"
-    class="grid gap-6 md:grid-cols-2 mb-10"
-  >
-    <app-assignment-card
-      *ngFor="let assignment of filteredAssignments"
-      [assignment]="assignment"
-      [bgColorClass]="getCardStyle(assignment)"
-      [buttonClass]="getButtonStyle(assignment)"
-      (onEdit)="openEditModal(assignment)"
-      (onDelete)="deleteAssignment(assignment)"
-    ></app-assignment-card>
-  </div>
+      <section
+        *ngIf="!loading && assignments.length > 0 && filteredAssignments.length === 0"
+        class="rounded-[28px] border border-dashed border-[#cbd5e1] bg-white px-6 py-16 text-center shadow-sm">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+          <i class="fas fa-magnifying-glass text-xl"></i>
+        </div>
+        <h3 class="mt-5 text-lg font-semibold text-[#181F39]">No assignments found</h3>
+        <p class="mx-auto mt-2 max-w-md text-sm text-slate-500">
+          Try adjusting the search or status filter.
+        </p>
+      </section>
 
-  <!-- Modal -->
-  <app-assignment-modal
-    *ngIf="showModal"
-    [show]="showModal"
-    [formData]="formData"
-    [editingAssignmentId]="editingAssignmentId"
-    [courses]="courses"
-    [currentTeacherId]="teacherId"
-    [currentTenantId]="tenantId"
-    (onClose)="closeModal()"
-    (onSubmit)="handleSubmit($event)"
-  ></app-assignment-modal>
+      <section *ngIf="filteredAssignments.length > 0" class="grid gap-6 xl:grid-cols-2">
+        <app-assignment-card
+          *ngFor="let assignment of paginatedAssignments"
+          [assignment]="assignment"
+          [submissions]="assignmentSubmissions.get(assignment.id) ?? []"
+          (onEdit)="openEditModal(assignment)"
+          (onDelete)="deleteAssignment(assignment)">
+        </app-assignment-card>
+      </section>
+
+      <app-pagination
+        *ngIf="filteredAssignments.length > pageSize"
+        [currentPage]="currentPage"
+        [pageSize]="pageSize"
+        [totalItems]="filteredAssignments.length"
+        (pageChange)="currentPage = $event">
+      </app-pagination>
+    </div>
+  </main>
 </div>
+
+<app-assignment-modal
+  *ngIf="showModal"
+  [show]="showModal"
+  [formData]="formData"
+  [editingAssignmentId]="editingAssignmentId"
+  [courses]="courses"
+  [currentTeacherId]="teacherId"
+  [currentTenantId]="tenantId"
+  (onClose)="closeModal()"
+  (onSubmit)="handleSubmit($event)">
+</app-assignment-modal>

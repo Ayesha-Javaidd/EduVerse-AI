@@ -1,153 +1,95 @@
-<div class="fixed inset-0 flex">
-  <div class="flex-1 bg-white p-20 lg:p-10 flex flex-col justify-center">
-    <div class="p-20">
-      <h1 class="text-3xl font-bold text-slate-900 mb-2">Login</h1>
-      <p class="text-slate-500 text-base mb-10">
-        Welcome back, please enter your details
-      </p>
+<div class="mx-auto flex min-h-screen w-full max-w-2xl items-center px-4 py-6 lg:px-8 lg:py-8">
+  <section class="flex w-full items-center">
+    <div class="w-full rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] sm:p-8">
+      <div class="mb-8 flex flex-col items-center justify-center text-center">
+        <div class="flex items-center justify-center gap-4">
+          <a routerLink="/" class="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#23A997] text-white shadow-md transition-colors hover:bg-[#1e9585]">
+            <i class="fa-solid fa-book-open text-[20px]"></i>
+          </a>
+          <h1 class="text-3xl font-bold tracking-tight text-[#181F39]">Sign in</h1>
+        </div>
+        <p class="mt-3 text-sm text-slate-500">Enter your account details.</p>
+      </div>
 
-      <form
-        [formGroup]="loginForm"
-        (ngSubmit)="onSubmit()"
-        class="flex flex-col"
-      >
-        <div class="mb-6">
-          <label
-            for="email"
-            class="block font-medium text-gray-700 mb-2 text-sm"
-            >Email</label
-          >
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
+        <div>
+          <label for="email" class="mb-2 block text-sm font-semibold text-[#181F39]">Email</label>
           <input
             type="email"
             id="email"
             formControlName="email"
-            class="w-full px-4 py-3 border border-gray-300 rounded-md text-base transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-3 focus:ring-blue-100"
-            [class.border-red-600]="email?.invalid && email?.touched"
-            placeholder="Enter your email"
+            placeholder="name@example.com"
+            class="h-12 w-full rounded-2xl border border-slate-300 px-4 text-[15px] text-[#181F39] outline-none transition-all placeholder:text-slate-400 focus:border-[#23A997] focus:ring-4 focus:ring-[#23A997]/15"
+            [class.border-red-500]="email?.invalid && email?.touched"
           />
-          <div
-            *ngIf="email?.invalid && email?.touched"
-            class="mt-1 text-red-600 text-xs"
-          >
-            <span *ngIf="email?.errors?.['required']">Email is required</span>
-            <span *ngIf="email?.errors?.['email']"
-              >Please enter a valid email</span
-            >
+          <div *ngIf="email?.invalid && email?.touched" class="mt-2 text-xs text-red-600">
+            <span *ngIf="email?.errors?.['required']">Email is required.</span>
+            <span *ngIf="email?.errors?.['email']">Please enter a valid email.</span>
           </div>
         </div>
 
-        <div class="mb-6">
-          <label
-            for="password"
-            class="block font-medium text-gray-700 mb-2 text-sm"
-            >Password</label
-          >
+        <div>
+          <label for="password" class="mb-2 block text-sm font-semibold text-[#181F39]">Password</label>
           <div class="relative">
             <input
               [type]="showPassword ? 'text' : 'password'"
               id="password"
               formControlName="password"
-              class="w-full px-4 py-3 border border-gray-300 rounded-md text-base transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-3 focus:ring-blue-100 pr-12"
-              [class.border-red-600]="password?.invalid && password?.touched"
               placeholder="Enter your password"
+              class="h-12 w-full rounded-2xl border border-slate-300 px-4 pr-12 text-[15px] text-[#181F39] outline-none transition-all placeholder:text-slate-400 focus:border-[#23A997] focus:ring-4 focus:ring-[#23A997]/15"
+              [class.border-red-500]="password?.invalid && password?.touched"
             />
             <button
               type="button"
               (click)="showPassword = !showPassword"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1"
+              class="absolute inset-y-0 right-4 flex items-center text-slate-400 transition hover:text-slate-700"
+              aria-label="Toggle password visibility"
             >
-              <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
               </svg>
             </button>
           </div>
-          <div
-            *ngIf="password?.invalid && password?.touched"
-            class="mt-1 text-red-600 text-xs"
-          >
-            <span *ngIf="password?.errors?.['required']"
-              >Password is required</span
-            >
-            <span *ngIf="password?.errors?.['minlength']"
-              >Password must be at least 6 characters</span
-            >
+          <div *ngIf="password?.invalid && password?.touched" class="mt-2 text-xs text-red-600">
+            <span *ngIf="password?.errors?.['required']">Password is required.</span>
+            <span *ngIf="password?.errors?.['minlength']">Password must be at least 6 characters.</span>
           </div>
         </div>
 
-        <div class="text-right mb-8">
-          <a
-            href="#"
-            class="text-blue-950 text-sm hover:text-blue-950 hover:underline"
-          >
-            Forgot Your Password?
-          </a>
+        <div class="flex justify-end">
+          <a href="#" class="text-sm font-medium text-[#0f766e] hover:text-[#0f5d54]">Forgot password?</a>
         </div>
 
-        <div
-          *ngIf="errorMessage"
-          class="mb-4 rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 animate-fade-in"
-        >
-          {{ errorMessage }}
+        <div *ngIf="errorMessage" class="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 animate-fade-in">
+          <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+          <span>{{ errorMessage }}</span>
         </div>
 
         <button
           type="submit"
-          class="w-full py-3.5 rounded-md text-base font-semibold transition-all duration-200 flex items-center justify-center bg-slate-950 text-white hover:bg-slate-800 disabled:bg-slate-900 disabled:cursor-not-allowed"
+          class="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#23A997] px-4 text-sm font-semibold text-white transition hover:bg-[#1e9585] disabled:cursor-not-allowed disabled:opacity-70"
           [disabled]="loginForm.invalid || isLoading"
         >
-          <ng-container *ngIf="!isLoading; else loadingTpl">
-            Login
-          </ng-container>
+          <ng-container *ngIf="!isLoading; else loadingTpl">Sign in</ng-container>
 
           <ng-template #loadingTpl>
-            <svg
-              class="animate-spin h-5 w-5 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-              ></path>
+            <svg class="h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
             </svg>
-            <span class="ml-2">Signing in...</span>
+            <span>Signing in...</span>
           </ng-template>
         </button>
 
-        <p class="text-center text-gray-600 text-sm">
-          Don't have an account?
-          <a
-            routerLink="/signup"
-            class="text-blue-950 font-medium hover:underline"
-            >Sign Up</a
-          >
+        <p class="text-center text-sm text-slate-500">
+          Don&apos;t have an account?
+          <a routerLink="/signup" class="font-semibold text-[#0f766e] hover:text-[#0f5d54]">Sign up</a>
         </p>
       </form>
     </div>
-  </div>
-
-  <div
-    class="flex-1 bg-slate-900 flex items-center justify-center p-12 lg:p-16"
-  >
-    <div class="text-center text-white">
-      <h2 class="text-4xl font-bold mb-4">Unlock Your Potential</h2>
-      <p class="text-lg leading-relaxed opacity-90">
-        Join a community of learners and creators. Your journey starts here.
-      </p>
-    </div>
-  </div>
+  </section>
 </div>

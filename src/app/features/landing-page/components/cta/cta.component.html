@@ -1,17 +1,46 @@
-<section class="py-24 bg-background-light text-center">
-  <div class="max-w-6xl mx-auto px-8">
-    <div class="fade-in">
-      <h2 class="text-4xl font-bold mb-8 text-text-dark font-poppins">
-        Your Institution. Your Brand. Powered by AI.
-      </h2>
-      <div class="flex justify-center">
-        <app-button 
-  variant="primary"
-  size="xl"
-  (buttonClick)="navigateToLogin()"
-  [class]="'bg-primary-light-blue text-white hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(59,130,246,0.4)] border-0 font-semibold transition-all duration-300 rounded-[40px]'">
-  Get Started Free
-</app-button>
+<section class="py-24">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="grid gap-6 md:grid-cols-2">
+      <!-- General User CTA -->
+      <div class="fade-in flex flex-col justify-between rounded-[30px] border border-[#dbe4ea] bg-white p-10 shadow-sm lg:p-12">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-[#23A997]">Personalized Learning</p>
+          <h2 class="mt-4 text-3xl font-bold tracking-tight text-[#181F39]">
+            Experience AI-Powered Learning.
+          </h2>
+          <p class="mt-4 text-lg text-slate-600">
+            Sign up to access personalized content delivery and AI-driven courses tailored specifically for you.
+          </p>
+        </div>
+        <div class="mt-8">
+          <app-button
+            size="lg"
+            (buttonClick)="navigateToSignup()">
+            Get Started
+          </app-button>
+        </div>
+      </div>
+
+      <!-- Admin Organization CTA -->
+      <div class="fade-in flex flex-col justify-between rounded-[30px] border border-[#dbe4ea] bg-white p-10 shadow-sm lg:p-12">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-[#23A997]">Multi-Tenant Operations</p>
+          <h2 class="mt-4 text-3xl font-bold tracking-tight text-[#181F39]">
+            Deploy your institution.
+          </h2>
+          <p class="mt-4 text-lg text-slate-600">
+            Get complete multi-tenant control. Register your organization to seamlessly distribute adaptive content powered by LangChain and LLMs.
+          </p>
+        </div>
+        <div class="mt-8">
+          <app-button
+            size="lg"
+            variant="outline"
+            (buttonClick)="navigateToAdminSignup()"
+            [class]="'rounded-full border-[#dbe4ea] bg-white px-7 text-slate-700 hover:bg-slate-50'">
+            Register Organization
+          </app-button>
+        </div>
       </div>
     </div>
   </div>

@@ -1,33 +1,53 @@
-<div class="min-h-screen bg-gray-50">
+<div class="flex min-h-screen flex-col animate-fade-in">
   <app-header [pageTitle]="'Courses'"></app-header>
 
   <main class="p-6">
-    <!-- Filters and Create Course Button -->
-    <div class="flex items-center justify-between mb-4">
+    <div class="mx-auto flex max-w-7xl flex-col gap-6">
       <app-filters
-        class="flex-grow mr-4"
         [dropdowns]="filterConfig.dropdowns"
         [searchPlaceholder]="filterConfig.searchPlaceholder"
-        (filtersChange)="onFiltersChange($event)"
-      ></app-filters>
+        (filtersChange)="onFiltersChange($event)">
+        <app-button
+          toolbar-actions
+          customColor="bg-[#23A997] text-white hover:bg-[#1f9686]"
+          (buttonClick)="onCreateCourse()">
+          <i class="fa-solid fa-plus mr-2"></i>
+          Create Course
+        </app-button>
+      </app-filters>
 
-      <app-button
-        customColor="bg-blue-950 text-white hover:bg-blue-900"
-        (buttonClick)="onCreateCourse()"
-      >
-        + Create Course
-      </app-button>
+      <section *ngIf="loading" class="rounded-[28px] border border-[#dbe4ea] bg-white px-6 py-16 text-center shadow-sm">
+        <div class="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[#d8f1ec] border-t-[#23A997]"></div>
+        <p class="mt-4 text-sm font-medium text-slate-600">Loading your courses...</p>
+      </section>
+
+      <section
+        *ngIf="!loading && courses.length === 0"
+        class="rounded-[28px] border border-dashed border-[#cbd5e1] bg-white px-6 py-16 text-center shadow-sm">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#ecf9f6] text-[#23A997]">
+          <i class="fas fa-book-open text-xl"></i>
+        </div>
+        <h3 class="mt-5 text-lg font-semibold text-[#181F39]">No courses yet</h3>
+        <p class="mx-auto mt-2 max-w-md text-sm text-slate-500">
+          Start with a draft course and continue building it in the existing course builder.
+        </p>
+      </section>
+
+      <app-data-table
+        *ngIf="!loading && courses.length > 0"
+        [title]="'My Courses'"
+        [columns]="columns"
+        [rows]="courses"
+        [pageSize]="pageSize"
+        [currentPage]="currentPage"
+        [totalItems]="courses.length"
+        [enableActions]="true"
+        [visibleActions]="visibleActions"
+        [rowClickable]="true"
+        (view)="onEditCourse($event)"
+        (pageChange)="currentPage = $event"
+        (delete)="onDeleteCourse($event)">
+      </app-data-table>
     </div>
-
-    <app-data-table
-      [title]="'My Courses'"
-      [columns]="columns"
-      [rows]="courses"
-      [enableActions]="true"
-      [visibleActions]="visibleActions"
-      [rowClickable]="true"
-      (view)="onEditCourse($event)"
-      (delete)="onDeleteCourse($event)"
-    ></app-data-table>
   </main>
 </div>

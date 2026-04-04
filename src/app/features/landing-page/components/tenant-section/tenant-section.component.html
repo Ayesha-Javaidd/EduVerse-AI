@@ -1,29 +1,24 @@
-<section class="py-24 bg-background-light">
-  <div class="max-w-6xl mx-auto px-8">
-    <!-- Section heading -->
-    <app-section-title 
-      title="One Platform, Many Institutions" 
-      color="dark">
-    </app-section-title>
-    
-    <!-- Display tenant cards in grid layout -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
-      <app-card 
-        *ngFor="let tenant of tenants" 
-        type="tenant" 
+<section id="platform" class="py-24">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <p class="text-center text-sm font-semibold uppercase tracking-[0.22em] text-[#23A997]">Platform coverage</p>
+    <app-section-title title="One product across different education models" color="dark"></app-section-title>
+    <p class="mx-auto mb-12 max-w-3xl text-center text-lg text-slate-600">
+      The same admin, teacher, and student product language can serve different institutions without changing how the platform feels.
+    </p>
+
+    <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+      <app-card
+        *ngFor="let tenant of tenants"
+        type="tenant"
         [equalHeight]="true"
         class="fade-in">
-        
-        <!-- Tenant Icon ...property is mentioned in .ts-->
-        <div class="text-4xl mb-4">{{ tenant.icon }}</div>
-        
-        <!-- Tenant Title.... from .ts-->
-        <h3 class="text-text-dark mb-4 font-semibold text-xl font-poppins">
+        <div class="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ecf9f6] text-2xl">
+          {{ tenant.icon }}
+        </div>
+        <h3 class="text-xl font-semibold text-[#181F39]">
           {{ tenant.title }}
         </h3>
-        
-        <!-- Tenant Description...from .ts -->
-        <p class="text-text-muted leading-relaxed text-sm">
+        <p class="mt-3 text-sm leading-7 text-slate-500">
           {{ tenant.description }}
         </p>
       </app-card>

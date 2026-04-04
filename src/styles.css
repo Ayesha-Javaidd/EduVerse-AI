@@ -46,31 +46,7 @@
 
 /* intl-tel-input Globals */
 .iti {
-  --iti-path-flags-1x: url('https://cdn.jsdelivr.net/npm/intl-tel-input@26.9.1/build/img/flags.png');
-  --iti-path-flags-2x: url('https://cdn.jsdelivr.net/npm/intl-tel-input@26.9.1/build/img/flags@2x.png');
-  --iti-path-globe-1x: url('https://cdn.jsdelivr.net/npm/intl-tel-input@26.9.1/build/img/globe.png');
-  --iti-path-globe-2x: url('https://cdn.jsdelivr.net/npm/intl-tel-input@26.9.1/build/img/globe@2x.png');
   width: 100%;
-}
-
-.iti__flag {
-  background-image: var(--iti-path-flags-1x);
-}
-
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .iti__flag {
-    background-image: var(--iti-path-flags-2x);
-  }
-}
-
-.iti__globe {
-  background-image: var(--iti-path-globe-1x);
-}
-
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .iti__globe {
-    background-image: var(--iti-path-globe-2x);
-  }
 }
 
 .iti__country-list {
@@ -79,21 +55,62 @@
   box-shadow: 0 10px 40px rgba(0,0,0,0.1) !important;
   border: 1px solid #e2e8f0 !important;
   background-color: white !important;
+  color: #181F39 !important;
+  -webkit-text-fill-color: #181F39 !important;
   padding: 8px 0 !important;
+}
+
+.iti__dropdown-content {
+  background-color: white !important;
+  color: #181F39 !important;
+  -webkit-text-fill-color: #181F39 !important;
 }
 
 .iti__search-input {
   border: 1px solid #e2e8f0 !important;
   border-radius: 8px !important;
+  background-color: white !important;
+  color: #181F39 !important;
+  -webkit-text-fill-color: #181F39 !important;
   margin: 8px !important;
-  padding: 8px 12px !important;
+  padding: 8px 32px 8px 36px !important;
   width: calc(100% - 16px) !important;
+}
+
+.iti__search-input::placeholder {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+}
+
+.iti__search-input-wrapper,
+.iti__no-results {
+  background-color: white !important;
+  color: #181F39 !important;
 }
 
 .iti__country {
   padding: 8px 16px !important;
   font-size: 14px !important;
+  background-color: white !important;
   color: #181F39 !important;
+  -webkit-text-fill-color: #181F39 !important;
+}
+
+.iti__country-name,
+.iti__selected-country,
+.iti__selected-country-primary,
+.iti__selected-dial-code {
+  color: #181F39 !important;
+  -webkit-text-fill-color: #181F39 !important;
+}
+
+.iti__dial-code,
+.iti__country-check,
+.iti__search-icon-svg,
+.iti__search-clear {
+  color: #64748b !important;
+  fill: #64748b !important;
+  stroke: #64748b !important;
 }
 
 .iti__country:hover {
@@ -102,4 +119,4 @@
 
 .iti__highlight {
   background-color: rgba(35, 169, 151, 0.05) !important;
-}
+}

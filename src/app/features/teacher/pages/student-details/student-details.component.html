@@ -1,83 +1,149 @@
-<app-header pageTitle="Student Details"></app-header>
+<div class="flex min-h-screen flex-col animate-fade-in">
+  <app-header pageTitle="Student Details"></app-header>
 
-<div class="p-6 h-full flex flex-col">
-  <!-- Sticky Back Arrow -->
-  <div class="sticky top-0 z-10 bg-gray-50 py-2">
-    <div class="flex flex-row items-center cursor-pointer w-fit" (click)="goBack()">
-      <svg class="h-5 w-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
-      </svg>
-      <span class="text-indigo-600 font-medium hover:underline">Back to Students List</span>
+  <main class="p-6">
+    <div class="mx-auto flex max-w-6xl flex-col gap-6">
+      <button
+        type="button"
+        (click)="goBack()"
+        class="inline-flex w-fit items-center gap-2 rounded-full px-1 py-1 text-sm font-semibold text-[#23A997] transition-colors hover:text-[#1b8c7d]">
+        <span class="flex h-9 w-9 items-center justify-center rounded-full border border-[#bce8e1] bg-white text-[#23A997]">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </span>
+        Back to Students List
+      </button>
+
+      <section *ngIf="loading" class="rounded-[28px] border border-[#dbe4ea] bg-white px-6 py-16 text-center shadow-sm">
+        <div class="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[#d8f1ec] border-t-[#23A997]"></div>
+        <p class="mt-4 text-sm font-medium text-slate-600">Loading records...</p>
+      </section>
+
+      <section *ngIf="!loading && error" class="rounded-[24px] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 shadow-sm">
+        <p class="font-semibold">Error</p>
+        <p class="mt-1">{{ error }}</p>
+      </section>
+
+      <ng-container *ngIf="!loading && !error">
+        <section class="flex flex-col gap-4 border-b border-[#dbe4ea] pb-5 lg:flex-row lg:items-end lg:justify-between">
+          <div class="flex items-center gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#ecf9f6] text-2xl font-bold text-[#23A997]">
+              {{ studentName.charAt(0) }}
+            </div>
+            <div>
+              <h2 class="text-3xl font-bold tracking-tight text-[#181F39]">{{ studentName }}</h2>
+              <p class="mt-2 text-sm text-slate-500">
+                {{ getScopeCopy() }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <span class="inline-flex items-center rounded-full border border-[#dbe4ea] bg-white px-3 py-1.5 text-sm font-medium text-slate-600">
+              {{ courses.length }} course{{ courses.length === 1 ? '' : 's' }}
+            </span>
+            <span class="inline-flex items-center rounded-full border border-[#dbe4ea] bg-white px-3 py-1.5 text-sm font-medium text-slate-600">
+              {{ getTotalQuizCount() }} quizzes
+            </span>
+            <span class="inline-flex items-center rounded-full border border-[#dbe4ea] bg-white px-3 py-1.5 text-sm font-medium text-slate-600">
+              {{ getTotalAssignmentCount() }} assignments
+            </span>
+          </div>
+        </section>
+
+        <section
+          *ngIf="courses.length === 0"
+          class="rounded-[28px] border border-dashed border-[#cbd5e1] bg-white px-6 py-16 text-center shadow-sm">
+          <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <h3 class="mt-5 text-lg font-semibold text-[#181F39]">No academic records</h3>
+          <p class="mx-auto mt-2 max-w-md text-sm text-slate-500">
+            This student is not currently enrolled in your tracked courses, or no performance data is available yet.
+          </p>
+        </section>
+
+        <section *ngFor="let course of courses" class="flex flex-col gap-4 border-b border-[#e7eef4] pb-6 last:border-b-0">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Course</p>
+              <h3 class="mt-2 text-xl font-bold text-[#181F39]">{{ course.courseName }}</h3>
+            </div>
+            <div class="flex flex-wrap gap-3 text-sm">
+              <span class="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">
+                {{ getTotalItems(course) }} items
+              </span>
+              <span class="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">
+                {{ course.quizzes.length || 0 }} quizzes
+              </span>
+              <span class="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">
+                {{ course.assignments.length || 0 }} assignments
+              </span>
+            </div>
+          </div>
+
+          <div class="grid gap-6 xl:grid-cols-2">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="text-base font-semibold text-[#181F39]">Quiz Performance</h4>
+                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  {{ course.quizzes.length }} total
+                </span>
+              </div>
+
+              <app-data-table
+                *ngIf="course.quizzes.length > 0"
+                [title]="'Quizzes'"
+                [columns]="quizColumns"
+                [rows]="course.quizzes"
+                [rowClickable]="false"
+                [pageSize]="tablePageSize"
+                [currentPage]="getQuizPage(course.courseId)"
+                [totalItems]="course.quizzes.length || 0"
+                (pageChange)="setQuizPage(course.courseId, $event)">
+              </app-data-table>
+
+              <section
+                *ngIf="course.quizzes.length === 0"
+                class="rounded-[22px] border border-dashed border-[#dbe4ea] bg-white px-5 py-10 text-center shadow-sm">
+                <p class="text-sm font-semibold text-[#181F39]">No quizzes assigned</p>
+                <p class="mt-2 text-sm text-slate-500">There are no quiz records to show for this course yet.</p>
+              </section>
+            </div>
+
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="text-base font-semibold text-[#181F39]">Assignment Performance</h4>
+                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  {{ course.assignments.length }} total
+                </span>
+              </div>
+
+              <app-data-table
+                *ngIf="course.assignments.length > 0"
+                [title]="'Assignments'"
+                [columns]="assignmentColumns"
+                [rows]="course.assignments"
+                [rowClickable]="false"
+                [pageSize]="tablePageSize"
+                [currentPage]="getAssignmentPage(course.courseId)"
+                [totalItems]="course.assignments.length || 0"
+                (pageChange)="setAssignmentPage(course.courseId, $event)">
+              </app-data-table>
+
+              <section
+                *ngIf="course.assignments.length === 0"
+                class="rounded-[22px] border border-dashed border-[#dbe4ea] bg-white px-5 py-10 text-center shadow-sm">
+                <p class="text-sm font-semibold text-[#181F39]">No assignments assigned</p>
+                <p class="mt-2 text-sm text-slate-500">There are no assignment records to show for this course yet.</p>
+              </section>
+            </div>
+          </div>
+        </section>
+      </ng-container>
     </div>
-  </div>
-
-  <div *ngIf="loading" class="flex justify-center items-center py-12">
-    <svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-    </svg>
-    <span class="ml-3 text-indigo-600 font-medium">Loading records...</span>
-  </div>
-
-  <div *ngIf="!loading && error" class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg my-4">
-    <p class="font-medium">Error</p>
-    <p>{{ error }}</p>
-  </div>
-
-  <div *ngIf="!loading && !error">
-    <div class="flex items-center gap-3 mb-8 mt-4">
-        <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xl font-bold">
-            {{ studentName.charAt(0) }}
-        </div>
-        <h2 class="text-3xl font-bold text-gray-900">{{ studentName }}</h2>
-    </div>
-
-    <div *ngIf="courses.length === 0" class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4">
-        <svg class="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-        </svg>
-      </div>
-      <h3 class="text-lg font-medium text-gray-900 mb-1">No Academic Records</h3>
-      <p class="text-gray-500 max-w-sm mx-auto">This student currently isn't enrolled in any of your active courses or has no recorded performance data.</p>
-    </div>
-
-    <!-- Iterate through each course the student is taking under this teacher -->
-    <div *ngFor="let course of courses" class="mb-12 bg-white rounded-xl shadow-sm border border-gray-100 p-6 overflow-hidden hover:shadow-md transition-shadow">
-      <!-- Course Title Header -->
-      <div class="border-b border-gray-100 pb-4 mb-6 relative">
-          <div class="absolute -left-6 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-indigo-500 rounded-r-full"></div>
-          <h3 class="text-xl font-bold text-gray-800 ml-2">Course: <span class="text-indigo-600 ml-1">{{ course.courseName }}</span></h3>
-      </div>
-
-      <div class="grid lg:grid-cols-2 gap-8">
-        <!-- Quizzes Table -->
-        <div class="w-full">
-            <app-data-table 
-              [title]="'Quizzes'" 
-              [columns]="quizColumns" 
-              [rows]="course.quizzes" 
-              [rowClickable]="false"
-              [pageSize]="5" 
-              [currentPage]="1" 
-              [totalItems]="course.quizzes.length || 0">
-            </app-data-table>
-        </div>
-
-        <!-- Assignments Table -->
-        <div class="w-full">
-            <app-data-table 
-              [title]="'Assignments'" 
-              [columns]="assignmentColumns" 
-              [rows]="course.assignments"
-              [rowClickable]="false" 
-              [pageSize]="5" 
-              [currentPage]="1"
-              [totalItems]="course.assignments.length || 0">
-            </app-data-table>
-        </div>
-      </div>
-    </div>
-  </div>
+  </main>
 </div>

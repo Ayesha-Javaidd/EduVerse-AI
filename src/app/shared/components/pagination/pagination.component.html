@@ -1,34 +1,40 @@
-<nav class="flex items-center justify-between p-4 space-x-1">
-  <!-- Prev Button -->
-  <app-button
-    (buttonClick)="goToPage(currentPage - 1)"
-    [disabled]="currentPage === 1"
-    customColor="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-  >
-    Prev
-  </app-button>
+<nav class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+  <p class="text-sm font-medium text-slate-500">
+    Page {{ currentPage }} of {{ totalPages }}
+  </p>
 
-  <!-- Page Numbers -->
-  <div class="flex items-center space-x-2">
+  <div class="flex items-center gap-2">
     <app-button
-      *ngFor="let page of pages"
-      (buttonClick)="goToPage(page)"
-      [customColor]="
-        page === currentPage
-          ? 'bg-indigo-600 text-white shadow-md'
-          : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors'
-      "
+      (buttonClick)="goToPage(currentPage - 1)"
+      [disabled]="currentPage === 1"
+      [size]="'sm'"
+      customColor="border border-[#dbe4ea] bg-white text-slate-600 hover:border-[#23A997]/40 hover:bg-[#ecf9f6] hover:text-[#23A997] disabled:opacity-50"
     >
-      {{ page }}
+      <i class="fa-solid fa-chevron-left text-xs"></i>
+    </app-button>
+
+    <div class="flex items-center gap-2">
+      <app-button
+        *ngFor="let page of pages"
+        (buttonClick)="goToPage(page)"
+        [size]="'sm'"
+        [customColor]="
+          page === currentPage
+            ? 'bg-[#23A997] text-white shadow-[0_8px_20px_rgba(35,169,151,0.18)] hover:bg-[#1f9686]'
+            : 'border border-[#dbe4ea] bg-white text-slate-600 hover:border-[#23A997]/40 hover:bg-[#ecf9f6] hover:text-[#23A997]'
+        "
+      >
+        {{ page }}
+      </app-button>
+    </div>
+
+    <app-button
+      (buttonClick)="goToPage(currentPage + 1)"
+      [disabled]="currentPage === totalPages"
+      [size]="'sm'"
+      customColor="border border-[#dbe4ea] bg-white text-slate-600 hover:border-[#23A997]/40 hover:bg-[#ecf9f6] hover:text-[#23A997] disabled:opacity-50"
+    >
+      <i class="fa-solid fa-chevron-right text-xs"></i>
     </app-button>
   </div>
-
-  <!-- Next Button -->
-  <app-button
-    (buttonClick)="goToPage(currentPage + 1)"
-    [disabled]="currentPage === totalPages"
-    customColor="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-  >
-    Next
-  </app-button>
 </nav>

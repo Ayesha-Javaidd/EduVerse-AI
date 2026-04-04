@@ -1,21 +1,21 @@
-<div class="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center z-50">
+<div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 p-6 backdrop-blur-[2px]">
   <div
-    class="bg-white w-full max-w-3xl p-6 rounded-lg shadow-xl overflow-y-auto max-h-[90vh] relative transition-transform duration-300"
+    class="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl"
   >
-    <!-- Close Button -->
-    <button
-      class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-bold"
-      (click)="closeModal()"
-    >
-      ×
-    </button>
-
-    <h2 class="text-2xl font-semibold mb-6 text-center">
-      {{ isEditMode ? (isDisabled ? 'View Quiz' : 'Edit Quiz') : 'Create Quiz' }}
-    </h2>
+    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+      <h2 class="text-xl font-semibold text-slate-800">
+        {{ isEditMode ? (isDisabled ? 'View Quiz' : 'Edit Quiz') : 'Create Quiz' }}
+      </h2>
+      <button
+        type="button"
+        class="text-gray-400 transition hover:text-gray-600"
+        (click)="closeModal()">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
 
     <!-- Warning: Questions locked if submissions exist -->
-    <div *ngIf="questionsLocked" class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg mb-4">
+    <div *ngIf="questionsLocked" class="mx-6 mt-6 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-yellow-800">
       <div class="flex items-center gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -25,13 +25,13 @@
       <p class="text-sm mt-1">Students have already submitted answers. You can only edit the quiz number, description, due date, and status.</p>
     </div>
 
-    <form [formGroup]="quizForm" class="space-y-4">
+    <form [formGroup]="quizForm" class="space-y-4 p-6">
       <!-- Course -->
       <div>
-        <label class="block text-sm font-medium mb-1">Course <span class="text-red-500">*</span></label>
+        <label class="mb-1 block text-sm font-medium text-slate-700">Course <span class="text-red-500">*</span></label>
         <select
           formControlName="courseId"
-          class="w-full border rounded-md p-2"
+          class="w-full rounded-xl border border-[#e2e8f0] bg-white px-4 py-3 focus:border-[#23A997] focus:outline-none focus:ring-1 focus:ring-[#23A997]"
           (change)="onCourseChange($event)"
           [class.bg-gray-100]="questionsLocked"
           [class.cursor-not-allowed]="questionsLocked"
@@ -46,27 +46,27 @@
 
       <!-- Quiz Number -->
       <div>
-        <label class="block text-sm font-medium mb-1">Quiz Number <span class="text-red-500">*</span></label>
+        <label class="mb-1 block text-sm font-medium text-slate-700">Quiz Number <span class="text-red-500">*</span></label>
         <input
           type="text"
           formControlName="quizNo"
-          class="w-full border rounded-md p-2"
+          class="w-full rounded-xl border border-[#e2e8f0] px-4 py-3 focus:border-[#23A997] focus:outline-none focus:ring-1 focus:ring-[#23A997]"
           placeholder="Enter quiz number"
         />
       </div>
 
       <!-- Due Date -->
       <div>
-        <label class="block text-sm font-medium mb-1">Due Date <span class="text-red-500">*</span></label>
-        <input type="date" formControlName="dueDate" class="w-full border rounded-md p-2" />
+        <label class="mb-1 block text-sm font-medium text-slate-700">Due Date <span class="text-red-500">*</span></label>
+        <input type="date" formControlName="dueDate" class="w-full rounded-xl border border-[#e2e8f0] px-4 py-3 focus:border-[#23A997] focus:outline-none focus:ring-1 focus:ring-[#23A997]" />
       </div>
 
       <!-- Description -->
       <div>
-        <label class="block text-sm font-medium mb-1">Description</label>
+        <label class="mb-1 block text-sm font-medium text-slate-700">Description</label>
         <textarea
           formControlName="description"
-          class="w-full border rounded-md p-2"
+          class="w-full rounded-xl border border-[#e2e8f0] px-4 py-3 focus:border-[#23A997] focus:outline-none focus:ring-1 focus:ring-[#23A997]"
           rows="3"
           placeholder="Enter quiz description"
         ></textarea>
@@ -77,7 +77,7 @@
         <div
           *ngFor="let q of questions.controls; let i = index"
           [formGroupName]="i"
-          class="border p-4 rounded-lg shadow-sm"
+          class="rounded-xl border border-[#e2e8f0] p-4 shadow-sm"
           [class.bg-gray-100]="questionsLocked"
           [class.bg-gray-50]="!questionsLocked"
         >
@@ -85,7 +85,7 @@
           <input
             type="text"
             formControlName="statement"
-            class="w-full border rounded-md p-2 mb-3"
+            class="mb-3 w-full rounded-xl border border-[#e2e8f0] px-4 py-3 focus:border-[#23A997] focus:outline-none focus:ring-1 focus:ring-[#23A997]"
             placeholder="Enter question statement"
             [class.bg-gray-100]="questionsLocked"
             [class.cursor-not-allowed]="questionsLocked"
@@ -99,7 +99,7 @@
               <input
                 type="text"
                 [formControlName]="j"
-                class="flex-1 border rounded-md p-2"
+                class="flex-1 rounded-xl border border-[#e2e8f0] px-4 py-3 focus:border-[#23A997] focus:outline-none focus:ring-1 focus:ring-[#23A997]"
                 placeholder="Option {{ getOptionLetter(j) }}"
                 [class.bg-gray-100]="questionsLocked"
                 [class.cursor-not-allowed]="questionsLocked"
@@ -137,7 +137,7 @@
             <label class="text-sm font-medium mb-1 block">Correct Answer <span class="text-red-500">*</span></label>
             <select
               formControlName="correctAnswer"
-              class="w-full border rounded-md p-2"
+              class="w-full rounded-xl border border-[#e2e8f0] px-4 py-3 focus:border-[#23A997] focus:outline-none focus:ring-1 focus:ring-[#23A997]"
               [class.bg-gray-100]="questionsLocked"
               [class.cursor-not-allowed]="questionsLocked"
             >
@@ -166,35 +166,34 @@
 
       <!-- Add Question -->
       <div *ngIf="!isDisabled && !questionsLocked" class="flex justify-start mt-4">
-        <button
+        <app-button
           type="button"
-          (click)="addQuestion()"
-          class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md font-medium"
-        >
+          variant="outline"
+          [class]="'rounded-xl'"
+          (buttonClick)="addQuestion()">
           + Add Another Question
-        </button>
-      </div>
-
-      <!-- Footer Buttons -->
-      <div class="flex justify-end space-x-3 mt-8">
-        <button
-          type="button"
-          class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md"
-          (click)="closeModal()"
-        >
-          Cancel
-        </button>
-
-        <button
-          type="button"
-          *ngIf="!isDisabled"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-          [disabled]="isSaving || (isEditMode && !hasFormChanged())"
-          (click)="saveQuiz()"
-        >
-          {{ isSaving ? 'Saving...' : (isEditMode ? 'Update Quiz' : 'Generate Quiz') }}
-        </button>
+        </app-button>
       </div>
     </form>
+
+    <div class="flex justify-end gap-3 rounded-b-xl border-t border-gray-200 bg-gray-50 px-6 py-4">
+      <app-button
+        type="button"
+        variant="outline"
+        [class]="'rounded-xl border-[#23A997]/30 text-[#23A997] hover:border-[#23A997] hover:bg-[#23A997]/5'"
+        (buttonClick)="closeModal()">
+        Cancel
+      </app-button>
+
+      <app-button
+        *ngIf="!isDisabled"
+        type="button"
+        customColor="bg-[#23A997] text-white hover:bg-[#1f9686]"
+        [class]="'rounded-xl'"
+        [disabled]="isSaving || (isEditMode && !hasFormChanged())"
+        (buttonClick)="saveQuiz()">
+        {{ isSaving ? 'Saving...' : (isEditMode ? 'Update Quiz' : 'Create Quiz') }}
+      </app-button>
+    </div>
   </div>
 </div>

@@ -1,52 +1,57 @@
-<div class="transition-all min-h-screen bg-gray-50">
+<div class="flex min-h-screen flex-col animate-fade-in">
   <app-header pageTitle="Teacher Dashboard"></app-header>
-  <div class="px-6 mt-6">
-    <div class="flex flex-wrap justify-center gap-6 max-w-6xl mx-auto">
-      <div *ngFor="let link of quickLinks" (click)="link.action()"
-        class="w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.333%-1.5rem)] cursor-pointer rounded-xl bg-slate-900 text-white flex flex-col items-center justify-center py-8 shadow hover:opacity-90 transition">
-        <i [class]="link.icon + ' text-2xl mb-2'"></i>
-        <span class="text-lg font-semibold">{{ link.title }}</span>
-      </div>
-    </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-      <app-stat-card *ngFor="let s of statsCards" [title]="s.title" [value]="s.value" [icon]="s.icon"
-        [iconBgClass]="s.iconBgClass" [iconColorClass]="s.iconColorClass">
-      </app-stat-card>
-    </div>
-  </div>
+  <main class="p-6">
+    <div class="mx-auto flex max-w-7xl flex-col gap-6">
+      <section class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <app-stat-card
+          *ngFor="let s of statsCards"
+          [title]="s.title"
+          [value]="s.value"
+          [icon]="s.icon"
+          [iconBgClass]="s.iconBgClass"
+          [iconColorClass]="s.iconColorClass">
+        </app-stat-card>
+      </section>
 
-  <div class="px-6 mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)] xl:items-stretch">
+        <app-data-table
+          title="My Courses"
+          [columns]="courseColumns"
+          viewAllRoute="/teacher/courses"
+          [rows]="courses"
+          [showViewAll]="true"
+          (actionClick)="onViewCourse($event)"
+          (viewAllClick)="onViewAllCourses()">
+        </app-data-table>
 
-    <div class="lg:col-span-2">
-      <app-data-table title="My Courses" [columns]="courseColumns" viewAllRoute="/teacher/courses" [rows]="courses"
-        [showViewAll]="true" (actionClick)="onViewCourse($event)" (viewAllClick)="onViewAllCourses()">
-      </app-data-table>
-    </div>
-
-    <div>
-      <!-- Student Enrollment Chart -->
-      <div class="bg-white rounded-lg shadow p-6 border-t-4 border-indigo-600">
-        <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
-          <i class="fas fa-chart-bar text-indigo-600 mr-2 text-2xl"></i>
-          Student Enrollments per Subject
-        </h3>
-        
-        <div class="relative h-72 w-full flex items-center justify-center">
-          <app-student-enrollment-chart 
-            *ngIf="chartSubjects.length > 0; else noDataChart"
-            [subjects]="chartSubjects"
-            [enrollments]="chartEnrollments"
-            class="w-full h-full">
-          </app-student-enrollment-chart>
-          <ng-template #noDataChart>
-            <div class="flex flex-col items-center text-gray-400">
-              <i class="fas fa-chart-line text-4xl mb-2"></i>
-              <p>No enrollment data yet</p>
+        <div class="flex h-full min-h-[320px] flex-col rounded-[28px] border border-[#dbe4ea] bg-white p-6 shadow-sm">
+          <div class="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <p class="text-sm font-semibold text-[#181F39]">Enrollment Overview</p>
+              <p class="mt-1 text-sm text-slate-500">Student enrollments across your active subjects.</p>
             </div>
-          </ng-template>
+            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#ecf9f6] text-[#23A997]">
+              <i class="fas fa-chart-column text-lg"></i>
+            </div>
+          </div>
+
+          <div class="relative flex min-h-[240px] flex-1 items-center justify-center">
+            <app-student-enrollment-chart
+              *ngIf="chartSubjects.length > 0; else noDataChart"
+              [subjects]="chartSubjects"
+              [enrollments]="chartEnrollments"
+              class="h-full w-full">
+            </app-student-enrollment-chart>
+            <ng-template #noDataChart>
+              <div class="flex flex-col items-center text-center text-slate-400">
+                <i class="fas fa-chart-line mb-3 text-4xl"></i>
+                <p class="text-sm font-medium text-slate-500">No enrollment data yet</p>
+              </div>
+            </ng-template>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
-  </div>
+  </main>
 </div>

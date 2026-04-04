@@ -6,7 +6,6 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 // Feature Components
-import { CourseInfoCardComponent } from '../../components/course-info-card/course-info-card.component';
 import { CourseBuilderTabsComponent } from '../../components/course-builder-tabs/course-builder-tabs.component';
 import { CurriculumModuleComponent } from '../../components/curriculum-module/curriculum-module.component';
 import { AddModuleModalComponent } from '../../components/add-module-modal/add-module-modal.component';
@@ -16,6 +15,7 @@ import { BulkUploadModalComponent } from '../../components/bulk-upload-modal/bul
 // Services
 import { CourseBuilderService } from '../../services/course-builder.service';
 import { TeacherProfileService } from '../../services/teacher-profile.service';
+import { CourseMetadataService } from '../../../../shared/services/course-metadata.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
 
@@ -30,6 +30,7 @@ import {
   calculateTotalLessons,
   calculateTotalDuration,
 } from '../../../../shared/models/course-builder.model';
+import { CourseMetadata } from '../../../../shared/models/course-metadata.model';
 
 type TabType = 'content' | 'settings' | 'students';
 
@@ -40,7 +41,6 @@ type TabType = 'content' | 'settings' | 'students';
     CommonModule,
     FormsModule,
     RouterModule,
-    CourseInfoCardComponent,
     CourseBuilderTabsComponent,
     CurriculumModuleComponent,
     AddModuleModalComponent,
@@ -66,22 +66,13 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
   // UI State
   activeTab: TabType = 'content';
   isLoading = true;
+  isLoadingMetadata = true;
+  metadataError: string | null = null;
 
   // Category and Level options
-  categoryOptions = [
-    'General',
-    'Computer Science',
-    'Mathematics',
-    'Science',
-    'Business',
-    'Arts',
-    'Language',
-    'Health',
-    'Engineering',
-    'Other'
-  ];
-
-  levelOptions = ['Beginner', 'Intermediate', 'Advanced'];
+  categoryOptions: string[] = [];
+  levelOptions: string[] = [];
+  private courseMetadata: CourseMetadata | null = null;
   isSaving = false;
   error: string | null = null;
 
@@ -106,11 +97,13 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     private router: Router,
     private courseBuilderService: CourseBuilderService,
     private teacherProfileService: TeacherProfileService,
+    private courseMetadataService: CourseMetadataService,
     private toastService: ToastService,
     private confirmDialog: ConfirmDialogService
   ) { }
 
   ngOnInit(): void {
+    this.loadCourseMetadata();
     this.loadTeacherContext();
   }
 
@@ -153,6 +146,27 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
       });
   }
 
+  loadCourseMetadata(forceRefresh = false): void {
+    this.isLoadingMetadata = true;
+    this.metadataError = null;
+
+    this.courseMetadataService
+      .getMetadata(forceRefresh)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (metadata) => {
+          this.courseMetadata = metadata;
+          this.syncMetadataOptions();
+          this.isLoadingMetadata = false;
+        },
+        error: (err) => {
+          console.error('Failed to load course metadata:', err);
+          this.metadataError = 'Unable to load category and level options.';
+          this.isLoadingMetadata = false;
+        },
+      });
+  }
+
   /**
    * Load course data for the builder
    */
@@ -166,6 +180,7 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (course) => {
           this.course = course;
+          this.syncMetadataOptions();
           this.isLoading = false;
         },
         error: (err) => {
@@ -174,6 +189,41 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
           this.isLoading = false;
         },
       });
+  }
+
+  private syncMetadataOptions(): void {
+    if (!this.courseMetadata) {
+      return;
+    }
+
+    if (this.course) {
+      if (!this.course.category) {
+        this.course.category = this.courseMetadata.defaultCategory;
+      }
+      if (!this.course.level) {
+        this.course.level = this.courseMetadata.defaultLevel;
+      }
+    }
+
+    this.categoryOptions = this.withCurrentOption(
+      this.courseMetadata.categories,
+      this.course?.category
+    );
+    this.levelOptions = this.withCurrentOption(
+      this.courseMetadata.levels,
+      this.course?.level
+    );
+  }
+
+  private withCurrentOption(options: string[], currentValue?: string): string[] {
+    const normalizedCurrentValue = currentValue?.trim();
+    if (!normalizedCurrentValue) {
+      return [...options];
+    }
+
+    return options.includes(normalizedCurrentValue)
+      ? [...options]
+      : [normalizedCurrentValue, ...options];
   }
 
   /**

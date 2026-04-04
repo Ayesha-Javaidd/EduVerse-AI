@@ -29,7 +29,7 @@ export class ButtonComponent {
 
     const variantClasses: Record<ButtonVariant, string> = {
       primary:
-        'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 active:bg-blue-800',
+        'bg-[#23A997] text-white hover:bg-[#1e9585] focus:ring-[#23A997] active:bg-[#1b8c7d]',
       secondary:
         'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500 active:bg-gray-800',
       success:

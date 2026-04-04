@@ -40,26 +40,6 @@ export class TeacherDashboardComponent implements OnInit {
     private teacherService: TeacherProfileService,
   ) { }
 
-  quickLinks = [
-    {
-      title: 'Create Quizzes',
-      icon: 'fa fa-edit',
-      action: () => this.onGenerateQuiz(),
-    },
-    {
-      title: 'Create Assignment ',
-      icon: 'fa-solid fa-file-circle-plus',
-      action: () => this.onGenerateAssignment(),
-    },
-  ];
-
-  onGenerateAssignment() {
-    this.router.navigate(['/teacher/assignments']);
-  }
-  onGenerateQuiz() {
-    this.router.navigate(['/teacher/quizzes']);
-  }
-
   statsCards: StatCard[] = [
     {
       title: 'Courses',
@@ -181,4 +161,3 @@ interface StatCard {
   iconBgClass: string;
   iconColorClass: string;
 }
-

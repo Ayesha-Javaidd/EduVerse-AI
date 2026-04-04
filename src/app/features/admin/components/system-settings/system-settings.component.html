@@ -56,7 +56,7 @@
         type="submit"
         [disabled]="isSaving"
       >
-        <span *ngIf="!isSaving">Save Settings</span>
+        <span *ngIf="!isSaving"><i class="fa-solid fa-floppy-disk mr-2"></i>Save Settings</span>
         <span *ngIf="isSaving"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Saving...</span>
       </app-button>
 

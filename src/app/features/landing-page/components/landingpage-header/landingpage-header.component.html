@@ -1,136 +1,85 @@
 <header
-  class="fixed top-0 w-full z-[1000] border-b border-primary-light-blue/20 py-4 transition-all duration-300"
-  [style.background]="'rgba(15, 23, 42, ' + headerOpacity + ')'"
-  style="backdrop-filter: blur(15px)"
->
-  <div class="max-w-6xl mx-auto px-8">
-    <nav class="flex justify-between items-center">
-      <!-- logo of my website -->
-      <a
-        href="#"
-        class="text-2xl font-bold text-primary-light-blue font-poppins"
-      >
-        EduVerse AI
+  class="fixed top-0 z-[1000] w-full border-b border-[#e2e8f0] transition-all duration-300"
+  [style.background]="'rgba(248, 249, 252, ' + headerOpacity + ')'"
+  style="backdrop-filter: blur(14px)">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <nav class="flex items-center justify-between py-4">
+      <a href="#" class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#23A997] text-white shadow-sm">
+          <i class="fa-solid fa-book-open text-[16px]"></i>
+        </div>
+        <span class="text-[24px] font-bold tracking-tight text-[#181F39]">Edu<span class="text-[#23A997]">Verse</span></span>
       </a>
 
-      <!-- Navigation to sections through links -->
-      <ul class="hidden md:flex gap-8 list-none">
+      <ul class="hidden items-center gap-8 md:flex">
         <li>
-          <a
-            (click)="scrollToSection('features')"
-            class="text-text-light cursor-pointer relative transition-all duration-300 hover:text-primary-light-blue after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-primary-light-blue after:to-blue-400 after:transition-all after:duration-300 hover:after:w-full after:shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-          >
-            Features
+          <a (click)="scrollToSection('platform')" class="cursor-pointer text-sm font-medium text-slate-600 transition-colors hover:text-[#23A997]">
+            Platform
           </a>
         </li>
         <li>
-          <a
-            (click)="scrollToSection('demo')"
-            class="text-text-light cursor-pointer relative transition-all duration-300 hover:text-primary-light-blue after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-primary-light-blue after:to-blue-400 after:transition-all after:duration-300 hover:after:w-full after:shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-          >
-            AI Demo
+          <a (click)="scrollToSection('ai')" class="cursor-pointer text-sm font-medium text-slate-600 transition-colors hover:text-[#23A997]">
+            AI Assistant
           </a>
         </li>
         <li>
-          <a
-            href="#"
-            class="text-text-light cursor-pointer relative transition-all duration-300 hover:text-primary-light-blue after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-primary-light-blue after:to-blue-400 after:transition-all after:duration-300 hover:after:w-full after:shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-          >
+          <a (click)="scrollToSection('workflow')" class="cursor-pointer text-sm font-medium text-slate-600 transition-colors hover:text-[#23A997]">
+            Workflow
+          </a>
+        </li>
+        <li>
+          <a (click)="scrollToSection('pricing')" class="cursor-pointer text-sm font-medium text-slate-600 transition-colors hover:text-[#23A997]">
             Pricing
-          </a>
-        </li>
-        <li>
-          <a
-            href="#"
-            class="text-text-light cursor-pointer relative transition-all duration-300 hover:text-primary-light-blue after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-primary-light-blue after:to-blue-400 after:transition-all after:duration-300 hover:after:w-full after:shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-          >
-            Contact
           </a>
         </li>
       </ul>
 
-      <!-- Mobile Menu Toggle for better responsiveness-->
-      <div
-        class="md:hidden flex flex-col cursor-pointer gap-1"
-        (click)="toggleMobileMenu()"
-      >
-        <span
-          class="w-6 h-0.5 bg-text-light transition-all duration-300"
-        ></span>
-        <span
-          class="w-6 h-0.5 bg-text-light transition-all duration-300"
-        ></span>
-        <span
-          class="w-6 h-0.5 bg-text-light transition-all duration-300"
-        ></span>
+      <div class="hidden items-center gap-3 md:flex">
+        <app-button
+          variant="outline"
+          size="md"
+          (buttonClick)="navigateToLogin()"
+          [class]="'rounded-full border-[#dbe4ea] bg-white px-5 text-slate-700 hover:bg-slate-50'">
+          Sign In
+        </app-button>
+        <app-button
+          size="md"
+          (buttonClick)="navigateToSignup()">
+          Get Started
+        </app-button>
       </div>
 
-      <app-button
-        variant="primary"
-        size="lg"
-        (buttonClick)="navigateToLogin()"
-        [class]="
-          'bg-primary-light-blue text-white hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(59,130,246,0.4)] border-0 font-semibold transition-all duration-300 rounded-[40px]'
-        "
-      >
-        Get Started Free
-      </app-button>
+      <button class="flex h-10 w-10 items-center justify-center rounded-xl border border-[#dbe4ea] bg-white text-slate-700 md:hidden"
+        (click)="toggleMobileMenu()">
+        <i class="fa-solid" [ngClass]="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
+      </button>
     </nav>
 
-    <!-- Mobile Menu -->
-    <div
-      class="md:hidden mt-4 transition-all duration-300"
-      [class.hidden]="!mobileMenuOpen"
-    >
-      <ul
-        class="flex flex-col gap-4 list-none bg-primary-navy/90 p-4 rounded-lg"
-      >
-        <li>
-          <a
-            (click)="scrollToSection('features')"
-            class="text-text-light cursor-pointer block py-2 hover:text-primary-light-blue transition-colors"
-          >
-            Features
-          </a>
-        </li>
-        <li>
-          <a
-            (click)="scrollToSection('demo')"
-            class="text-text-light cursor-pointer block py-2 hover:text-primary-light-blue transition-colors"
-          >
-            AI Demo
-          </a>
-        </li>
-        <li>
-          <a
-            href="#"
-            class="text-text-light cursor-pointer block py-2 hover:text-primary-light-blue transition-colors"
-          >
-            Pricing
-          </a>
-        </li>
-        <li>
-          <a
-            href="#"
-            class="text-text-light cursor-pointer block py-2 hover:text-primary-light-blue transition-colors"
-          >
-            Contact
-          </a>
-        </li>
-        <li class="mt-2">
-          <!-- Using the same button component in mobile menu -->
-          <app-button
-            variant="primary"
-            size="md"
-            [fullWidth]="true"
-            [class]="
-              'bg-primary-light-blue text-white hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(59,130,246,0.4)] rounded-full border-0 font-semibold transition-all duration-300'
-            "
-          >
-            Get Started Free
-          </app-button>
-        </li>
-      </ul>
+    <div *ngIf="mobileMenuOpen" class="md:hidden pb-4">
+      <div class="rounded-[18px] border border-[#e2e8f0] bg-white p-4 shadow-sm">
+        <div class="flex flex-col gap-3">
+          <a (click)="scrollToSection('platform')" class="cursor-pointer rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Platform</a>
+          <a (click)="scrollToSection('ai')" class="cursor-pointer rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">AI Assistant</a>
+          <a (click)="scrollToSection('workflow')" class="cursor-pointer rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Workflow</a>
+          <a (click)="scrollToSection('pricing')" class="cursor-pointer rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Pricing</a>
+          <div class="mt-2 grid gap-2 sm:grid-cols-2">
+            <app-button
+              variant="outline"
+              size="md"
+              [fullWidth]="true"
+              (buttonClick)="navigateToLogin()"
+              [class]="'rounded-full border-[#dbe4ea] bg-white text-slate-700 hover:bg-slate-50'">
+              Sign In
+            </app-button>
+            <app-button
+              size="md"
+              [fullWidth]="true"
+              (buttonClick)="navigateToSignup()">
+              Get Started
+            </app-button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </header>

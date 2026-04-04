@@ -24,24 +24,20 @@ export class SectionTitleComponent {
 
   // Compute Tailwind classes dynamically based on inputs
   get titleClasses(): string {
-    // Base styling shared by all titles
-    const baseClasses = 'text-center font-bold mb-12 font-poppins fade-in';
+    const baseClasses = 'text-center font-bold tracking-tight mb-4 fade-in';
     
-    // Colors that can be applied depending on "color" input
     const colorClasses = {
-      dark: 'text-text-dark',
-      light: 'text-text-light',
-      blue: 'text-primary-light-blue'
+      dark: 'text-[#181F39]',
+      light: 'text-white',
+      blue: 'text-[#23A997]'
     };
 
-    // Sizes that can be applied depending on "size" input
     const sizeClasses = {
-      sm: 'text-3xl',
-      md: 'text-4xl',
-      lg: 'text-5xl'
+      sm: 'text-2xl md:text-3xl',
+      md: 'text-3xl md:text-4xl',
+      lg: 'text-4xl md:text-5xl'
     };
 
-    // Return a combined class string
     return `${baseClasses} ${colorClasses[this.color]} ${sizeClasses[this.size]}`;
   }
 }

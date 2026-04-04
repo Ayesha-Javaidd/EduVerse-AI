@@ -1,34 +1,32 @@
 <div
-  class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+  class="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 p-6 backdrop-blur-[2px]"
   (click)="onOverlayClick($event)"
 >
   <div
-    class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+    class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[24px] border border-[#e2e8f0] bg-white shadow-2xl"
     (click)="$event.stopPropagation()"
   >
     <!-- Header -->
-    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center flex-shrink-0">
-      <h2 class="text-xl font-semibold text-slate-800">Bulk Upload Modules & Lessons</h2>
+    <div class="flex flex-shrink-0 items-center justify-between border-b border-[#e2e8f0] px-6 py-5">
+      <h2 class="text-xl font-bold text-[#181F39]">Bulk Upload Modules & Lessons</h2>
       <button
         type="button"
-        class="text-gray-400 hover:text-gray-600 transition-colors"
+        class="text-gray-400 transition-colors hover:text-gray-600"
         (click)="onClose()"
       >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
+        <i class="fa-solid fa-xmark text-lg"></i>
       </button>
     </div>
 
     <!-- Body -->
     <div class="p-6 overflow-y-auto flex-1">
       <!-- Instructions -->
-      <div class="mb-6 p-4 bg-blue-50 rounded-lg">
-        <h3 class="text-sm font-medium text-blue-800 mb-2">CSV Format Instructions</h3>
-        <p class="text-sm text-blue-700 mb-2">
+      <div class="mb-6 rounded-xl bg-[#ecf9f6] p-4">
+        <h3 class="mb-2 text-sm font-semibold text-[#181F39]">CSV Format Instructions</h3>
+        <p class="mb-2 text-sm text-slate-600">
           Upload a CSV file with the following columns:
         </p>
-        <ul class="text-sm text-blue-700 list-disc list-inside space-y-1">
+        <ul class="list-inside list-disc space-y-1 text-sm text-slate-600">
           <li><strong>Module Title</strong> (required) - Modules with the same title will be grouped</li>
           <li><strong>Module Description</strong> (optional)</li>
           <li><strong>Lesson Title</strong> (required)</li>
@@ -38,7 +36,7 @@
         </ul>
         <button
           (click)="downloadTemplate()"
-          class="mt-3 text-sm text-blue-950 hover:text-blue-800 font-medium flex items-center gap-1"
+          class="mt-3 flex items-center gap-1 text-sm font-semibold text-[#23A997] hover:text-[#1f9686]"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -53,7 +51,7 @@
           Select CSV File
         </label>
         <div class="flex items-center justify-center w-full">
-          <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+          <label class="flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#cbd5e1] bg-slate-50 transition-colors hover:border-[#23A997]/40 hover:bg-[#ecf9f6]">
             <div class="flex flex-col items-center justify-center pt-5 pb-6">
               <svg class="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -72,22 +70,22 @@
       </div>
 
       <!-- Parse Error -->
-      <div *ngIf="parseError" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div *ngIf="parseError" class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
         <p class="text-sm text-red-700">{{ parseError }}</p>
       </div>
 
       <!-- Preview -->
-      <div *ngIf="showPreview && parsedModules.length > 0" class="border border-gray-200 rounded-lg">
-        <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
-          <h3 class="text-sm font-medium text-gray-700">
+      <div *ngIf="showPreview && parsedModules.length > 0" class="overflow-hidden rounded-xl border border-[#e2e8f0]">
+        <div class="border-b border-[#e2e8f0] bg-slate-50 px-4 py-3">
+          <h3 class="text-sm font-medium text-slate-700">
             Preview: {{ parsedModules.length }} module(s), {{ totalLessons }} lesson(s)
           </h3>
         </div>
         <div class="max-h-64 overflow-y-auto">
           <div *ngFor="let module of parsedModules; let i = index" class="border-b border-gray-100 last:border-b-0">
-            <div class="px-4 py-3 bg-gray-50">
-              <h4 class="font-medium text-gray-800">{{ i + 1 }}. {{ module.title }}</h4>
-              <p *ngIf="module.description" class="text-xs text-gray-500 mt-1">{{ module.description }}</p>
+            <div class="bg-slate-50 px-4 py-3">
+              <h4 class="font-medium text-[#181F39]">{{ i + 1 }}. {{ module.title }}</h4>
+              <p *ngIf="module.description" class="mt-1 text-xs text-slate-500">{{ module.description }}</p>
             </div>
             <ul class="divide-y divide-gray-100">
               <li *ngFor="let lesson of module.lessons; let j = index" class="px-4 py-2 pl-8 flex items-center gap-3">
@@ -96,7 +94,7 @@
                   class="px-2 py-0.5 text-xs rounded-full"
                   [ngClass]="{
                     'bg-blue-100 text-blue-700': lesson.type === 'video',
-                    'bg-green-100 text-green-700': lesson.type === 'document',
+                    'bg-[#ecf9f6] text-[#23A997]': lesson.type === 'document',
                     'bg-purple-100 text-purple-700': lesson.type === 'quiz'
                   }"
                 >
@@ -112,10 +110,10 @@
     </div>
 
     <!-- Footer -->
-    <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+    <div class="flex flex-shrink-0 justify-end gap-3 border-t border-[#e2e8f0] bg-slate-50 px-6 py-4">
       <button
         type="button"
-        class="px-4 py-2 rounded-lg text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors"
+        class="rounded-[12px] border border-[#23A997]/30 bg-white px-6 py-2.5 font-semibold text-[#23A997] transition hover:border-[#23A997] hover:bg-[#23A997]/5"
         (click)="onClose()"
       >
         Cancel
@@ -123,7 +121,7 @@
       <button
         type="button"
         [disabled]="parsedModules.length === 0"
-        class="px-4 py-2 rounded-lg text-white bg-blue-950 hover:bg-blue-900 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+        class="rounded-[12px] bg-[#23A997] px-8 py-2.5 font-semibold text-white shadow-[0_4px_12px_rgba(35,169,151,0.2)] transition hover:bg-[#1f9686] disabled:cursor-not-allowed disabled:bg-[#23A997]/50"
         (click)="onUpload()"
       >
         Import {{ parsedModules.length }} Module(s)

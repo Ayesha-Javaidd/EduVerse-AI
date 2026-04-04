@@ -46,7 +46,7 @@
     <!-- Phone -->
     <div>
       <label class="block text-[14px] font-medium text-[#181F39]">Phone Number</label>
-      <app-phone-input formControlName="phone" [placeholder]="profileForm.value.phone || 'Enter phone number'" class="mt-1 block w-full"></app-phone-input>
+      <app-phone-input formControlName="phone" [country]="profileForm.get('country')?.value" [placeholder]="profileForm.value.phone || 'Enter phone number'" class="mt-1 block w-full"></app-phone-input>
       <p *ngIf="
           profileForm.get('phone')?.touched && profileForm.get('phone')?.invalid
         " class="mt-1 text-red-500 text-sm">
@@ -57,15 +57,11 @@
     <!-- Country -->
     <div>
       <label class="block text-[14px] font-medium text-[#181F39]">Country</label>
-      <select formControlName="country"
-        class="mt-1 block w-full h-[46px] cursor-pointer rounded-xl border border-[#cbd5e1] bg-white px-4 text-[#181F39] text-[15px] focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all">
-        <option value="" disabled>Select country</option>
-        <option value="pk">Pakistan</option>
-        <option value="ger">Germany</option>
-        <option value="us">United States</option>
-        <option value="uk">United Kingdom</option>
-        <option value="in">India</option>
-      </select>
+      <app-country-select
+        formControlName="country"
+        placeholder="Select country"
+        class="mt-1 block w-full"
+      ></app-country-select>
       <p *ngIf="
           profileForm.get('country')?.touched &&
           profileForm.get('country')?.invalid
@@ -80,11 +76,12 @@
       <app-button
         customColor="bg-[#23A997] text-white hover:bg-[#1f9686] transition-all shadow-md shadow-[#23A997]/20 rounded-xl font-medium"
         size="md" type="submit">
+        <i class="fa-solid fa-floppy-disk mr-2"></i>
         Save Changes
       </app-button>
 
       <!-- Cancel Button -->
-      <app-button customColor="bg-slate-100 text-[#475569] hover:bg-slate-200 transition-all rounded-xl font-medium"
+      <app-button customColor="border border-[#23A997]/30 bg-white text-[#23A997] hover:bg-[#23A997]/5 hover:border-[#23A997] transition-all rounded-xl font-medium"
         size="md" type="button">
         Cancel
       </app-button>

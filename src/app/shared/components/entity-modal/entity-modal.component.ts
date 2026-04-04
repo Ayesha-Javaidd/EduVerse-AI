@@ -1,11 +1,13 @@
 import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CountrySelectComponent } from '../country-select/country-select.component';
+import { PhoneInputComponent } from '../phone-input/phone-input.component';
 
 export interface FormField {
   name: string;
   label: string;
-  type: 'text' | 'email' | 'password' | 'textarea' | 'select' | 'multiselect' | 'array';
+  type: 'text' | 'email' | 'password' | 'textarea' | 'select' | 'multiselect' | 'array' | 'phone' | 'country';
   required?: boolean;
   options?: { value: string; label: string }[];
   placeholder?: string;
@@ -16,7 +18,7 @@ export interface FormField {
 @Component({
   selector: 'app-entity-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PhoneInputComponent, CountrySelectComponent],
   templateUrl: './entity-modal.component.html',
   styles: []
 })
@@ -143,5 +145,34 @@ export class EntityModalComponent implements OnInit {
     });
 
     this.submit$.emit(cleanedData);
+  }
+
+  resolvePhoneCountry(fieldName: string): string {
+    const linkedCountryField = this.fields.find((field) => field.type === 'country');
+    if (linkedCountryField) {
+      return this.formData[linkedCountryField.name] ?? '';
+    }
+
+    return this.formData.country || this.formData.address || '';
+  }
+
+  shouldSpanFullWidth(field: FormField, index: number): boolean {
+    if (field.colSpan === 2 || field.type === 'textarea' || field.type === 'array') {
+      return true;
+    }
+
+    const singleColumnFields = this.fields.filter(
+      (currentField) =>
+        currentField.colSpan !== 2 &&
+        currentField.type !== 'textarea' &&
+        currentField.type !== 'array'
+    );
+
+    if (singleColumnFields.length % 2 === 1) {
+      const lastSingleColumnField = singleColumnFields[singleColumnFields.length - 1];
+      return this.fields[index] === lastSingleColumnField;
+    }
+
+    return false;
   }
 }

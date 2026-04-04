@@ -9,15 +9,17 @@ import { AuthService } from '../../../auth/services/auth.service';
 import { BackendCourse } from '../../../../core/services/course.service';
 import { EntityModalComponent, FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
 import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
+import { CourseCategoriesSettingsComponent } from '../../components/course-categories-settings/course-categories-settings.component';
 
 @Component({
   selector: 'app-courses',
   standalone: true,
-  imports: [HeaderComponent, DataTableComponent, FiltersComponent, CommonModule, EntityModalComponent],
+  imports: [HeaderComponent, DataTableComponent, FiltersComponent, CommonModule, EntityModalComponent, CourseCategoriesSettingsComponent],
   templateUrl: './courses.component.html',
   styleUrl: './courses.component.css',
 })
 export class CoursesComponent implements OnInit {
+  activeTab: 'courses' | 'categories' = 'courses';
   currentPage = 1;
 
   onPageChange(page: number) {

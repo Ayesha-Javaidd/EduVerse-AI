@@ -3,11 +3,13 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { ChangePasswordComponent } from '../../../../shared/components/change-password/change-password.component';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { PhoneInputComponent } from '../../../../shared/components/phone-input/phone-input.component';
+import { CountrySelectComponent } from '../../../../shared/components/country-select/country-select.component';
 
 @Component({
   selector: 'app-tenant-info-form',
   standalone: true,
-  imports: [CommonModule, ButtonComponent, ChangePasswordComponent, ReactiveFormsModule],
+  imports: [CommonModule, ButtonComponent, ChangePasswordComponent, ReactiveFormsModule, PhoneInputComponent, CountrySelectComponent],
   templateUrl: './tenant-info-form.component.html',
   styleUrl: './tenant-info-form.component.css'
 })
@@ -34,7 +36,7 @@ export class TenantInfoFormComponent implements OnChanges {
         tenantName: data.tenantName || '',
         adminEmail: data.adminEmail || '',
         contactNumber: data.contactNumber || '',
-        address: data.address || ''
+        address: data.address || data.country || ''
       });
     }
   }
@@ -49,7 +51,8 @@ export class TenantInfoFormComponent implements OnChanges {
       return;
     }
 
-    const payload = { ...this.tenant, ...this.form.getRawValue() };
+    const { country, ...tenantData } = this.tenant || {};
+    const payload = { ...tenantData, ...this.form.getRawValue() };
     this.save.emit(payload);
   }
 

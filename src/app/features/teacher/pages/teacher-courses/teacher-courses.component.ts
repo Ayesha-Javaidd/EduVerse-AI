@@ -54,6 +54,8 @@ export class TeacherCoursesComponent implements OnInit {
   courses: any[] = []; // UPDATED: Now empty by default
   allCourses: any[] = []; // Store original data for client-side filtering
   loading: boolean = true;
+  currentPage = 1;
+  readonly pageSize = 5;
 
   filterConfig = {
     searchPlaceholder: 'Search courses...',
@@ -102,6 +104,7 @@ export class TeacherCoursesComponent implements OnInit {
               visibility: (course.isPublic !== false) ? 'public' : 'private'
             }));
             this.courses = [...this.allCourses];
+            this.currentPage = 1;
             this.loading = false;
           },
           error: (err) => {
@@ -126,6 +129,8 @@ export class TeacherCoursesComponent implements OnInit {
 
       return matchesSearch && matchesStatus;
     });
+
+    this.currentPage = 1;
   }
 
   /**
@@ -146,8 +151,6 @@ export class TeacherCoursesComponent implements OnInit {
     const newCourse: CourseCreate = {
       title: 'Untitled Course',
       description: '',
-      category: 'General',
-      level: 'Beginner',
       status: 'draft',
       teacherId: teacherId,
       tenantId: tenantId,

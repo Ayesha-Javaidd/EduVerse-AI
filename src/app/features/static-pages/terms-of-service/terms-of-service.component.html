@@ -1,0 +1,115 @@
+<div class="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#f8fbfb] via-[#f8f9fc] to-[#eef4f7] text-slate-900">
+  <div class="pointer-events-none absolute -right-24 -top-32 z-0 h-96 w-96 rounded-full bg-[#23A997]/15 blur-[100px]"></div>
+  <div class="pointer-events-none absolute top-40 -left-28 z-0 h-96 w-96 rounded-full bg-blue-900/5 blur-[100px]"></div>
+  <div class="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(rgba(148,163,184,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.05)_1px,transparent_1px)] bg-[size:72px_72px] [mask-image:radial-gradient(circle_at_center,black_40%,transparent_80%)]"></div>
+
+  <app-landingpage-header class="relative z-20"></app-landingpage-header>
+
+  <main class="relative z-10 pt-32 pb-24">
+    <!-- Hero Section -->
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 animate-fade-in opacity-0 [animation-fill-mode:forwards]">
+      <h1 class="text-4xl font-bold tracking-tight text-[#181F39] sm:text-5xl lg:text-6xl mt-2">Terms of Service</h1>
+      <p class="mt-6 text-lg text-slate-600">Last updated: {{ lastUpdated }}</p>
+    </div>
+
+    <!-- 2 Column Layout Structure -->
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 mt-16 animate-fade-in opacity-0 [animation-fill-mode:forwards] [animation-delay:150ms]">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        
+        <!-- Left Sidebar: Table of Contents -->
+        <div class="hidden lg:block lg:col-span-3">
+          <div class="sticky top-32">
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-[#23A997] mb-6">Table of Contents</p>
+            <ul class="space-y-4 text-lg font-medium text-slate-600">
+              <li><a (click)="scrollTo('section-1')" class="text-[#23A997] transition-colors cursor-pointer hover:text-[#1e9585]">1. Acceptance</a></li>
+              <li><a (click)="scrollTo('section-2')" class="transition-colors cursor-pointer hover:text-[#181F39]">2. Description of Service</a></li>
+              <li><a (click)="scrollTo('section-3')" class="transition-colors cursor-pointer hover:text-[#181F39]">3. User Accounts</a></li>
+              <li><a (click)="scrollTo('section-4')" class="transition-colors cursor-pointer hover:text-[#181F39]">4. Acceptable Use</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Right Content Area -->
+        <div class="lg:col-span-9 rounded-[30px] border border-[#dbe4ea] bg-white p-10 lg:p-14 shadow-sm">
+          <div class="space-y-16 text-lg text-slate-600 leading-relaxed">
+
+            <section id="section-1">
+              <h2 class="mb-4 text-3xl font-bold tracking-tight text-[#181F39]">1. Acceptance of Terms</h2>
+              <p>
+                By accessing or using the EduVerse platform ("Platform"), you agree to be bound by these Terms of Service
+                ("Terms"). If you are accepting these Terms on behalf of an organization, you represent and warrant that you
+                have the authority to bind that organization. If you do not agree to these Terms, you may not access or use
+                the Platform.
+              </p>
+            </section>
+
+            <hr class="border-[#e2e8f0]">
+
+            <section id="section-2">
+              <h2 class="mb-4 text-3xl font-bold tracking-tight text-[#181F39]">2. Description of Service</h2>
+              <p>
+                EduVerse is an AI-powered, multi-tenant e-learning platform that provides personalized content delivery
+                using LangChain and large language models (LLMs). The Platform offers the following capabilities:
+              </p>
+              <ul class="mt-6 space-y-4 pl-2">
+                <li class="flex items-start gap-4">
+                  <span class="mt-3 block h-2 w-2 shrink-0 rounded-full bg-[#23A997]"></span>
+                  <span>Multi-tenant architecture with complete data isolation for each institution</span>
+                </li>
+                <li class="flex items-start gap-4">
+                  <span class="mt-3 block h-2 w-2 shrink-0 rounded-full bg-[#23A997]"></span>
+                  <span>Role-based dashboards for administrators, teachers, and students</span>
+                </li>
+                <li class="flex items-start gap-4">
+                  <span class="mt-3 block h-2 w-2 shrink-0 rounded-full bg-[#23A997]"></span>
+                  <span>AI-powered learning assistant for personalized tutoring and adaptive content</span>
+                </li>
+              </ul>
+            </section>
+
+            <hr class="border-[#e2e8f0]">
+
+            <section id="section-3">
+              <h2 class="mb-4 text-3xl font-bold tracking-tight text-[#181F39]">3. User Accounts</h2>
+              <p>
+                To use the Platform, you must register for an account. You agree to provide accurate, current, and complete
+                information during registration. The Platform supports specific user roles, including <strong class="text-[#181F39]">Super Admin</strong> 
+                (Platform-wide), <strong class="text-[#181F39]">Admin</strong> (Institution-level), <strong class="text-[#181F39]">Teacher</strong>, 
+                and <strong class="text-[#181F39]">Student</strong>.
+              </p>
+            </section>
+
+            <hr class="border-[#e2e8f0]">
+
+            <section id="section-4">
+              <h2 class="mb-4 text-3xl font-bold tracking-tight text-[#181F39]">4. Acceptable Use</h2>
+              <p>You agree not to use the Platform to:</p>
+              <ul class="mt-6 space-y-4 pl-2">
+                <li class="flex items-start gap-4">
+                  <span class="mt-3 block h-2 w-2 shrink-0 rounded-full bg-red-400"></span>
+                  <span>Violate any applicable laws, regulations, or third-party rights</span>
+                </li>
+                <li class="flex items-start gap-4">
+                  <span class="mt-3 block h-2 w-2 shrink-0 rounded-full bg-red-400"></span>
+                  <span>Upload or transmit malicious code, viruses, or harmful content</span>
+                </li>
+                <li class="flex items-start gap-4">
+                  <span class="mt-3 block h-2 w-2 shrink-0 rounded-full bg-red-400"></span>
+                  <span>Attempt to gain unauthorized access to other users' accounts</span>
+                </li>
+                <li class="flex items-start gap-4">
+                  <span class="mt-3 block h-2 w-2 shrink-0 rounded-full bg-red-400"></span>
+                  <span>Use the AI assistant to generate harmful, misleading, or inappropriate content</span>
+                </li>
+              </ul>
+            </section>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

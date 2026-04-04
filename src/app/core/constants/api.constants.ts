@@ -7,6 +7,8 @@ export const ENDPOINTS = {
   },
   COURSES: {
     BASE: `${API_BASE_URL}/courses`,
+    METADATA: `${API_BASE_URL}/courses/metadata`,
+    METADATA_CATEGORIES: `${API_BASE_URL}/courses/metadata/categories`,
     BY_ID: (id: string) => `${API_BASE_URL}/courses/${id}`,
     STUDENT_COURSES: (studentId: string) =>
       `${API_BASE_URL}/courses/student/${studentId}`,

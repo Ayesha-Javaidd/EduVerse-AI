@@ -19,8 +19,8 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { EmptyStateComponent } from '../../components/empty-state/empty-state.component';
-import { Router, RouterLink, RouterModule } from '@angular/router';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 
 interface SubmittedAssignmentView {
   assignment: Assignment;
@@ -38,10 +38,10 @@ interface SubmittedAssignmentView {
     HeaderComponent,
     EmptyStateComponent,
     FiltersComponent,
+    PaginationComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule,
   ],
 
   templateUrl: './generate-assignments.component.html',
@@ -71,7 +71,8 @@ export class GenerateAssignmentsComponent implements OnInit {
 
   assignmentSubmissions = new Map<string, AssignmentSubmission[]>();
 
-  activeTab: 'active' | 'completed' = 'active';
+  currentPage = 1;
+  readonly pageSize = 6;
 
   showModal = false;
   editingAssignmentId: string | null = null;
@@ -81,7 +82,6 @@ export class GenerateAssignmentsComponent implements OnInit {
     private teacherProfileService: TeacherProfileService,
     private assignmentService: AssignmentService,
     private courseService: CourseService,
-    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -159,6 +159,7 @@ export class GenerateAssignmentsComponent implements OnInit {
 
           this.updateAssignmentStatuses();
           this.loadAllSubmissions();
+          this.currentPage = 1;
           this.loading = false;
         },
         error: () => {
@@ -198,7 +199,6 @@ export class GenerateAssignmentsComponent implements OnInit {
   //   );
   // }
 
-  /** All submissions for completed tab */
   get submittedAssignments(): SubmittedAssignmentView[] {
     const views: SubmittedAssignmentView[] = [];
     this.assignments.forEach((assignment) => {
@@ -208,11 +208,6 @@ export class GenerateAssignmentsComponent implements OnInit {
       });
     });
     return views;
-  }
-
-  /** Returns submissions for Completed tab */
-  get filteredSubmissions(): SubmittedAssignmentView[] {
-    return this.activeTab === 'completed' ? this.submittedAssignments : [];
   }
 
   /** Modal and editing */
@@ -249,6 +244,7 @@ export class GenerateAssignmentsComponent implements OnInit {
 
   onFiltersChange(updatedFilters: { [key: string]: string }) {
     this.filters = updatedFilters;
+    this.currentPage = 1;
   }
 
   // Filtered assignments using the filters
@@ -270,6 +266,11 @@ export class GenerateAssignmentsComponent implements OnInit {
     }
 
     return assignments;
+  }
+
+  get paginatedAssignments(): Assignment[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredAssignments.slice(start, start + this.pageSize);
   }
 
   handleSubmit(payload: any): void {
@@ -304,6 +305,7 @@ export class GenerateAssignmentsComponent implements OnInit {
         // New assignment, push it immediately
         this.assignments.unshift(newAssignment);
         this.assignmentSubmissions.set(newAssignment.id, []); // no submissions yet
+        this.currentPage = 1;
       }
 
       this.closeModal();
@@ -316,6 +318,7 @@ export class GenerateAssignmentsComponent implements OnInit {
         this.assignments = this.assignments.filter(
           (a) => a.id !== assignment.id,
         );
+        this.clampCurrentPage();
         this.showSuccess('Assignment deleted successfully');
       },
       error: () => this.showError('Failed to delete assignment'),
@@ -355,65 +358,12 @@ export class GenerateAssignmentsComponent implements OnInit {
     }
     setTimeout(() => (this.errorMessage = null), duration);
   }
-  cardColors = [
-    {
-      bg: 'bg-blue-50',
-      text: 'text-blue-900',
-      border: 'border border-blue-300',
-      button: 'bg-blue-100 text-blue-700 hover:bg-blue-200',
-    },
-    {
-      bg: 'bg-purple-50',
-      text: 'text-purple-900',
-      border: 'border border-purple-300',
-      button: 'bg-purple-100 text-purple-700 hover:bg-purple-200',
-    },
-    {
-      bg: 'bg-green-50',
-      text: 'text-green-900',
-      border: 'border border-green-300',
-      button: 'bg-green-100 text-green-700 hover:bg-green-200',
-    },
-    {
-      bg: 'bg-pink-50',
-      text: 'text-pink-900',
-      border: 'border border-pink-300',
-      button: 'bg-pink-100 text-pink-700 hover:bg-pink-200',
-    },
-    {
-      bg: 'bg-yellow-50',
-      text: 'text-yellow-900',
-      border: 'border border-yellow-300',
-      button: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200',
-    },
-  ];
 
-  getCardColor(index: number, assignment: Assignment) {
-    const color = this.cardColors[index % this.cardColors.length];
-    const isInactive = assignment.status === 'inactive';
-
-    return {
-      bg: isInactive ? 'bg-gray-100' : color.bg, // maybe gray for inactive
-      text: color.text,
-      border: color.border,
-      button: color.button,
-    };
-  }
-  /** Returns card classes based on assignment status */
-  getCardStyle(assignment: Assignment) {
-    if (assignment.status === 'inactive') {
-      return 'bg-green-50 text-green-900 border border-green-300';
-    } else {
-      return 'bg-blue-50 text-blue-900 border border-blue-300';
-    }
-  }
-
-  /** Returns button classes based on assignment status */
-  getButtonStyle(assignment: Assignment) {
-    if (assignment.status === 'inactive') {
-      return 'bg-green-100 text-green-700 hover:bg-green-200';
-    } else {
-      return 'bg-blue-100 text-blue-700 hover:bg-blue-200';
-    }
+  private clampCurrentPage(): void {
+    const totalPages = Math.max(
+      1,
+      Math.ceil(this.filteredAssignments.length / this.pageSize),
+    );
+    this.currentPage = Math.min(this.currentPage, totalPages);
   }
 }

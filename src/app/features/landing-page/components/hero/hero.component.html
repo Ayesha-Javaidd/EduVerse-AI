@@ -1,69 +1,109 @@
-<section class="min-h-screen flex items-center bg-primary-navy text-text-light py-32 pb-16">
-  <div class="max-w-6xl mx-auto px-8">
-    <div class="grid md:grid-cols-2 gap-16 items-center">
+<section class="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(35,169,151,0.12),_transparent_34%),linear-gradient(180deg,_#f8f9fc_0%,_#ffffff_100%)] pt-36 pb-20">
+  <div class="mx-auto grid max-w-7xl gap-14 px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)] lg:px-8">
+    <div class="fade-in">
 
-      <!-- Left Side of div Hero Content -->
-      <div class="z-10">
-        
-        <h1 class="text-5xl md:text-6xl font-bold mb-6 text-text-light font-poppins leading-tight">
-          AI-Powered Learning Platform for Every Institution
-        </h1>
+      <h1 class="mt-6 max-w-3xl text-5xl font-bold leading-tight tracking-tight text-[#181F39] md:text-6xl">
+        AI-Powered Multi-Tenant E-Learning Platform
+      </h1>
 
-        
-        <p class="text-xl mb-8 opacity-90 leading-relaxed">
-          Transform education with intelligent multi-tenant architecture. Deliver personalized learning 
-          experiences to universities, schools, and enterprises with complete data isolation and custom branding.
-        </p>
-        
-        
-        <div class="flex gap-4 flex-wrap">
-  <app-button 
-  variant="primary"
-  size="lg"
-  (buttonClick)="navigateToLogin()"
-  [class]="'bg-primary-light-blue text-white hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(59,130,246,0.4)] border-0 font-semibold transition-all duration-300 rounded-[40px]'">
-  Get Started Free
-</app-button>
+      <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+        EduVerse delivers personalized content delivery using LangChain and LLMs, giving institutions complete control while empowering teachers and students in one seamless ecosystem.
+      </p>
 
-</div>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <app-button
+          size="lg"
+          (buttonClick)="navigateToSignup()">
+          Get Started
+        </app-button>
 
+        <app-button
+          variant="outline"
+          size="lg"
+          (buttonClick)="navigateToAdminSignup()"
+          [class]="'rounded-full border border-[#dbe4ea] bg-white px-6 text-slate-700 hover:bg-slate-50'">
+          Register your Organization
+        </app-button>
       </div>
 
-      <!-- Right Side -->
-      <div class="relative h-96 flex items-center justify-center">
-        <div class="relative w-96 h-96 flex items-center justify-center">
+      <div class="mt-10 flex flex-wrap gap-3">
+        <span class="inline-flex items-center rounded-full border border-[#dbe4ea] bg-white px-3 py-1.5 text-sm font-medium text-slate-600">Admin control</span>
+        <span class="inline-flex items-center rounded-full border border-[#dbe4ea] bg-white px-3 py-1.5 text-sm font-medium text-slate-600">Teacher workflow</span>
+        <span class="inline-flex items-center rounded-full border border-[#dbe4ea] bg-white px-3 py-1.5 text-sm font-medium text-slate-600">Student learning</span>
+        <span class="inline-flex items-center rounded-full border border-[#dbe4ea] bg-white px-3 py-1.5 text-sm font-medium text-slate-600">AI assistance</span>
+      </div>
+    </div>
+
+    <div class="fade-in">
+      <div class="relative w-full overflow-hidden rounded-[28px] border border-[#dbe4ea] bg-white p-2 shadow-xl sm:p-4">
+        <div class="absolute inset-0 bg-gradient-to-br from-[#f8f9fc] to-white"></div>
+        <div class="relative flex flex-col gap-4 rounded-[20px] bg-white/60 p-4 backdrop-blur-xl border border-white/40">
           
-          
-          <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 
-                      w-20 h-20 bg-white rounded-2xl border-4 border-primary-light-blue 
-                      flex items-center justify-center text-3xl shadow-lg animate-bounce">
-            🎓
+          <div class="flex items-center justify-between border-b border-[#edf2f7] pb-4">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#ecf9f6] text-[#23A997]">
+                <i class="fa-solid fa-layer-group text-lg"></i>
+              </div>
+              <div>
+                <div class="h-4 w-32 rounded bg-slate-200"></div>
+                <div class="mt-2 h-3 w-48 rounded bg-slate-100"></div>
+              </div>
+            </div>
+            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400">
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </div>
           </div>
-          <div class="absolute top-1/2 -right-4 transform -translate-y-1/2 
-                      w-20 h-20 bg-white rounded-2xl border-4 border-primary-light-blue 
-                      flex items-center justify-center text-3xl shadow-lg animate-bounce animation-delay-1000">
-            🏫
+
+          <div class="grid grid-cols-3 gap-3">
+            <div class="h-20 rounded-2xl bg-slate-50 p-3 outline outline-1 outline-slate-100">
+              <div class="h-3 w-1/2 rounded bg-slate-200"></div>
+              <div class="mt-3 h-6 w-3/4 rounded bg-slate-300"></div>
+            </div>
+            <div class="h-20 rounded-2xl bg-slate-50 p-3 outline outline-1 outline-slate-100">
+              <div class="h-3 w-1/2 rounded bg-slate-200"></div>
+              <div class="mt-3 h-6 w-3/4 rounded bg-slate-300"></div>
+            </div>
+            <div class="h-20 rounded-2xl bg-[#ecf9f6] p-3 outline outline-1 outline-[#bce8e1]">
+              <div class="h-3 w-1/2 rounded bg-[#bce8e1]"></div>
+              <div class="mt-3 h-6 w-3/4 rounded bg-[#23A997]"></div>
+            </div>
           </div>
-          <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 
-                      w-20 h-20 bg-white rounded-2xl border-4 border-primary-light-blue 
-                      flex items-center justify-center text-3xl shadow-lg animate-bounce animation-delay-2000">
-            🏢
+
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between rounded-xl bg-slate-50 p-3 outline outline-1 outline-slate-100">
+              <div class="flex items-center gap-3">
+                <div class="h-8 w-8 rounded-lg bg-slate-200"></div>
+                <div>
+                  <div class="h-3 w-24 rounded bg-slate-300"></div>
+                  <div class="mt-1.5 h-2 w-32 rounded bg-slate-200"></div>
+                </div>
+              </div>
+              <div class="h-4 w-12 rounded-full bg-slate-200"></div>
+            </div>
+            <div class="flex items-center justify-between rounded-xl bg-slate-50 p-3 outline outline-1 outline-slate-100">
+              <div class="flex items-center gap-3">
+                <div class="h-8 w-8 rounded-lg bg-slate-200"></div>
+                <div>
+                  <div class="h-3 w-24 rounded bg-slate-300"></div>
+                  <div class="mt-1.5 h-2 w-32 rounded bg-slate-200"></div>
+                </div>
+              </div>
+              <div class="h-4 w-12 rounded-full bg-slate-200"></div>
+            </div>
+            <div class="flex items-center justify-between rounded-xl bg-slate-50 p-3 outline outline-1 outline-slate-100">
+              <div class="flex items-center gap-3">
+                <div class="h-8 w-8 rounded-lg bg-slate-200"></div>
+                <div>
+                  <div class="h-3 w-24 rounded bg-slate-300"></div>
+                  <div class="mt-1.5 h-2 w-32 rounded bg-slate-200"></div>
+                </div>
+              </div>
+              <div class="h-4 w-12 rounded-full bg-slate-200"></div>
+            </div>
           </div>
-          <div class="absolute top-1/2 -left-4 transform -translate-y-1/2 
-                      w-20 h-20 bg-white rounded-2xl border-4 border-primary-light-blue 
-                      flex items-center justify-center text-3xl shadow-lg animate-bounce animation-delay-3000">
-            📚
-          </div>
-          
-          <!-- this will be my Central Icon  -->
-          <div class="w-40 h-40 bg-gradient-to-br from-primary-light-blue to-blue-400 
-                      rounded-3xl flex items-center justify-center text-6xl 
-                      shadow-2xl animate-pulse">
-            🤖
-          </div>
+
         </div>
       </div>
-
     </div>
   </div>
 </section>

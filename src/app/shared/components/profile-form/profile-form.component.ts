@@ -9,6 +9,7 @@ import {
 import { finalize, Observable } from 'rxjs';
 
 import { ButtonComponent } from '../button/button.component';
+import { CountrySelectComponent } from '../country-select/country-select.component';
 import { PhoneInputComponent } from '../phone-input/phone-input.component';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../../features/auth/services/auth.service';
@@ -33,7 +34,7 @@ import { TeacherProfileService } from '../../services/teacher-profile.service';
 @Component({
   selector: 'app-profile-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ButtonComponent, PhoneInputComponent],
+  imports: [CommonModule, ReactiveFormsModule, ButtonComponent, PhoneInputComponent, CountrySelectComponent],
   templateUrl: './profile-form.component.html',
   styleUrls: ['./profile-form.component.css'],
 })
@@ -46,34 +47,6 @@ export class ProfileFormComponent implements OnInit {
 
   role: 'student' | 'admin' | 'teacher' | null = null;
 
-  /** Full list of countries for the dropdown */
-  countries: string[] = [
-    'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua and Barbuda','Argentina','Armenia','Australia','Austria','Azerbaijan',
-    'Bahamas','Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize','Benin','Bhutan','Bolivia','Bosnia and Herzegovina','Botswana','Brazil','Brunei','Bulgaria','Burkina Faso','Burundi',
-    'Cabo Verde','Cambodia','Cameroon','Canada','Central African Republic','Chad','Chile','China','Colombia','Comoros','Congo','Costa Rica','Croatia','Cuba','Cyprus','Czech Republic',
-    'Denmark','Djibouti','Dominica','Dominican Republic',
-    'East Timor','Ecuador','Egypt','El Salvador','Equatorial Guinea','Eritrea','Estonia','Eswatini','Ethiopia',
-    'Fiji','Finland','France',
-    'Gabon','Gambia','Georgia','Germany','Ghana','Greece','Grenada','Guatemala','Guinea','Guinea-Bissau','Guyana',
-    'Haiti','Honduras','Hungary',
-    'Iceland','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy',
-    'Jamaica','Japan','Jordan',
-    'Kazakhstan','Kenya','Kiribati','Kosovo','Kuwait','Kyrgyzstan',
-    'Laos','Latvia','Lebanon','Lesotho','Liberia','Libya','Liechtenstein','Lithuania','Luxembourg',
-    'Madagascar','Malawi','Malaysia','Maldives','Mali','Malta','Marshall Islands','Mauritania','Mauritius','Mexico','Micronesia','Moldova','Monaco','Mongolia','Montenegro','Morocco','Mozambique','Myanmar',
-    'Namibia','Nauru','Nepal','Netherlands','New Zealand','Nicaragua','Niger','Nigeria','North Korea','North Macedonia','Norway',
-    'Oman',
-    'Pakistan','Palau','Palestine','Panama','Papua New Guinea','Paraguay','Peru','Philippines','Poland','Portugal',
-    'Qatar',
-    'Romania','Russia','Rwanda',
-    'Saint Kitts and Nevis','Saint Lucia','Saint Vincent and the Grenadines','Samoa','San Marino','Sao Tome and Principe','Saudi Arabia','Senegal','Serbia','Seychelles','Sierra Leone','Singapore','Slovakia','Slovenia','Solomon Islands','Somalia','South Africa','South Korea','South Sudan','Spain','Sri Lanka','Sudan','Suriname','Sweden','Switzerland','Syria',
-    'Taiwan','Tajikistan','Tanzania','Thailand','Togo','Tonga','Trinidad and Tobago','Tunisia','Turkey','Turkmenistan','Tuvalu',
-    'Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Uzbekistan',
-    'Vanuatu','Vatican City','Venezuela','Vietnam',
-    'Yemen',
-    'Zambia','Zimbabwe'
-  ];
-
   constructor(
     private fb: FormBuilder,
     private toastService: ToastService,
@@ -84,6 +57,7 @@ export class ProfileFormComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.buildForm();
     this.role = this.authService.getRole() as 'student' | 'admin' | 'teacher';
 
     if (!this.role) {
@@ -91,7 +65,6 @@ export class ProfileFormComponent implements OnInit {
       return;
     }
 
-    this.buildForm();
     this.loadProfile();
   }
 

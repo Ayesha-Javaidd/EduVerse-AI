@@ -1,21 +1,21 @@
 <div
-  class="bg-white rounded-2xl shadow-sm border border-border-light p-12 text-center"
+  class="rounded-[28px] border border-dashed border-[#cbd5e1] bg-white px-6 py-16 text-center shadow-sm"
 >
   <div
-    class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"
+    class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#ecf9f6] text-[#23A997]"
   >
-    <i class="fa-solid fa-folder-open text-gray-400 text-3xl"></i>
+    <i [class]="iconClass + ' text-xl'"></i>
   </div>
-  <h3 class="text-xl font-bold text-primary-navy mb-2">No Assignments Yet</h3>
-  <p class="text-text-muted mb-6">
-    Get started by creating your first assignment
+  <h3 class="text-lg font-semibold text-[#181F39]">{{ title }}</h3>
+  <p class="mx-auto mt-2 max-w-md text-sm text-slate-500">
+    {{ description }}
   </p>
   <app-button
+    *ngIf="showAction"
     (buttonClick)="createClick.emit()"
-    size="lg"
-    customColor="mb-6 bg-blue-950 text-white hover:bg-gray-500 cursor-pointer"
-    [class]="'inline-flex items-center gap-2'"
+    customColor="bg-[#23A997] text-white shadow-[0_10px_24px_rgba(35,169,151,0.22)] hover:bg-[#1f9686]"
+    [class]="'mt-6 inline-flex items-center gap-2'"
   >
-    <i class="fa-solid fa-plus"></i> Create Assignment
+    <i class="fa-solid fa-plus"></i> {{ actionLabel }}
   </app-button>
 </div>

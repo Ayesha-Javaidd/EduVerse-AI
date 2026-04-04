@@ -46,8 +46,8 @@ export interface CourseFilters {
 export interface CourseCreate {
     title: string;
     description?: string;
-    category: string;
-    level: string;
+    category?: string;
+    level?: string;
     status?: string;
     courseCode?: string;
     teacherId: string;

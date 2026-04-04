@@ -2,7 +2,24 @@
   <app-header pageTitle="Courses"></app-header>
 
   <main class="p-6">
+    <div class="mb-6 border-b border-[#e2e8f0]">
+      <nav class="flex space-x-8" aria-label="Tabs">
+        <button
+          class="px-3 py-2 text-[15px] font-medium border-b-2 transition-colors"
+          [ngClass]="activeTab === 'courses' ? 'border-[#23A997] text-[#23A997]' : 'border-transparent text-[#64748b] hover:text-[#181F39] hover:border-[#e2e8f0]'"
+          (click)="activeTab = 'courses'">
+          Courses
+        </button>
+        <button
+          class="px-3 py-2 text-[15px] font-medium border-b-2 transition-colors"
+          [ngClass]="activeTab === 'categories' ? 'border-[#23A997] text-[#23A997]' : 'border-transparent text-[#64748b] hover:text-[#181F39] hover:border-[#e2e8f0]'"
+          (click)="activeTab = 'categories'">
+          Course Categories
+        </button>
+      </nav>
+    </div>
 
+    <ng-container *ngIf="activeTab === 'courses'; else categoriesTab">
     <div class="mb-8">
       <app-filters [dropdowns]="[
             {key: 'status', label: 'Status', options: ['Active', 'Inactive', 'draft', 'published']}
@@ -19,7 +36,11 @@
     <p class="text-sm text-gray-500 mt-4">
       <strong>Note:</strong> Courses are created by Teachers. Admins can only view, edit status, or delete courses.
     </p>
+    </ng-container>
 
+    <ng-template #categoriesTab>
+      <app-course-categories-settings></app-course-categories-settings>
+    </ng-template>
   </main>
 </div>
 

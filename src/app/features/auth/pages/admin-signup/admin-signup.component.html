@@ -1,117 +1,104 @@
-<div class="flex inset-0 fixed">
-  <!-- Left Section -->
-  <div class="flex-1 bg-slate-900 text-white h-screen flex flex-col text-center justify-center">
-    <h1 class="text-white text-4xl font-bold">Join as an Admin</h1>
-    <p class="p-5">Fill in your organization details to get started.</p>
-  </div>
+<div class="mx-auto flex min-h-screen w-full max-w-3xl items-center px-4 py-6 lg:px-8 lg:py-8">
+  <section class="flex w-full items-center">
+    <div class="w-full rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] sm:p-8">
+      <div class="mb-8 flex flex-col items-center justify-center text-center">
+        <div class="flex items-center justify-center gap-4">
+          <a routerLink="/" class="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#23A997] text-white shadow-md transition-colors hover:bg-[#1e9585]">
+            <i class="fa-solid fa-book-open text-[20px]"></i>
+          </a>
+          <h1 class="text-3xl font-bold tracking-tight text-[#181F39]">Register your Organization</h1>
+        </div>
+        <p class="mt-3 text-sm text-slate-500">Enter your organization details below.</p>
+      </div>
 
-  <!-- Right Section -->
-  <div class="flex-1 bg-white text-slate-900 h-screen overflow-y-auto flex flex-col justify-center items-center">
-    <div class="p-10 w-full max-w-md">
-      <h1 class="text-3xl font-bold mt-32 mb-5">Admin Signup</h1>
-      <p class="text-slate-500 text-sm mb-4">Let's get you started!</p>
-
-      <form #f="ngForm" class="flex flex-col">
-        <div *ngIf="errorMessage" class="mb-3 text-red-600 text-sm">
-          {{ errorMessage }}
+      <form #f="ngForm" class="space-y-5">
+        <div *ngIf="errorMessage" class="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 animate-fade-in">
+          <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+          <span>{{ errorMessage }}</span>
         </div>
 
-        <!-- Full Name -->
-        <input type="text" name="fullName" [(ngModel)]="fullName" placeholder="Full Name" required
-          class="w-full px-4 py-3 border rounded-md mb-2" />
+        <div class="grid gap-5 md:grid-cols-2">
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-[#181F39]" for="admin-fullName">Full name</label>
+            <input id="admin-fullName" type="text" name="fullName" [(ngModel)]="fullName" placeholder="Full name" required class="h-12 w-full rounded-2xl border border-slate-300 px-4 text-[15px] text-[#181F39] outline-none transition placeholder:text-slate-400 focus:border-[#23A997] focus:ring-4 focus:ring-[#23A997]/15" />
+          </div>
 
-        <!-- Email -->
-        <input type="email" name="email" [(ngModel)]="email" placeholder="Email" required
-          class="w-full px-4 py-3 border rounded-md mb-2" />
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-[#181F39]" for="admin-email">Email</label>
+            <input id="admin-email" type="email" name="email" [(ngModel)]="email" placeholder="Email" required class="h-12 w-full rounded-2xl border border-slate-300 px-4 text-[15px] text-[#181F39] outline-none transition placeholder:text-slate-400 focus:border-[#23A997] focus:ring-4 focus:ring-[#23A997]/15" />
+          </div>
 
-        <!-- Password -->
-        <div class="relative mb-2">
-          <input [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password"
-            placeholder="Password" minlength="6" required class="w-full px-4 py-3 border rounded-md pr-12" />
-          <button type="button" (click)="showPassword = !showPassword"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1">
-            <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-              stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-              stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-            </svg>
-          </button>
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-[#181F39]">Contact number</label>
+            <app-phone-input name="contactNo" [(ngModel)]="contactNo" [country]="country" placeholder="Contact number"></app-phone-input>
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-[#181F39]">Country</label>
+            <app-country-select name="country" [(ngModel)]="country" [required]="true" placeholder="Select country"></app-country-select>
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-[#181F39]" for="admin-password">Password</label>
+            <div class="relative">
+              <input [type]="showPassword ? 'text' : 'password'" id="admin-password" name="password" [(ngModel)]="password" placeholder="Password" minlength="6" required class="h-12 w-full rounded-2xl border border-slate-300 px-4 pr-12 text-[15px] text-[#181F39] outline-none transition placeholder:text-slate-400 focus:border-[#23A997] focus:ring-4 focus:ring-[#23A997]/15" />
+              <button type="button" (click)="showPassword = !showPassword" class="absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-slate-700" aria-label="Toggle password visibility">
+                <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-[#181F39]" for="admin-confirmPassword">Confirm password</label>
+            <div class="relative">
+              <input [type]="showConfirmPassword ? 'text' : 'password'" id="admin-confirmPassword" name="confirmPassword" [(ngModel)]="confirmPassword" placeholder="Confirm password" minlength="6" required class="h-12 w-full rounded-2xl border border-slate-300 px-4 pr-12 text-[15px] text-[#181F39] outline-none transition placeholder:text-slate-400 focus:border-[#23A997] focus:ring-4 focus:ring-[#23A997]/15" />
+              <button type="button" (click)="showConfirmPassword = !showConfirmPassword" class="absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-slate-700" aria-label="Toggle confirm password visibility">
+                <svg *ngIf="!showConfirmPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <svg *ngIf="showConfirmPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-[#181F39]" for="admin-tenantName">Organization name</label>
+            <input id="admin-tenantName" type="text" name="tenantName" [(ngModel)]="tenantName" placeholder="Organization name" required class="h-12 w-full rounded-2xl border border-slate-300 px-4 text-[15px] text-[#181F39] outline-none transition placeholder:text-slate-400 focus:border-[#23A997] focus:ring-4 focus:ring-[#23A997]/15" />
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-[#181F39]" for="admin-profileImageURL">Profile image URL</label>
+            <input id="admin-profileImageURL" type="text" name="profileImageURL" [(ngModel)]="profileImageURL" placeholder="Optional" class="h-12 w-full rounded-2xl border border-slate-300 px-4 text-[15px] text-[#181F39] outline-none transition placeholder:text-slate-400 focus:border-[#23A997] focus:ring-4 focus:ring-[#23A997]/15" />
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="mb-2 block text-sm font-semibold text-[#181F39]" for="admin-tenantLogoUrl">Organization logo URL</label>
+            <input id="admin-tenantLogoUrl" type="text" name="tenantLogoUrl" [(ngModel)]="tenantLogoUrl" placeholder="Optional" class="h-12 w-full rounded-2xl border border-slate-300 px-4 text-[15px] text-[#181F39] outline-none transition placeholder:text-slate-400 focus:border-[#23A997] focus:ring-4 focus:ring-[#23A997]/15" />
+          </div>
         </div>
 
-        <!-- Confirm Password -->
-        <div class="relative mb-2">
-          <input [type]="showConfirmPassword ? 'text' : 'password'" name="confirmPassword" [(ngModel)]="confirmPassword"
-            placeholder="Confirm Password" minlength="6" required class="w-full px-4 py-3 border rounded-md pr-12" />
-          <button type="button" (click)="showConfirmPassword = !showConfirmPassword"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1">
-            <svg *ngIf="!showConfirmPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-              stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <svg *ngIf="showConfirmPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-              stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-            </svg>
-          </button>
-        </div>
-
-        <!-- Contact No -->
-        <input type="text" name="contactNo" [(ngModel)]="contactNo" placeholder="Contact Number" required
-          class="w-full px-4 py-3 border rounded-md mb-2" />
-
-        <!-- Country -->
-        <input type="text" name="country" [(ngModel)]="country" placeholder="Country" required
-          class="w-full px-4 py-3 border rounded-md mb-2" />
-
-
-        <!-- Profile Image URL -->
-        <input type="text" name="profileImageURL" [(ngModel)]="profileImageURL"
-          placeholder="Profile Image URL (optional)" class="w-full px-4 py-3 border rounded-md mb-2" />
-
-        <!-- Tenant Name -->
-        <input type="text" name="tenantName" [(ngModel)]="tenantName" placeholder="Organization/Tenant Name" required
-          class="w-full px-4 py-3 border rounded-md mb-2" />
-
-        <!-- Tenant Logo URL -->
-        <input type="text" name="tenantLogoUrl" [(ngModel)]="tenantLogoUrl" placeholder="Tenant Logo URL (optional)"
-          class="w-full px-4 py-3 border rounded-md mb-4" />
-
-        <button type="button" (click)="onSignup()"
-          class="w-full py-3.5 bg-slate-900 text-white rounded-md hover:bg-slate-800">
-          Sign Up
+        <button type="button" (click)="onSignup()" class="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#23A997] px-4 text-sm font-semibold text-white transition hover:bg-[#1e9585] disabled:cursor-not-allowed disabled:opacity-70" [disabled]="loading">
+          <ng-container *ngIf="!loading; else adminLoadingTpl">Create account</ng-container>
+          <ng-template #adminLoadingTpl>
+            <svg class="h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+            <span>Creating account...</span>
+          </ng-template>
         </button>
 
-        <p class="text-center text-gray-600 text-sm mt-2">
+        <p class="text-center text-sm text-slate-500">
           Already have an account?
-          <a routerLink="/login" class="text-blue-950 cursor-pointer font-medium hover:underline">
-            Login
-          </a>
+          <a routerLink="/login" class="font-semibold text-[#0f766e] hover:text-[#0f5d54]">Sign in</a>
         </p>
       </form>
     </div>
+  </section>
 
-    <!-- Success Overlay -->
-    <div *ngIf="successMessage"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-500">
-      <div
-        class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center justify-center transform transition-all duration-500 scale-100 opacity-100 max-w-sm text-center">
-        <div
-          class="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6 animate-bounce shadow-inner">
-          <svg fill="none" class="w-10 h-10" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
-          </svg>
-        </div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">Success!</h2>
-        <p class="text-gray-600 font-medium">{{ successMessage }}</p>
+  <div *ngIf="successMessage" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm">
+    <div class="w-full max-w-sm rounded-[28px] border border-slate-200 bg-white p-8 text-center shadow-[0_30px_70px_rgba(15,23,42,0.2)]">
+      <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-[#23A997]/10 text-[#23A997]">
+        <svg fill="none" class="h-8 w-8" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
       </div>
+      <h2 class="text-2xl font-bold text-[#181F39]">Success</h2>
+      <p class="mt-2 text-sm leading-6 text-slate-500">{{ successMessage }}</p>
     </div>
   </div>
+</div>

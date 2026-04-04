@@ -1,0 +1,72 @@
+<div class="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#f8fbfb] via-[#f8f9fc] to-[#eef4f7] text-slate-900">
+  <div class="pointer-events-none absolute -right-24 -top-32 z-0 h-96 w-96 rounded-full bg-[#23A997]/15 blur-[100px]"></div>
+  <div class="pointer-events-none absolute top-40 -left-28 z-0 h-96 w-96 rounded-full bg-blue-900/5 blur-[100px]"></div>
+  <div class="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(rgba(148,163,184,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.05)_1px,transparent_1px)] bg-[size:72px_72px] [mask-image:radial-gradient(circle_at_center,black_40%,transparent_80%)]"></div>
+
+  <app-landingpage-header class="relative z-20"></app-landingpage-header>
+
+  <main class="relative z-10 pt-32 pb-24">
+    <!-- Hero Section -->
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 animate-fade-in opacity-0 [animation-fill-mode:forwards]">
+      <h1 class="text-4xl font-bold tracking-tight text-[#181F39] sm:text-5xl lg:text-6xl mt-2">Help Center</h1>
+      <p class="mt-6 text-lg text-slate-600 max-w-2xl">Find answers to common questions, or get in touch with our team directly.</p>
+    </div>
+
+    <!-- 2 Column Layout Structure -->
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 mt-16 animate-fade-in opacity-0 [animation-fill-mode:forwards] [animation-delay:150ms]">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+        
+        <!-- Left Sidebar: Contact Info -->
+        <div class="lg:col-span-4 space-y-6">
+          <div class="flex flex-col justify-between rounded-[30px] border border-[#dbe4ea] bg-white p-10 shadow-sm transition-all duration-300 hover:shadow-md">
+            <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-[18px] bg-[#ecf9f6] text-[#23A997]">
+              <i class="fa-solid fa-envelope text-xl"></i>
+            </div>
+            <h3 class="text-3xl font-bold tracking-tight text-[#181F39]">Email Support</h3>
+            <p class="mt-4 text-lg text-slate-600">Get a response within 24 hours.</p>
+            <a href="mailto:support&#64;eduverse.io" class="mt-6 inline-block text-lg font-semibold text-[#23A997] transition-colors hover:text-[#1e9585]">support&#64;eduverse.io</a>
+          </div>
+          
+          <div class="flex flex-col justify-between rounded-[30px] border border-[#dbe4ea] bg-white p-10 shadow-sm transition-all duration-300 hover:shadow-md">
+            <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-[18px] bg-[#ecf9f6] text-[#23A997]">
+              <i class="fa-solid fa-clock text-xl"></i>
+            </div>
+            <h3 class="text-3xl font-bold tracking-tight text-[#181F39]">Support Hours</h3>
+            <p class="mt-4 text-lg text-slate-600">Monday – Friday</p>
+            <p class="mt-2 text-lg font-bold text-[#181F39]">9:00 AM – 6:00 PM (UTC)</p>
+          </div>
+        </div>
+
+        <!-- Right Content: FAQs Accordion -->
+        <div class="lg:col-span-8">
+          <div class="rounded-[30px] border border-[#dbe4ea] bg-white p-10 lg:p-12 shadow-sm">
+            <h2 class="mb-8 text-3xl font-bold tracking-tight text-[#181F39]">Frequently Asked Questions</h2>
+
+            <div class="space-y-4">
+              <div
+                *ngFor="let faq of faqs; let i = index"
+                class="overflow-hidden rounded-2xl border border-[#dbe4ea] transition-all duration-300"
+                [ngClass]="faq.open ? 'border-[#23A997] bg-emerald-50' : 'bg-white hover:bg-slate-50'">
+                <button
+                  (click)="toggleFaq(i)"
+                  class="flex w-full items-center justify-between p-6 text-left focus:outline-none">
+                  <span class="pr-6 text-lg font-bold text-[#181F39]">{{ faq.question }}</span>
+                  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm transition-all duration-300"
+                    [ngClass]="faq.open ? 'bg-[#23A997] text-white rotate-180' : 'bg-white text-slate-400 border border-slate-200'">
+                    <i class="fa-solid fa-chevron-down text-sm"></i>
+                  </span>
+                </button>
+                <div *ngIf="faq.open" class="px-6 pb-8 pt-0 animate-fade-in opacity-0 [animation-fill-mode:forwards]">
+                  <p class="text-lg leading-relaxed text-slate-600">{{ faq.answer }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

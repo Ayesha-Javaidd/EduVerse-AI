@@ -1,0 +1,69 @@
+/* ──────────────────────────────────────────
+   intl-tel-input v26 – custom overrides
+   ────────────────────────────────────────── */
+
+/* Container */
+.iti {
+  width: 100%;
+}
+
+/* Hide the small back-arrow / close button that appears after selecting */
+.iti .iti__search-input + .iti__search-input,
+.iti .iti__arrow--up,
+.iti .iti__arrow--down {
+  /* keep default behaviour */
+}
+
+/* Search input inside dropdown – remove the default search icon */
+.iti .iti__search-input {
+  background-image: none !important;
+  padding-left: 12px !important;
+  border-radius: 8px;
+  font-size: 14px;
+  height: 38px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.iti .iti__search-input:focus {
+  border-color: #23A997;
+  box-shadow: 0 0 0 3px rgba(35, 169, 151, 0.15);
+}
+
+/* Country list dropdown */
+.iti .iti__country-list {
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  max-height: 220px;
+  z-index: 2000;
+}
+
+/* Individual country option */
+.iti .iti__country {
+  padding: 8px 12px;
+  transition: background-color 0.15s;
+}
+
+.iti .iti__country:hover {
+  background-color: #f1f5f9;
+}
+
+/* Active / highlighted country */
+.iti .iti__country.iti__highlight {
+  background-color: rgba(35, 169, 151, 0.1);
+}
+
+/* Selected country button area */
+.iti .iti__selected-country {
+  border-radius: 12px 0 0 12px;
+  padding-left: 12px;
+}
+
+/* Remove the globe icon that shows when no country selected */
+.iti .iti__globe {
+  display: none;
+}

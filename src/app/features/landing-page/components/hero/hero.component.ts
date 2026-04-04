@@ -20,4 +20,12 @@ export class HeroComponent {
   navigateToLogin() {
     this.router.navigate(['/login']);
   }
+  
+  navigateToSignup() {
+    this.router.navigate(['/signup/student']);
+  }
+
+  navigateToAdminSignup() {
+    this.router.navigate(['/signup/admin']);
+  }
 }

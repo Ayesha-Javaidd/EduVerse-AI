@@ -1,50 +1,53 @@
-<div class="flex inset-0 fixed">
-  <!-- Left Section -->
-  <div
-    class="flex-1 bg-slate-900 text-white h-screen flex flex-col text-center justify-center"
-  >
-    <h1 class="text-white text-4xl font-bold">Unlock Your Potential</h1>
-    <p class="p-5">Join our community and start your journey today.</p>
-  </div>
-
-  <!-- Right Section -->
-  <div
-    class="flex-1 bg-white text-slate-900 h-screen flex flex-col justify-center items-center"
-  >
-    <div class="p-10 w-full max-w-md">
-      <h1 class="text-3xl font-bold mb-2">Create your account</h1>
-      <p class="text-slate-500 text-sm mb-4">Select your role to continue</p>
-
-      <div *ngIf="errorMessage" class="mb-3 text-red-600 text-sm">
-        {{ errorMessage }}
+<div class="mx-auto flex min-h-screen w-full max-w-2xl items-center px-4 py-6 lg:px-8 lg:py-8">
+  <section class="flex w-full items-center">
+    <div class="w-full rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] sm:p-8">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold tracking-tight text-[#181F39]">Choose your role</h1>
+        <p class="mt-2 text-sm text-slate-500">Select one option to continue.</p>
       </div>
 
-      <select
-        class="w-full px-4 py-3 border rounded-md mb-4"
-        [(ngModel)]="role"
-        name="role"
-      >
-        <option value="">Choose role</option>
-        <option value="student">Student</option>
-        <option value="admin">Admin</option>
-      </select>
+      <div *ngIf="errorMessage" class="mb-5 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 animate-fade-in">
+        <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <div class="space-y-4">
+        <button
+          type="button"
+          class="w-full rounded-[22px] border px-5 py-5 text-left transition-all hover:border-[#23A997] hover:bg-[#23A997]/5"
+          [ngClass]="role === 'student' ? 'border-[#23A997] bg-[#23A997]/5' : 'border-slate-200 bg-white'"
+          (click)="role = 'student'; errorMessage = ''"
+        >
+          <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#23A997]/10 text-[#23A997]">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <p class="text-base font-semibold text-[#181F39]">Student</p>
+        </button>
+
+        <button
+          type="button"
+          class="w-full rounded-[22px] border px-5 py-5 text-left transition-all hover:border-[#23A997] hover:bg-[#23A997]/5"
+          [ngClass]="role === 'admin' ? 'border-[#23A997] bg-[#23A997]/5' : 'border-slate-200 bg-white'"
+          (click)="role = 'admin'; errorMessage = ''"
+        >
+          <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#23A997]/10 text-[#23A997]">
+            <i class="fa-solid fa-building-shield"></i>
+          </div>
+          <p class="text-base font-semibold text-[#181F39]">Admin</p>
+        </button>
+      </div>
 
       <button
-        class="w-full py-3.5 bg-slate-900 text-white rounded-md hover:bg-slate-800"
+        class="mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-[#23A997] px-4 text-sm font-semibold text-white transition hover:bg-[#1e9585]"
         (click)="selectRole()"
       >
         Continue
       </button>
 
-      <p class="text-center text-gray-600 text-sm mt-2">
+      <p class="mt-6 text-center text-sm text-slate-500">
         Already have an account?
-        <a
-          routerLink="/login"
-          class="text-blue-950 cursor-pointer font-medium hover:underline"
-        >
-          Login
-        </a>
+        <a routerLink="/login" class="font-semibold text-[#0f766e] hover:text-[#0f5d54]">Sign in</a>
       </p>
     </div>
-  </div>
+  </section>
 </div>

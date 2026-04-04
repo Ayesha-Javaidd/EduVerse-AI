@@ -1,30 +1,29 @@
-<div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-  <!-- Module Header -->
+<div class="overflow-hidden rounded-[24px] border border-[#dbe4ea] bg-white shadow-sm">
   <div
-    class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+    class="flex cursor-pointer items-center justify-between gap-4 p-5 transition-colors hover:bg-slate-50"
     (click)="onToggleExpand()"
   >
     <div class="flex items-center gap-3">
-      <!-- Drag Handle -->
-      <div class="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 transition-colors" title="Drag to reorder">
+      <div class="cursor-grab rounded-xl p-1 text-slate-300 transition-colors hover:text-slate-500 active:cursor-grabbing" title="Drag to reorder">
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M8 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
         </svg>
       </div>
 
-      <!-- Chapter Info -->
       <div>
-        <span class="text-xs text-gray-500 uppercase tracking-wide">Chapter {{ moduleNumber }}</span>
-        <h3 class="font-semibold text-slate-800">{{ module.title }}</h3>
+        <span class="text-xs font-semibold uppercase tracking-[0.18em] text-[#23A997]">Chapter {{ moduleNumber }}</span>
+        <h3 class="mt-1 font-semibold text-[#181F39]">{{ module.title }}</h3>
+        <p *ngIf="module.description" class="mt-1 text-sm text-slate-500">
+          {{ module.description }}
+        </p>
       </div>
     </div>
 
     <div class="flex items-center gap-2">
-      <!-- Action Menu -->
-      <div class="relative">
+      <div class="hidden items-center gap-2 sm:flex">
         <button
           (click)="onEditModule($event)"
-          class="p-1 text-gray-400 hover:text-gray-600 rounded"
+          class="rounded-xl border border-[#23A997]/20 bg-white p-2 text-[#23A997] transition hover:border-[#23A997] hover:bg-[#ecf9f6]"
           title="Edit module"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,7 +32,7 @@
         </button>
         <button
           (click)="onDeleteModule($event)"
-          class="p-1 text-gray-400 hover:text-red-600 rounded"
+          class="rounded-xl border border-red-200 bg-white p-2 text-red-500 transition hover:bg-red-50 hover:text-red-600"
           title="Delete module"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,9 +41,8 @@
         </button>
       </div>
 
-      <!-- Expand/Collapse Icon -->
       <svg
-        class="w-5 h-5 text-gray-400 transition-transform duration-200"
+        class="h-5 w-5 text-slate-400 transition-transform duration-200"
         [class.rotate-180]="module.isExpanded"
         fill="none"
         stroke="currentColor"
@@ -55,13 +53,11 @@
     </div>
   </div>
 
-  <!-- Module Content (Lessons) -->
   <div
     *ngIf="module.isExpanded"
-    class="border-t border-gray-200 bg-gray-50"
+    class="border-t border-[#edf2f7] bg-slate-50/70"
   >
-    <!-- Lessons List -->
-    <div class="divide-y divide-gray-200">
+    <div class="divide-y divide-[#e2e8f0]">
       <div
         *ngFor="let lesson of module.lessons; let i = index"
         draggable="true"
@@ -69,11 +65,11 @@
         (dragover)="onDragOver($event, i)"
         (drop)="onDrop($event, i)"
         (dragend)="onDragEnd()"
-        class="transition-all duration-200 cursor-move"
-        [class.opacity-50]="draggedLessonIndex === i"
-        [class.bg-blue-50]="draggedLessonIndex !== null && draggedLessonIndex !== i"
-        [class.border-t-2]="draggedLessonIndex !== null && draggedLessonIndex !== i"
-        [class.border-blue-400]="draggedLessonIndex !== null && draggedLessonIndex !== i"
+        class="cursor-move transition-all duration-200"
+        [ngClass]="{
+          'opacity-50': draggedLessonIndex === i,
+          'bg-[#ecf9f6] border-t-2 border-[#23A997]': draggedLessonIndex !== null && draggedLessonIndex !== i
+        }"
       >
         <app-lesson-item
           [lesson]="lesson"
@@ -83,11 +79,10 @@
       </div>
     </div>
 
-    <!-- Add Lesson Button -->
     <div class="p-4">
       <button
         (click)="onAddLesson()"
-        class="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+        class="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#23A997]/35 bg-white py-3 text-sm font-semibold text-slate-500 transition hover:border-[#23A997] hover:bg-[#ecf9f6] hover:text-[#23A997]"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />

@@ -31,17 +31,16 @@
             <!-- Contact Number -->
             <div class="space-y-1.5">
               <label class="text-sm font-semibold text-[#181F39]">Contact Number</label>
-              <app-phone-input formControlName="contactNo" placeholder="Enter phone number"></app-phone-input>
+              <app-phone-input formControlName="contactNo" [country]="profileForm.get('country')?.value" placeholder="Enter phone number"></app-phone-input>
             </div>
 
             <!-- Country -->
             <div class="space-y-1.5">
               <label class="text-sm font-semibold text-[#181F39]">Country</label>
-              <select formControlName="country"
-                class="w-full h-[46px] px-4 border border-[#cbd5e1] rounded-xl bg-white focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all cursor-pointer">
-                <option value="" disabled>Select country</option>
-                <option *ngFor="let c of countries" [value]="c">{{ c }}</option>
-              </select>
+              <app-country-select
+                formControlName="country"
+                placeholder="Select country"
+              ></app-country-select>
             </div>
           </div>
 

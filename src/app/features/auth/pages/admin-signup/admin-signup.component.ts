@@ -3,11 +3,13 @@ import { Router, RouterModule } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { NgIf } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { CountrySelectComponent } from '../../../../shared/components/country-select/country-select.component';
+import { PhoneInputComponent } from '../../../../shared/components/phone-input/phone-input.component';
 
 @Component({
   selector: 'app-admin-signup',
   standalone: true,
-  imports: [FormsModule, NgIf, RouterModule],
+  imports: [FormsModule, NgIf, RouterModule, PhoneInputComponent, CountrySelectComponent],
   templateUrl: './admin-signup.component.html',
   styleUrls: ['./admin-signup.component.css'],
 })
@@ -27,11 +29,14 @@ export class AdminSignupComponent {
 
   errorMessage = '';
   successMessage = '';
+  loading = false;
 
   constructor(private router: Router, private authService: AuthService) { }
 
   onSignup() {
     if (!this.validateForm()) return;
+
+    this.loading = true;
 
     const payload = {
       fullName: this.fullName,
@@ -49,6 +54,7 @@ export class AdminSignupComponent {
     this.authService.signup(payload, 'admin').subscribe({
       next: (res) => {
         console.log('Signup success:', res);
+        this.loading = false;
         this.successMessage = 'Admin Registration Successful! Setting up your workspace... 🚀';
         setTimeout(() => {
           this.router.navigate(['/login']);
@@ -56,6 +62,7 @@ export class AdminSignupComponent {
       },
       error: (err) => {
         console.error(err);
+        this.loading = false;
         this.errorMessage = err.error?.detail?.[0]?.msg || 'Signup failed';
       },
     });

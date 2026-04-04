@@ -1,24 +1,22 @@
 <div
-  class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+  class="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 p-6 backdrop-blur-[2px]"
   (click)="onOverlayClick($event)"
 >
   <div
-    class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden"
+    class="w-full max-w-lg overflow-hidden rounded-[24px] border border-[#e2e8f0] bg-white shadow-2xl"
     (click)="$event.stopPropagation()"
   >
     <!-- Header -->
-    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-      <h2 class="text-xl font-semibold text-slate-800">
+    <div class="flex items-center justify-between border-b border-[#e2e8f0] px-6 py-5">
+      <h2 class="text-xl font-bold text-[#181F39]">
         {{ isEditMode ? 'Edit Chapter' : 'Add Chapter' }}
       </h2>
       <button
         type="button"
-        class="text-gray-400 hover:text-gray-600 transition-colors"
+        class="text-gray-400 transition-colors hover:text-gray-600"
         (click)="onClose()"
       >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
+        <i class="fa-solid fa-xmark text-lg"></i>
       </button>
     </div>
 
@@ -32,7 +30,7 @@
         <input
           type="text"
           [(ngModel)]="title"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          class="w-full rounded-xl border border-[#e2e8f0] px-4 py-3 focus:border-[#23A997] focus:outline-none focus:ring-1 focus:ring-[#23A997]"
           placeholder="e.g., Introduction to Design Tokens"
           [class.border-red-500]="title.length > 0 && title.length < 3"
         />
@@ -49,17 +47,17 @@
         <textarea
           [(ngModel)]="description"
           rows="3"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+          class="w-full resize-none rounded-xl border border-[#e2e8f0] px-4 py-3 focus:border-[#23A997] focus:outline-none focus:ring-1 focus:ring-[#23A997]"
           placeholder="Describe what students will learn in this chapter..."
         ></textarea>
       </div>
     </div>
 
     <!-- Footer -->
-    <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+    <div class="flex justify-end gap-3 border-t border-[#e2e8f0] bg-slate-50 px-6 py-4">
       <button
         type="button"
-        class="px-4 py-2 rounded-lg text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors"
+        class="rounded-[12px] border border-[#23A997]/30 bg-white px-6 py-2.5 font-semibold text-[#23A997] transition hover:border-[#23A997] hover:bg-[#23A997]/5"
         (click)="onClose()"
       >
         Cancel
@@ -67,7 +65,7 @@
       <button
         type="button"
         [disabled]="!isValid"
-        class="px-4 py-2 rounded-lg text-white bg-blue-950 hover:bg-blue-900 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+        class="rounded-[12px] bg-[#23A997] px-8 py-2.5 font-semibold text-white shadow-[0_4px_12px_rgba(35,169,151,0.2)] transition hover:bg-[#1f9686] disabled:cursor-not-allowed disabled:bg-[#23A997]/50"
         (click)="onSave()"
       >
         {{ isEditMode ? 'Update Chapter' : 'Add Chapter' }}

@@ -24,7 +24,7 @@ export class PaginationComponent {
 
   /** Total number of pages */
   get totalPages(): number {
-    return Math.ceil(this.totalItems / this.pageSize);
+    return Math.max(1, Math.ceil(this.totalItems / this.pageSize));
   }
 
   /** Change page safely */
@@ -39,9 +39,9 @@ export class PaginationComponent {
     const current = this.currentPage;
     const visible: number[] = [];
 
-    // Always show current, prev and next
-    const start = Math.max(1, current - 1);
-    const end = Math.min(total, current + 1);
+    // Show a compact window around the current page.
+    const start = Math.max(1, current - 2);
+    const end = Math.min(total, current + 2);
 
     for (let i = start; i <= end; i++) {
       visible.push(i);
@@ -49,6 +49,4 @@ export class PaginationComponent {
 
     return visible;
   }
-
-
 }

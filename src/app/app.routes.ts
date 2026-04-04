@@ -37,22 +37,25 @@ import { CourseBuilderComponent } from './features/teacher/pages/course-builder/
 import { AuthGuard } from './features/auth/guards/auth.guard';
 import { RoleGuard } from './features/auth/guards/role.guard';
 import { StudentSignupComponent } from './features/auth/pages/student-signup/student-signup.component';
-import { TeacherSignupComponent } from './features/auth/pages/teacher-signup/teacher-signup.component';
 import { AdminSignupComponent } from './features/auth/pages/admin-signup/admin-signup.component';
 import { GradeAssignmentsComponent } from './features/teacher/pages/grade-assignments/grade-assignments.component';
 import { CourseDetailComponent } from './features/student/pages/course-detail/course-detail.component';
 import { CoursePlayerComponent } from './features/student/pages/course-player/course-player.component';
+import { PrivacyPolicyComponent } from './features/static-pages/privacy-policy/privacy-policy.component';
+import { TermsOfServiceComponent } from './features/static-pages/terms-of-service/terms-of-service.component';
+import { HelpCenterComponent } from './features/static-pages/help-center/help-center.component';
+import { DocumentationComponent } from './features/static-pages/documentation/documentation.component';
+
 
 export const routes: Routes = [
-  { path: '', component: LandingPageComponent, canActivate: [AuthGuard] },
+  { path: '', component: LandingPageComponent },
   {
     path: '',
     component: AuthLayoutComponent,
     children: [
       { path: 'login', component: LoginComponent },
-      { path: 'signup', component: SignupComponent },
+      { path: 'signup', redirectTo: 'signup/student', pathMatch: 'full' },
       { path: 'signup/student', component: StudentSignupComponent },
-      { path: 'signup/teacher', component: TeacherSignupComponent },
       { path: 'signup/admin', component: AdminSignupComponent },
     ],
   },
@@ -86,7 +89,7 @@ export const routes: Routes = [
       { path: 'assignments', component: GenerateAssignmentsComponent },
       { path: 'grade-assignment', component: GradeAssignmentsComponent },
       { path: 'trackstudent', component: TrackStudentComponent },
-      { path: 'student-details/:id', component: StudentDetailsComponent }, // new route
+      { path: 'student-details/:id', component: StudentDetailsComponent }, 
       { path: 'settings', component: TeacherSettingsComponent },
     ],
   },
@@ -102,7 +105,7 @@ export const routes: Routes = [
       { path: 'courses', component: StudentCoursesComponent },
       { path: 'quizzes', component: StudentQuizzesComponent },
       { path: 'assignments', component: StudentAssignmentsComponent },
-      { path: 'ai-assisstant', component: AiAssistantComponent },
+      { path: 'ai-assistant', component: AiAssistantComponent },
       { path: 'leaderboard', component: LeaderboardComponent },
       { path: 'settings', component: StudentSettingsComponent },
       { path: 'explore-courses', component: ExploreCoursesComponent },
@@ -128,5 +131,13 @@ export const routes: Routes = [
     ],
   },
 
+  // Static pages
+  { path: 'privacy-policy', component: PrivacyPolicyComponent },
+  { path: 'terms-of-service', component: TermsOfServiceComponent },
+  { path: 'help-center', component: HelpCenterComponent },
+  { path: 'documentation', component: DocumentationComponent },
+
+
   { path: '**', component: NotFoundComponent },
 ];
+

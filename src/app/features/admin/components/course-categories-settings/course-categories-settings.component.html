@@ -1,0 +1,163 @@
+<section class="rounded-[20px] border border-[#e2e8f0] bg-white p-6 shadow-sm">
+  <div class="flex flex-col gap-2 border-b border-[#eef2f6] pb-5">
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <h2 class="text-2xl font-semibold tracking-tight text-[#181F39]">Course Categories</h2>
+        <p class="mt-1 text-sm text-slate-500">Manage the categories teachers can use for courses.</p>
+      </div>
+      <span class="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-500">
+        {{ totalCategoryCount }} total
+      </span>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="flex justify-center p-10">
+    <i class="fa-solid fa-circle-notch fa-spin text-3xl text-[#23A997]"></i>
+  </div>
+
+  <div
+    *ngIf="error"
+    class="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+  >
+    {{ error }}
+    <button
+      type="button"
+      (click)="loadCategories(true)"
+      class="ml-2 font-semibold underline underline-offset-2"
+    >
+      Retry
+    </button>
+  </div>
+
+  <div *ngIf="!isLoading && !error" class="mt-6 space-y-6">
+    <div>
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <h3 class="text-sm font-semibold uppercase tracking-[0.18em] text-[#23A997]">Current Categories</h3>
+        <span class="text-xs text-slate-400">Built-in</span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <span
+          *ngFor="let category of systemCategories"
+          class="rounded-full border border-[#dbe4ea] bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-600"
+        >
+          {{ category }}
+        </span>
+      </div>
+    </div>
+
+    <div class="border-t border-[#eef2f6] pt-6">
+      <div class="mb-4 flex items-center justify-between gap-3">
+        <h3 class="text-sm font-semibold uppercase tracking-[0.18em] text-[#23A997]">Custom Categories</h3>
+        <span class="text-xs text-slate-400">{{ customCategories.length }} custom</span>
+      </div>
+
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <input
+          type="text"
+          [(ngModel)]="newCategory"
+          (keydown.enter)="addCategory()"
+          class="h-12 flex-1 rounded-xl border border-[#cbd5e1] bg-white px-4 text-[15px] text-[#181F39] transition-all focus:border-[#23A997] focus:outline-none focus:ring-4 focus:ring-[#23A997]/20"
+          placeholder="Add a category"
+        />
+        <app-button
+          customColor="bg-[#23A997] text-white hover:bg-[#1f9686] transition-all rounded-xl font-medium shadow-md shadow-[#23A997]/20"
+          size="md"
+          (buttonClick)="addCategory()"
+        >
+          <i class="fa-solid fa-plus mr-2"></i>
+          Add
+        </app-button>
+      </div>
+
+      <div *ngIf="customCategories.length; else emptyCustomCategories" class="mt-5 space-y-3">
+        <div
+          *ngFor="let category of customCategories; let i = index; trackBy: trackByIndex"
+          class="flex items-center gap-3 rounded-2xl border border-[#e2e8f0] bg-[#f8fafc] p-3"
+        >
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#23A997] border border-[#dbe4ea]">
+            <i class="fa-solid fa-tag text-sm"></i>
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <p *ngIf="editingIndex !== i" class="truncate text-sm font-medium text-[#181F39]">
+              {{ category }}
+            </p>
+            <input
+              *ngIf="editingIndex === i"
+              type="text"
+              [(ngModel)]="editingValue"
+              (keydown.enter)="saveEditing()"
+              class="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm text-[#181F39] transition-all focus:border-[#23A997] focus:outline-none focus:ring-4 focus:ring-[#23A997]/20"
+            />
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button
+              *ngIf="editingIndex !== i"
+              type="button"
+              (click)="startEditing(i)"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#dbe4ea] bg-white text-slate-500 transition hover:border-[#23A997]/30 hover:text-[#23A997]"
+              aria-label="Edit category"
+            >
+              <i class="fa-solid fa-pen text-sm"></i>
+            </button>
+            <button
+              *ngIf="editingIndex === i"
+              type="button"
+              (click)="saveEditing()"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#d9efe9] bg-white text-[#23A997] transition hover:border-[#23A997]/40 hover:bg-[#f4fbf9]"
+              aria-label="Save category"
+            >
+              <i class="fa-solid fa-check text-sm"></i>
+            </button>
+            <button
+              *ngIf="editingIndex === i"
+              type="button"
+              (click)="cancelEditing()"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#dbe4ea] bg-white text-slate-500 transition hover:bg-slate-50"
+              aria-label="Cancel editing"
+            >
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+            <button
+              *ngIf="editingIndex !== i"
+              type="button"
+              (click)="removeCategory(i)"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-rose-200 bg-white text-rose-600 transition hover:bg-rose-50"
+              aria-label="Delete category"
+            >
+              <i class="fa-solid fa-trash text-sm"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #emptyCustomCategories>
+        <div class="mt-5 rounded-2xl border border-dashed border-[#dbe4ea] bg-slate-50 px-5 py-8 text-center text-sm text-slate-500">
+          No custom categories yet.
+        </div>
+      </ng-template>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <app-button
+          customColor="border border-[#23A997]/30 bg-white text-[#23A997] hover:bg-[#23A997]/5 hover:border-[#23A997] transition-all rounded-xl font-medium"
+          size="md"
+          [disabled]="isSaving || !hasUnsavedChanges"
+          (buttonClick)="resetCustomCategories()"
+        >
+          <i class="fa-solid fa-rotate-left mr-2"></i>
+          Reset
+        </app-button>
+        <app-button
+          customColor="bg-[#23A997] text-white hover:bg-[#1f9686] transition-all rounded-xl font-medium shadow-md shadow-[#23A997]/20"
+          size="md"
+          [disabled]="isSaving || !hasUnsavedChanges"
+          (buttonClick)="saveCategories()"
+        >
+          <span *ngIf="!isSaving"><i class="fa-solid fa-floppy-disk mr-2"></i>Save</span>
+          <span *ngIf="isSaving"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Saving...</span>
+        </app-button>
+      </div>
+    </div>
+  </div>
+</section>

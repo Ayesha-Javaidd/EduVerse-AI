@@ -25,23 +25,22 @@ export class CardComponent {
 
   
   get cardClasses(): string {
-    const baseClasses = 'rounded-2xl transition-all duration-300';
+    const baseClasses = 'rounded-[18px] border border-[#e2e8f0] bg-white transition-all duration-300';
     
     const typeClasses = {
-      default: 'p-8 shadow-lg',
-      feature: 'overflow-hidden shadow-lg border border-border-light',
-      tenant: 'p-6 text-center shadow-sm border border-border-light',
-      step: 'p-8 text-center relative'
+      default: 'p-8 shadow-sm',
+      feature: 'p-6 shadow-sm',
+      tenant: 'p-6 text-left shadow-sm',
+      step: 'p-6 relative shadow-sm'
     };
 
     const backgroundClasses = {
       light: 'bg-white',
-      dark: 'bg-primary-navy'
+      dark: 'bg-[#181F39] border-[#232b45]'
     };
 
-    const hoverClasses = this.hover ? 'hover:-translate-y-1 hover:shadow-xl' : '';
+    const hoverClasses = this.hover ? 'hover:-translate-y-1 hover:shadow-md' : '';
 
-    // Apply equal height if enabled so that all cards are of equal size chahy content zyada h ya km
     const heightClasses = this.equalHeight ? 'h-full flex flex-col' : '';
 
     return `${baseClasses} ${typeClasses[this.type]} ${backgroundClasses[this.background]} ${hoverClasses} ${heightClasses} ${this.class}`;

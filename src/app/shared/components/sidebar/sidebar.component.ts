@@ -106,7 +106,7 @@ export class SidebarComponent implements OnChanges {
         {
           icon: 'fa-solid fa-robot',
           label: 'Ai Assistant',
-          path: 'ai-assisstant',
+          path: 'ai-assistant',
         },
         { icon: 'fa-solid fa-user', label: 'Leaderboard', path: 'leaderboard' },
         { icon: 'fa-solid fa-cog', label: 'Settings', path: 'settings' },

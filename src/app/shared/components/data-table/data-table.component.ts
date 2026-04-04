@@ -85,6 +85,10 @@ export class DataTableComponent {
     this.edit.emit(row);
   }
 
+  onView(row: any) {
+    this.view.emit(row);
+  }
+
   onDelete(row: any) {
     this.delete.emit(row);
   }

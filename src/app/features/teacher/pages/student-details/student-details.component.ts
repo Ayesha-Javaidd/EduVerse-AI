@@ -16,10 +16,14 @@ import { AuthService } from '../../../auth/services/auth.service';
 })
 export class StudentDetailsComponent implements OnInit {
   studentId: string = '';
-  studentName: string = 'Loading Student...';
+  studentName: string = 'Loading student...';
   courses: DetailedCoursePerformance[] = [];
+  selectedCourse: string = '';
   loading: boolean = true;
   error: string | null = null;
+  readonly tablePageSize: number = 5;
+  quizPages: Record<string, number> = {};
+  assignmentPages: Record<string, number> = {};
 
   // Columns for tables
   quizColumns: TableColumn[] = [
@@ -40,6 +44,7 @@ export class StudentDetailsComponent implements OnInit {
 
   ngOnInit() {
     this.studentId = this.route.snapshot.paramMap.get('id') || '';
+    this.selectedCourse = this.route.snapshot.queryParamMap.get('course') || '';
     if (this.studentId) {
       this.loadStudentData();
     } else {
@@ -62,11 +67,19 @@ export class StudentDetailsComponent implements OnInit {
     this.loading = true;
     this.performanceService.getStudentDetailedPerformance(teacherId, this.studentId, tenantId).subscribe({
       next: (data: DetailedCoursePerformance[]) => {
-        this.courses = data;
+        const normalizedCourses = data.map((course: DetailedCoursePerformance) => ({
+          ...course,
+          courseName: course.courseName || 'Untitled Course',
+          quizzes: course.quizzes || [],
+          assignments: course.assignments || [],
+        }));
+        this.courses = this.selectedCourse
+          ? normalizedCourses.filter((course) => course.courseName === this.selectedCourse)
+          : normalizedCourses;
         if (data.length > 0) {
-          this.studentName = data[0].studentName;
+          this.studentName = data[0].studentName || 'Student';
         } else {
-            this.studentName = 'No courses found';
+          this.studentName = 'Student';
         }
         this.loading = false;
       },
@@ -79,7 +92,42 @@ export class StudentDetailsComponent implements OnInit {
   }
 
   // Navigate back to Track Student page
- goBack() {
-  this.router.navigate(['/teacher/trackstudent']); 
-}
+  goBack() {
+    this.router.navigate(['/teacher/trackstudent']);
+  }
+
+  getQuizPage(courseId: string): number {
+    return this.quizPages[courseId] || 1;
+  }
+
+  setQuizPage(courseId: string, page: number): void {
+    this.quizPages[courseId] = page;
+  }
+
+  getAssignmentPage(courseId: string): number {
+    return this.assignmentPages[courseId] || 1;
+  }
+
+  setAssignmentPage(courseId: string, page: number): void {
+    this.assignmentPages[courseId] = page;
+  }
+
+  getTotalItems(course: DetailedCoursePerformance): number {
+    return (course.quizzes?.length || 0) + (course.assignments?.length || 0);
+  }
+
+  getTotalQuizCount(): number {
+    return this.courses.reduce((total, course) => total + (course.quizzes?.length || 0), 0);
+  }
+
+  getTotalAssignmentCount(): number {
+    return this.courses.reduce((total, course) => total + (course.assignments?.length || 0), 0);
+  }
+
+  getScopeCopy(): string {
+    if (this.selectedCourse) {
+      return `Showing performance for ${this.selectedCourse}.`;
+    }
+    return `Showing performance across ${this.courses.length} course${this.courses.length === 1 ? '' : 's'} you teach.`;
+  }
 }

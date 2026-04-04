@@ -1,60 +1,53 @@
 <div 
-  class="flex items-center justify-between p-4 bg-white hover:bg-gray-50 transition-colors group"
+  class="group flex items-center justify-between gap-4 bg-white px-5 py-4 transition-colors hover:bg-slate-50"
   (mouseleave)="closeMenu()"
 >
   <div class="flex items-center gap-3">
-    <!-- Drag Handle -->
-    <div class="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 transition-colors">
+    <div class="cursor-grab text-slate-300 transition-colors hover:text-slate-500 active:cursor-grabbing">
       <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
         <path d="M8 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
       </svg>
     </div>
 
-    <!-- Type Icon -->
     <div 
-      class="w-8 h-8 rounded-full flex items-center justify-center"
+      class="flex h-10 w-10 items-center justify-center rounded-2xl"
       [ngClass]="{
-        'bg-blue-100 text-blue-600': lesson.type === 'video',
-        'bg-green-100 text-green-600': lesson.type === 'document' && !isAiGenerated,
-        'bg-purple-100 text-purple-600': lesson.type === 'quiz',
-        'bg-indigo-100 text-indigo-600 ring-2 ring-indigo-200': isAiGenerated
+        'bg-[#e8f1ff] text-[#3b82f6]': lesson.type === 'video',
+        'bg-[#ecf9f6] text-[#23A997]': lesson.type === 'document' && !isAiGenerated,
+        'bg-[#f4ecff] text-[#8b5cf6]': lesson.type === 'quiz',
+        'bg-[#eef2ff] text-[#4f46e5] ring-2 ring-[#c7d2fe]': isAiGenerated
       }"
     >
-      <!-- Video Icon -->
       <svg *ngIf="lesson.type === 'video'" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
         <path d="M8 5v14l11-7z"/>
       </svg>
       <svg *ngIf="lesson.type === 'document' && !isAiGenerated" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
-      <!-- AI Icon -->
       <svg *ngIf="isAiGenerated" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
         <path d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
-      <!-- Quiz Icon -->
       <svg *ngIf="lesson.type === 'quiz'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     </div>
 
-    <!-- Lesson Info -->
     <div>
       <div class="flex items-center gap-2">
-        <h4 class="font-medium text-slate-800 text-sm">{{ lesson.title }}</h4>
-        <span *ngIf="isAiGenerated" class="px-1.5 py-0.5 rounded text-[10px] bg-indigo-100 text-indigo-700 font-bold uppercase tracking-wider">AI</span>
+        <h4 class="text-sm font-semibold text-[#181F39]">{{ lesson.title }}</h4>
+        <span *ngIf="isAiGenerated" class="rounded-full bg-[#eef2ff] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#4f46e5]">AI</span>
       </div>
-      <div class="flex items-center gap-2 text-xs text-gray-500">
+      <div class="mt-1 flex items-center gap-2 text-xs text-slate-500">
         <span>{{ typeLabel }}</span>
         <span *ngIf="lesson.duration">• {{ lesson.duration }}</span>
       </div>
     </div>
   </div>
 
-  <!-- Actions Menu -->
   <div class="relative">
     <button
       (click)="toggleMenu($event)"
-      class="p-1 text-gray-400 hover:text-gray-600 rounded"
+      class="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
     >
       <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
         <circle cx="12" cy="6" r="1.5" />
@@ -63,14 +56,13 @@
       </svg>
     </button>
 
-    <!-- Dropdown Menu -->
     <div
       *ngIf="showMenu"
-      class="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[120px]"
+      class="absolute right-0 top-10 z-10 min-w-[140px] rounded-2xl border border-[#dbe4ea] bg-white py-1.5 shadow-lg"
     >
       <button
         (click)="onEdit($event)"
-        class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+        class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-600 hover:bg-slate-50"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -79,7 +71,7 @@
       </button>
       <button
         (click)="onDelete($event)"
-        class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+        class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-500 hover:bg-red-50"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

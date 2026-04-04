@@ -1,49 +1,52 @@
-<div
-  class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
->
-  <div class="bg-white rounded-xl w-full max-w-md p-6">
-    <h2 class="text-xl font-semibold mb-4">Grade Assignment</h2>
-
-    <div class="mb-4">
-      <label class="block text-sm font-medium mb-1"
-        >Obtained Marks (Max: {{ totalMarks }})</label
-      >
-      <input
-        type="number"
-        class="w-full border rounded-lg px-3 py-2"
-        [(ngModel)]="obtainedMarks"
-        min="0"
-        [max]="totalMarks"
-      />
+<div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 p-6 backdrop-blur-[2px]">
+  <div class="w-full max-w-md rounded-xl border border-gray-200 bg-white shadow-xl">
+    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+      <h2 class="text-xl font-semibold text-slate-800">Grade Assignment</h2>
+      <button type="button" class="text-gray-400 transition hover:text-gray-600" (click)="onClose()">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
     </div>
 
-    <div class="mb-4">
-      <label class="block text-sm font-medium mb-1">Feedback (optional)</label>
-      <textarea
-        rows="3"
-        class="w-full border rounded-lg px-3 py-2"
-        [(ngModel)]="feedback"
-      ></textarea>
+    <div class="space-y-4 p-6">
+      <div>
+        <label class="mb-1 block text-sm font-medium text-slate-700">Obtained Marks (Max: {{ totalMarks }})</label>
+        <input
+          type="number"
+          class="w-full rounded-xl border border-[#e2e8f0] px-4 py-3 focus:border-[#23A997] focus:outline-none focus:ring-1 focus:ring-[#23A997]"
+          [(ngModel)]="obtainedMarks"
+          min="0"
+          [max]="totalMarks"
+        />
+      </div>
+
+      <div>
+        <label class="mb-1 block text-sm font-medium text-slate-700">Feedback (optional)</label>
+        <textarea
+          rows="3"
+          class="w-full rounded-xl border border-[#e2e8f0] px-4 py-3 focus:border-[#23A997] focus:outline-none focus:ring-1 focus:ring-[#23A997]"
+          [(ngModel)]="feedback"
+        ></textarea>
+      </div>
+
+      <div *ngIf="errorMessage" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        {{ errorMessage }}
+      </div>
     </div>
 
-    <div *ngIf="errorMessage" class="text-red-600 text-sm mb-3">
-      {{ errorMessage }}
-    </div>
-
-    <div class="flex justify-end gap-3">
+    <div class="flex justify-end gap-3 rounded-b-xl border-t border-gray-200 bg-gray-50 px-6 py-4">
       <app-button
         variant="outline"
+        [class]="'rounded-xl border-[#23A997]/30 text-[#23A997] hover:border-[#23A997] hover:bg-[#23A997]/5'"
         (buttonClick)="onClose()"
-        [disabled]="loading"
-      >
+        [disabled]="loading">
         Cancel
       </app-button>
 
       <app-button
-        variant="success"
+        customColor="bg-[#23A997] text-white hover:bg-[#1f9686]"
+        [class]="'rounded-xl'"
         (buttonClick)="submitGrade()"
-        [loading]="loading"
-      >
+        [loading]="loading">
         Submit Grade
       </app-button>
     </div>

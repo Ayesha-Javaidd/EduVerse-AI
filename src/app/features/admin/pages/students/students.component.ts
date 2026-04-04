@@ -49,8 +49,8 @@ export class StudentsComponent implements OnInit {
     { name: 'fullName', label: 'Full Name', type: 'text', required: true, placeholder: 'Enter full name' },
     { name: 'email', label: 'Email', type: 'email', required: true, placeholder: 'Enter email address' },
     { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'Enter password (min 6 characters)' },
-    { name: 'contactNo', label: 'Contact Number', type: 'text', placeholder: 'Enter contact number' },
-    { name: 'country', label: 'Country', type: 'text', placeholder: 'Enter country' },
+    { name: 'contactNo', label: 'Contact Number', type: 'phone', placeholder: 'Enter contact number' },
+    { name: 'country', label: 'Country', type: 'country', placeholder: 'Select country' },
     {
       name: 'status', label: 'Status', type: 'select', options: [
         { value: 'active', label: 'Active' },

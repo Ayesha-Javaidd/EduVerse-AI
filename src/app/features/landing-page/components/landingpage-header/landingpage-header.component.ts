@@ -35,13 +35,28 @@ export class LandingpageHeaderComponent {
   // like scrollToSection('features') will scroll to the Features section.
 
   scrollToSection(sectionId: string) {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (this.router.url !== '/') {
+      this.router.navigate(['/']).then(() => {
+        setTimeout(() => {
+          const element = document.getElementById(sectionId);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      });
+    } else {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
     this.mobileMenuOpen = false;
   }
   navigateToLogin() {
     this.router.navigate(['/login']);
+  }
+  
+  navigateToSignup() {
+    this.router.navigate(['/signup/student']);
   }
 }

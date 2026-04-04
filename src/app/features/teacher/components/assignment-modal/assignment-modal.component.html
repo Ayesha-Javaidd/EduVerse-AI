@@ -13,17 +13,16 @@
     *ngIf="assignmentForm"
     [formGroup]="assignmentForm"
     (ngSubmit)="submitForm()"
-    class="p-6 space-y-6"
+    class="space-y-6"
   >
-    <!-- Title -->
     <div>
-      <label class="block text-sm font-semibold text-primary-navy mb-2"
-        >Assignment Title *</label
-      >
+      <label class="mb-2 block text-sm font-semibold text-[#181F39]">
+        Assignment Title *
+      </label>
       <input
         type="text"
         formControlName="title"
-        class="w-full px-4 py-3 border border-border-light rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-light-blue"
+        class="h-12 w-full rounded-2xl border border-[#dbe4ea] bg-[#f8fafc] px-4 text-sm text-[#181F39] placeholder-slate-400 transition focus:border-[#23A997] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#23A997]/15"
         placeholder="e.g., Web Development Final Project"
       />
       <p
@@ -31,20 +30,19 @@
           assignmentForm.get('title')?.touched &&
           assignmentForm.get('title')?.invalid
         "
-        class="text-red-500 text-sm mt-1"
+        class="mt-1 text-sm text-red-500"
       >
         Title is required.
       </p>
     </div>
 
-    <!-- Course Selection -->
     <div>
-      <label class="block text-sm font-semibold text-primary-navy mb-2"
-        >Select Course *</label
-      >
+      <label class="mb-2 block text-sm font-semibold text-[#181F39]">
+        Select Course *
+      </label>
       <select
         formControlName="courseId"
-        class="w-full px-4 py-3 border border-border-light rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-light-blue"
+        class="h-12 w-full rounded-2xl border border-[#dbe4ea] bg-[#f8fafc] px-4 text-sm text-[#181F39] transition focus:border-[#23A997] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#23A997]/15"
       >
         <option value="">Choose a course</option>
         <option *ngFor="let course of courses" [value]="course.id">
@@ -56,21 +54,20 @@
           assignmentForm.get('courseId')?.touched &&
           assignmentForm.get('courseId')?.invalid
         "
-        class="text-red-500 text-sm mt-1"
+        class="mt-1 text-sm text-red-500"
       >
         Course selection is required.
       </p>
     </div>
 
-    <!-- Description -->
     <div>
-      <label class="block text-sm font-semibold text-primary-navy mb-2"
-        >Description *</label
-      >
+      <label class="mb-2 block text-sm font-semibold text-[#181F39]">
+        Description *
+      </label>
       <textarea
         formControlName="description"
         rows="4"
-        class="w-full px-4 py-3 border border-border-light rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-light-blue resize-none"
+        class="min-h-32 w-full resize-none rounded-2xl border border-[#dbe4ea] bg-[#f8fafc] px-4 py-3 text-sm text-[#181F39] placeholder-slate-400 transition focus:border-[#23A997] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#23A997]/15"
         placeholder="Describe the assignment requirements..."
       ></textarea>
       <p
@@ -78,107 +75,104 @@
           assignmentForm.get('description')?.touched &&
           assignmentForm.get('description')?.invalid
         "
-        class="text-red-500 text-sm mt-1"
+        class="mt-1 text-sm text-red-500"
       >
         Description is required.
       </p>
     </div>
 
-    <!-- Due Date & Time -->
-    <div class="grid md:grid-cols-2 gap-4">
+    <div class="grid gap-5 md:grid-cols-2">
       <div>
-        <label class="block text-sm font-semibold text-primary-navy mb-2"
-          >Due Date *</label
-        >
+        <label class="mb-2 block text-sm font-semibold text-[#181F39]">
+          Due Date *
+        </label>
         <input
           type="date"
           formControlName="dueDate"
-          class="w-full px-4 py-3 border border-border-light rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-light-blue"
+          class="h-12 w-full rounded-2xl border border-[#dbe4ea] bg-[#f8fafc] px-4 text-sm text-[#181F39] transition focus:border-[#23A997] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#23A997]/15"
         />
         <p
           *ngIf="
             assignmentForm.get('dueDate')?.touched &&
             assignmentForm.get('dueDate')?.invalid
           "
-          class="text-red-500 text-sm mt-1"
+          class="mt-1 text-sm text-red-500"
         >
           Due date is required.
         </p>
       </div>
       <div>
-        <label class="block text-sm font-semibold text-primary-navy mb-2"
-          >Due Time *</label
-        >
+        <label class="mb-2 block text-sm font-semibold text-[#181F39]">
+          Due Time *
+        </label>
         <input
           type="time"
           formControlName="dueTime"
-          class="w-full px-4 py-3 border border-border-light rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-light-blue"
+          class="h-12 w-full rounded-2xl border border-[#dbe4ea] bg-[#f8fafc] px-4 text-sm text-[#181F39] transition focus:border-[#23A997] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#23A997]/15"
         />
         <p
           *ngIf="
             assignmentForm.get('dueTime')?.touched &&
             assignmentForm.get('dueTime')?.invalid
           "
-          class="text-red-500 text-sm mt-1"
+          class="mt-1 text-sm text-red-500"
         >
           Due time is required.
         </p>
       </div>
     </div>
 
-    <!-- Marks -->
-    <div class="grid md:grid-cols-2 gap-4">
+    <div class="grid gap-5 md:grid-cols-2">
       <div>
-        <label class="block text-sm font-semibold text-primary-navy mb-2"
-          >Total Marks *</label
-        >
+        <label class="mb-2 block text-sm font-semibold text-[#181F39]">
+          Total Marks *
+        </label>
         <input
           type="number"
           formControlName="totalMarks"
           min="1"
           max="100"
-          class="w-full px-4 py-3 border border-border-light rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-light-blue"
+          class="h-12 w-full rounded-2xl border border-[#dbe4ea] bg-[#f8fafc] px-4 text-sm text-[#181F39] transition focus:border-[#23A997] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#23A997]/15"
         />
         <p
           *ngIf="
             assignmentForm.get('totalMarks')?.touched &&
             assignmentForm.get('totalMarks')?.invalid
           "
-          class="text-red-500 text-sm mt-1"
+          class="mt-1 text-sm text-red-500"
         >
           Total marks is required and must be between 1-100.
         </p>
       </div>
       <div>
-        <label class="block text-sm font-semibold text-primary-navy mb-2"
-          >Passing Marks *</label
-        >
+        <label class="mb-2 block text-sm font-semibold text-[#181F39]">
+          Passing Marks *
+        </label>
         <input
           type="number"
           formControlName="passingMarks"
           min="1"
           max="100"
-          class="w-full px-4 py-3 border border-border-light rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-light-blue"
+          class="h-12 w-full rounded-2xl border border-[#dbe4ea] bg-[#f8fafc] px-4 text-sm text-[#181F39] transition focus:border-[#23A997] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#23A997]/15"
         />
         <p
           *ngIf="
             assignmentForm.get('passingMarks')?.touched &&
             assignmentForm.get('passingMarks')?.invalid
           "
-          class="text-red-500 text-sm mt-1"
+          class="mt-1 text-sm text-red-500"
         >
           Passing marks is required and cannot exceed total marks.
         </p>
       </div>
     </div>
 
-    <!-- File Upload -->
     <div>
-      <label class="block text-sm font-semibold text-primary-navy mb-2"
-        >Attachments</label
-      >
+      <label class="mb-2 block text-sm font-semibold text-[#181F39]">
+        Attachments
+      </label>
       <div
-        class="border-2 border-dashed border-border-light rounded-xl p-6 text-center hover:border-primary-light-blue transition-colors"
+        class="rounded-[22px] border-2 border-dashed border-[#23A997]/35 bg-[#f8fafc] px-6 py-8 text-center transition hover:border-[#23A997] hover:bg-[#ecf9f6]/50"
       >
         <input
           type="file"
@@ -188,8 +182,8 @@
           id="file-upload"
         />
         <label for="file-upload" class="cursor-pointer block">
-          <i class="fa-solid fa-upload text-text-muted text-3xl mb-2"></i>
-          <p class="text-text-muted text-sm">
+          <i class="fa-solid fa-upload mb-3 text-3xl text-slate-400"></i>
+          <p class="text-sm font-medium text-slate-500">
             Click to upload or drag and drop
           </p>
         </label>
@@ -197,16 +191,14 @@
       <div *ngIf="attachments.controls.length > 0" class="mt-3 space-y-2">
         <div
           *ngFor="let fileCtrl of attachments.controls; let i = index"
-          class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-lg"
+          class="flex items-center justify-between rounded-2xl border border-[#e2e8f0] bg-slate-50 px-4 py-3"
         >
-          <span class="text-sm text-primary-navy">{{
+          <span class="text-sm font-medium text-[#181F39]">{{
             fileCtrl.value.name
           }}</span>
           <app-button
             (buttonClick)="removeAttachment(i)"
-            [customColor]="
-              'text-red-600 hover:text-red-700 hover:bg-transparent'
-            "
+            customColor="text-red-500 hover:bg-transparent hover:text-red-600"
             [class]="'p-0'"
           >
             <i class="fa-solid fa-trash text-sm"></i>
@@ -215,16 +207,15 @@
       </div>
     </div>
 
-    <!-- Allow Late Submission -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 rounded-2xl border border-[#e2e8f0] bg-slate-50 px-4 py-3">
       <input
         type="checkbox"
         formControlName="allowLateSubmission"
-        class="w-5 h-5 text-primary-light-blue rounded focus:ring-2 focus:ring-primary-light-blue cursor-pointer"
+        class="h-4 w-4 cursor-pointer rounded border-[#cbd5e1] text-[#23A997] focus:ring-[#23A997]/30"
       />
-      <label class="text-sm text-primary-navy font-medium cursor-pointer"
-        >Allow late submissions</label
-      >
+      <label class="cursor-pointer text-sm font-medium text-[#181F39]">
+        Allow late submissions
+      </label>
     </div>
   </form>
 </app-modal-shell>

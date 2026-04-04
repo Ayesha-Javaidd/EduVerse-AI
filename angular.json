@@ -36,6 +36,9 @@
               "node_modules/intl-tel-input/build/css/intlTelInput.css",
               "src/styles.css"
             ],
+            "allowedCommonJsDependencies": [
+              "intl-tel-input"
+            ],
             "scripts": []
           },
           "configurations": {
@@ -82,7 +85,8 @@
           "options": {
             "polyfills": [
               "zone.js",
-              "zone.js/testing"
+              "zone.js/testing",
+              "src/test-setup.ts"
             ],
             "tsConfig": "tsconfig.spec.json",
             "assets": [

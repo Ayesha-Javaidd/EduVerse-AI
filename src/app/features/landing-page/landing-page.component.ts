@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AnimationService } from './services/animation.service';
 import { HeroComponent } from './components/hero/hero.component';
@@ -9,6 +9,7 @@ import { HowItWorksComponent } from './components/how-it-works/how-it-works.comp
 import { CtaComponent } from './components/cta/cta.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { LandingpageHeaderComponent } from './components/landingpage-header/landingpage-header.component';
+import { PricingComponent } from './components/pricing/pricing.component';
 
 @Component({
   selector: 'app-landing-page',
@@ -20,6 +21,7 @@ import { LandingpageHeaderComponent } from './components/landingpage-header/land
     AiDemoComponent,
     FeaturesComponent,
     HowItWorksComponent,
+    PricingComponent,
     CtaComponent,
     FooterComponent,
     LandingpageHeaderComponent,
@@ -29,16 +31,18 @@ import { LandingpageHeaderComponent } from './components/landingpage-header/land
   encapsulation: ViewEncapsulation.None,
   styleUrls: ['./landing-page.component.css'],
 })
-export class LandingPageComponent implements OnInit, OnDestroy {
+export class LandingPageComponent implements AfterViewInit, OnDestroy {
   title = 'eduverse-ai-platform';
 
   constructor(private animationService: AnimationService) {}
 
-  ngOnInit() {
-    // it will Initialize scroll animations after view init that means when webiste is first time loading only then animation will be applied
-    setTimeout(() => {
-      this.animationService.initScrollAnimations();
-    }, 100);
+  ngAfterViewInit() {
+    // We delay slightly to ensure all child component views are fully rendered and elements are in the DOM before querying.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.animationService.initScrollAnimations();
+      });
+    });
   }
 
   ngOnDestroy() {

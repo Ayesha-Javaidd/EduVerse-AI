@@ -11,6 +11,7 @@ import { AuthService } from '../../../auth/services/auth.service';
 import { StudentProgressService, CourseProgress } from '../../services/student-progress.service';
 import { forkJoin, map, catchError, of } from 'rxjs';
 import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
+import { CourseMetadataService } from '../../../../shared/services/course-metadata.service';
 
 @Component({
   selector: 'app-explore-courses',
@@ -33,18 +34,21 @@ export class ExploreCoursesComponent implements OnInit {
   };
 
   // Filter configuration
-  filterConfig = {
+  filterConfig: {
+    searchPlaceholder: string;
+    dropdowns: { key: string; label: string; options: string[] }[];
+  } = {
     searchPlaceholder: 'Search ',
     dropdowns: [
       {
         key: 'category',
         label: 'Category',
-        options: ['Web Development', 'Design', 'Data Science', 'Mobile Dev', 'Marketing', 'Cloud']
+        options: []
       },
       {
         key: 'level',
         label: 'Level',
-        options: ['Beginner', 'Intermediate', 'Advanced']
+        options: []
       }
     ]
   };
@@ -58,11 +62,38 @@ export class ExploreCoursesComponent implements OnInit {
     private courseService: CourseService,
     private authService: AuthService,
     private progressService: StudentProgressService,
-    private confirmDialogService: ConfirmDialogService
+    private confirmDialogService: ConfirmDialogService,
+    private courseMetadataService: CourseMetadataService
   ) { }
 
   ngOnInit() {
+    this.loadCourseMetadata();
     this.loadAvailableCourses();
+  }
+
+  loadCourseMetadata(forceRefresh = false) {
+    this.courseMetadataService.getMetadata(forceRefresh).subscribe({
+      next: (metadata) => {
+        this.filterConfig = {
+          ...this.filterConfig,
+          dropdowns: [
+            {
+              key: 'category',
+              label: 'Category',
+              options: metadata.categories,
+            },
+            {
+              key: 'level',
+              label: 'Level',
+              options: metadata.levels,
+            },
+          ],
+        };
+      },
+      error: (err) => {
+        console.error('Failed to load course metadata', err);
+      }
+    });
   }
 
   // UPDATED: Fetch all courses for the tenant that are not necessarily the student's enrolled ones

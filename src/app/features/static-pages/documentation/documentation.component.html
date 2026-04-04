@@ -1,0 +1,83 @@
+<div class="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#f8fbfb] via-[#f8f9fc] to-[#eef4f7] text-slate-900">
+  <div class="pointer-events-none absolute -right-24 -top-32 z-0 h-96 w-96 rounded-full bg-[#23A997]/15 blur-[100px]"></div>
+  <div class="pointer-events-none absolute top-40 -left-28 z-0 h-96 w-96 rounded-full bg-blue-900/5 blur-[100px]"></div>
+  <div class="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(rgba(148,163,184,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.05)_1px,transparent_1px)] bg-[size:72px_72px] [mask-image:radial-gradient(circle_at_center,black_40%,transparent_80%)]"></div>
+
+  <app-landingpage-header class="relative z-20"></app-landingpage-header>
+
+  <main class="relative z-10 pt-32 pb-24">
+    <!-- Hero Section -->
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 animate-fade-in opacity-0 [animation-fill-mode:forwards]">
+      <h1 class="text-4xl font-bold tracking-tight text-[#181F39] sm:text-5xl lg:text-6xl mt-2">Documentation</h1>
+      <p class="mt-6 text-lg text-slate-600 max-w-2xl">Learn how to configure and use EduVerse's powerful features to power your educational institution.</p>
+    </div>
+
+    <!-- 2 Column Layout Structure -->
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 mt-16 animate-fade-in opacity-0 [animation-fill-mode:forwards] [animation-delay:150ms]">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        
+        <!-- Left Sidebar: Menu -->
+        <div class="hidden lg:block lg:col-span-3">
+          <div class="sticky top-32">
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-[#23A997] mb-6">Categories</p>
+            <ul class="space-y-4 text-lg text-slate-600 font-medium">
+              <li><a (click)="scrollTo('getting-started')" class="text-[#23A997] transition-colors cursor-pointer flex items-center gap-3 hover:text-[#1e9585]"><i class="fa-solid fa-rocket w-5"></i> Getting Started</a></li>
+              <li><a (click)="scrollTo('tenant-management')" class="transition-colors cursor-pointer hover:text-[#181F39] flex items-center gap-3"><i class="fa-solid fa-building w-5"></i> Tenant Management</a></li>
+              <li><a (click)="scrollTo('course-builder')" class="transition-colors cursor-pointer hover:text-[#181F39] flex items-center gap-3"><i class="fa-solid fa-chalkboard-user w-5"></i> Course Builder</a></li>
+              <li><a (click)="scrollTo('ai-integration')" class="transition-colors cursor-pointer hover:text-[#181F39] flex items-center gap-3"><i class="fa-solid fa-robot w-5"></i> AI Integration</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Right Content Area: Grid -->
+        <div class="lg:col-span-9">
+          <div class="grid gap-6 sm:grid-cols-2">
+            
+            <div id="getting-started" class="flex flex-col justify-between rounded-[30px] border border-[#dbe4ea] bg-white p-10 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+              <div>
+                <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-[18px] bg-[#ecf9f6] text-[#23A997]">
+                  <i class="fa-solid fa-rocket text-xl"></i>
+                </div>
+                <h3 class="mt-4 text-3xl font-bold tracking-tight text-[#181F39]">Getting Started</h3>
+                <p class="mt-4 text-lg text-slate-600">Quick start guide for admins, teachers, and students to get up and running on the platform.</p>
+              </div>
+            </div>
+
+            <div id="tenant-management" class="flex flex-col justify-between rounded-[30px] border border-[#dbe4ea] bg-white p-10 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+              <div>
+                <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-[18px] bg-[#ecf9f6] text-[#23A997]">
+                  <i class="fa-solid fa-building text-xl"></i>
+                </div>
+                <h3 class="mt-4 text-3xl font-bold tracking-tight text-[#181F39]">Management</h3>
+                <p class="mt-4 text-lg text-slate-600">How to manage users, customize branding, and configure settings for your institution.</p>
+              </div>
+            </div>
+
+            <div id="course-builder" class="flex flex-col justify-between rounded-[30px] border border-[#dbe4ea] bg-white p-10 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+              <div>
+                <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-[18px] bg-[#ecf9f6] text-[#23A997]">
+                  <i class="fa-solid fa-chalkboard-user text-xl"></i>
+                </div>
+                <h3 class="mt-4 text-3xl font-bold tracking-tight text-[#181F39]">Course Builder</h3>
+                <p class="mt-4 text-lg text-slate-600">Comprehensive guide on creating interactive courses and managing assignments effectively.</p>
+              </div>
+            </div>
+
+            <div id="ai-integration" class="flex flex-col justify-between rounded-[30px] border border-[#dbe4ea] bg-white p-10 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+              <div>
+                <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-[18px] bg-[#ecf9f6] text-[#23A997]">
+                  <i class="fa-solid fa-robot text-xl"></i>
+                </div>
+                <h3 class="mt-4 text-3xl font-bold tracking-tight text-[#181F39]">AI Integration</h3>
+                <p class="mt-4 text-lg text-slate-600">Learn how to leverage the LangChain-powered learning assistant and quiz generator.</p>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

@@ -14,14 +14,19 @@ export class StudentEnrollmentChartComponent implements OnChanges {
   @Input() subjects: string[] = ['Math101', 'HistoryT201', 'CS101', 'English'];
   @Input() enrollments: number[] = [25, 22, 20, 30];
 
+  private readonly barColor = '#23A997';
+  private readonly barHoverColor = '#1b8c7d';
+  private readonly axisColor = '#64748b';
+  private readonly gridColor = 'rgba(148, 163, 184, 0.18)';
+
   barChartData: ChartConfiguration<'bar'>['data'] = {
     labels: this.subjects,
     datasets: [
       {
         label: 'Enrolled Students',
         data: this.enrollments,
-        backgroundColor: '#4f46e5',
-        hoverBackgroundColor: '#3730a3',
+        backgroundColor: this.barColor,
+        hoverBackgroundColor: this.barHoverColor,
         borderRadius: 4,
         maxBarThickness: 50,
       },
@@ -29,20 +34,28 @@ export class StudentEnrollmentChartComponent implements OnChanges {
   };
   barChartOptions: ChartOptions<'bar'> = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: true,
         position: 'top',
-        labels: { color: '#1e3a8a' },
+        labels: { color: this.axisColor },
       },
     },
     scales: {
       x: {
-        ticks: { color: '#1e3a8a' },
+        ticks: { color: this.axisColor },
+        grid: {
+          display: false,
+        },
       },
       y: {
         beginAtZero: true,
-        ticks: { color: '#1e3a8a' },
+        ticks: { color: this.axisColor },
+        grid: {
+          color: this.gridColor,
+          drawBorder: false,
+        },
       },
     },
   };
@@ -55,8 +68,8 @@ export class StudentEnrollmentChartComponent implements OnChanges {
           {
             label: 'Enrolled Students',
             data: this.enrollments,
-            backgroundColor: '#4f46e5',
-            hoverBackgroundColor: '#3730a3',
+            backgroundColor: this.barColor,
+            hoverBackgroundColor: this.barHoverColor,
             borderRadius: 4,
             maxBarThickness: 50,
           },

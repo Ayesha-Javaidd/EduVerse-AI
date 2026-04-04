@@ -10,6 +10,7 @@
                 <app-tenant-info-form [tenant]="tenant" (save)="onSaveTenant($event)"></app-tenant-info-form>
 
                 <app-account-actions 
+                    [tenant]="tenant"
                     [isActive]="tenant?.status === 'active'" 
                     (deactivate)="onDeactivate()" 
                     (activate)="onActivate()" 

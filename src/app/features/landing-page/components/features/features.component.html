@@ -1,29 +1,23 @@
-<section id="features" class="py-24 bg-background-light">
-  <div class="max-w-6xl mx-auto px-8">
-    <app-section-title 
-      title="What Makes Us Different" 
-      color="dark">
-    </app-section-title>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<section id="features" class="py-24">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <p class="text-center text-sm font-semibold uppercase tracking-[0.22em] text-[#23A997]">Core capabilities</p>
+    <app-section-title title="Built for AI-Personalized Learning at Scale" color="dark"></app-section-title>
+    <p class="mx-auto mb-12 max-w-3xl text-center text-lg text-slate-600">
+      Experience an innovative platform designed for modern educational needs, seamlessly integrating admin oversight, teaching tools, and personalized student engagement.
+    </p>
+
+    <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
       <div *ngFor="let feature of features" class="fade-in">
         <app-card type="feature" [equalHeight]="true">
-          <!-- Feature Header -->
-          <div class="bg-primary-navy p-4 text-center">
-            <div class="text-3xl mb-2 text-primary-light-blue">
-              {{ feature.icon }}
-            </div>
+          <div class="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ecf9f6] text-2xl">
+            {{ feature.icon }}
           </div>
-          
-          <!-- Feature Body -->
-          <div class="p-8 flex-1">
-            <h3 class="text-text-dark mb-4 font-semibold text-xl font-poppins">
-              {{ feature.title }}
-            </h3>
-            <p class="text-text-muted leading-relaxed">
-              {{ feature.description }}
-            </p>
-          </div>
+          <h3 class="text-xl font-semibold text-[#181F39]">
+            {{ feature.title }}
+          </h3>
+          <p class="mt-3 flex-1 text-sm leading-7 text-slate-500">
+            {{ feature.description }}
+          </p>
         </app-card>
       </div>
     </div>

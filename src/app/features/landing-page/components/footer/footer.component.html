@@ -1,23 +1,37 @@
-<footer class="bg-primary-navy py-12 pb-4 text-text-light">
-  <div class="max-w-6xl mx-auto px-8">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-      <div *ngFor="let section of footerSections" class="footer-section">
-        <h4 class="text-primary-light-blue mb-4 font-semibold text-lg font-poppins">
-          {{ section.title }}
-        </h4>
-        <div class="space-y-2">
-          <a 
-            *ngFor="let link of section.links"
-            [href]="link.href" 
-            class="block text-text-light opacity-80 transition-all duration-300 hover:text-primary-light-blue hover:opacity-100">
-            {{ link.label }}
-          </a>
+<footer class="bg-white border-t border-[#dbe4ea] py-16 text-[#181F39]">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.9fr)]">
+      <div>
+        <div class="flex items-center gap-3">
+          <div class="flex h-11 w-11 items-center justify-center rounded-[12px] bg-[#23A997] text-white shadow-sm">
+            <i class="fa-solid fa-book-open text-[16px]"></i>
+          </div>
+          <span class="text-[26px] font-bold tracking-tight">Edu<span class="text-[#23A997]">Verse</span></span>
+        </div>
+        <p class="mt-5 max-w-md text-sm leading-7 text-slate-600">
+          A multi-tenant learning platform with aligned admin, teacher, student, and super-admin experiences built into one product system.
+        </p>
+      </div>
+
+      <div class="grid gap-8 sm:grid-cols-3">
+        <div *ngFor="let section of footerSections" class="footer-section">
+          <h4 class="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-[#7bd3c7]">
+            {{ section.title }}
+          </h4>
+          <div class="space-y-3">
+            <a
+              *ngFor="let link of section.links"
+              (click)="onLinkClick(link.action)"
+              class="block cursor-pointer text-sm text-slate-600 transition-colors duration-300 hover:text-[#23A997]">
+              {{ link.label }}
+            </a>
+          </div>
         </div>
       </div>
     </div>
     
-    <div class="text-center pt-8 border-t border-primary-light-blue/20 opacity-70">
-      <p>&copy; {{ currentYear }} EduVerse AI. All rights reserved.</p>
+    <div class="mt-12 border-t border-[#e2e8f0] pt-6 text-sm text-slate-500">
+      <p>&copy; {{ currentYear }} EduVerse. All rights reserved.</p>
     </div>
   </div>
 </footer>

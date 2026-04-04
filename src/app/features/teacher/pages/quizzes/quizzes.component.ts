@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CreateQuizComponent } from '../../components/create-quiz/create-quiz.component';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 
@@ -38,7 +39,7 @@ import { Course } from '../../../../shared/models/course.model';
 @Component({
   selector: 'app-quizzes',
   standalone: true,
-  imports: [CommonModule, FormsModule, CreateQuizComponent, HeaderComponent, FiltersComponent],
+  imports: [CommonModule, FormsModule, CreateQuizComponent, HeaderComponent, FiltersComponent, ButtonComponent],
   templateUrl: './quizzes.component.html',
   styleUrls: ['./quizzes.component.css'],
 })
