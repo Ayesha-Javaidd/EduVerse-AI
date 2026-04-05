@@ -1,7 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ENDPOINTS } from '../constants/api.constants';
+import { Module } from '../../shared/models/course-builder.model';
+
+export interface CourseActionResponse {
+    success?: boolean;
+    message: string;
+    reenrolled?: boolean;
+}
 
 // Internal interface mapping backend CourseResponse/CourseWithProgress
 export interface BackendCourse {
@@ -28,7 +35,7 @@ export interface BackendCourse {
     lessonsCompleted?: number;
     totalLessons?: number;
     nextLesson?: string;
-    modules?: any[];
+    modules?: Module[];
     instructorName?: string;
     instructorBio?: string;
     hasCertificate?: boolean;
@@ -53,7 +60,7 @@ export interface CourseCreate {
     teacherId: string;
     tenantId: string;
     thumbnailUrl?: string;
-    modules?: any[];
+    modules?: Module[];
 }
 
 @Injectable({
@@ -63,21 +70,16 @@ export class CourseService {
 
     constructor(private http: HttpClient) { }
 
-    // Helper to get headers (auth token)
-    private getHeaders(): HttpHeaders {
-        const token = localStorage.getItem('eduverse_access_token');
-        return new HttpHeaders({
-            'Authorization': `Bearer ${token}`
-        });
-    }
-
     /**
      * Fetch all courses for a specific tenant
      * @param tenantId The tenant ID
      * @param filters Optional search/status/category filters
      */
-    getCourses(tenantId: string, filters: CourseFilters = {}): Observable<BackendCourse[]> {
-        let params = new HttpParams().set('tenantId', tenantId);
+    getCourses(tenantId?: string, filters: CourseFilters = {}): Observable<BackendCourse[]> {
+        let params = new HttpParams();
+        if (tenantId) {
+            params = params.set('tenantId', tenantId);
+        }
 
         if (filters.search) params = params.set('search', filters.search);
         if (filters.status) params = params.set('status', filters.status);
@@ -85,7 +87,6 @@ export class CourseService {
         if (filters.teacher_id) params = params.set('teacher_id', filters.teacher_id);
 
         return this.http.get<BackendCourse[]>(ENDPOINTS.COURSES.BASE, {
-            headers: this.getHeaders(),
             params
         });
     }
@@ -93,10 +94,12 @@ export class CourseService {
     /**
      * Fetch a single course by ID
      */
-    getCourseById(courseId: string, tenantId: string): Observable<BackendCourse> {
-        const params = new HttpParams().set('tenantId', tenantId);
+    getCourseById(courseId: string, tenantId?: string): Observable<BackendCourse> {
+        let params = new HttpParams();
+        if (tenantId) {
+            params = params.set('tenantId', tenantId);
+        }
         return this.http.get<BackendCourse>(ENDPOINTS.COURSES.BY_ID(courseId), {
-            headers: this.getHeaders(),
             params
         });
     }
@@ -104,10 +107,12 @@ export class CourseService {
     /**
      * Fetch courses a student is enrolled in
      */
-    getStudentCourses(studentId: string, tenantId: string): Observable<BackendCourse[]> {
-        const params = new HttpParams().set('tenantId', tenantId);
+    getStudentCourses(studentId: string, tenantId?: string): Observable<BackendCourse[]> {
+        let params = new HttpParams();
+        if (tenantId) {
+            params = params.set('tenantId', tenantId);
+        }
         return this.http.get<BackendCourse[]>(ENDPOINTS.COURSES.STUDENT_COURSES(studentId), {
-            headers: this.getHeaders(),
             params
         });
     }
@@ -115,28 +120,30 @@ export class CourseService {
     /**
      * Enroll a student in a course
      */
-    enrollStudent(courseId: string, studentId: string, tenantId: string): Observable<any> {
-        return this.http.post(ENDPOINTS.COURSES.ENROLL, { courseId, studentId, tenantId }, {
-            headers: this.getHeaders()
-        });
+    enrollStudent(courseId: string, studentId: string, tenantId?: string): Observable<CourseActionResponse> {
+        const payload: Record<string, string> = { courseId, studentId };
+        if (tenantId) {
+            payload['tenantId'] = tenantId;
+        }
+        return this.http.post<CourseActionResponse>(ENDPOINTS.COURSES.ENROLL, payload);
     }
 
     /**
      * Unenroll a student from a course
      */
-    unenrollStudent(courseId: string, studentId: string, tenantId: string): Observable<any> {
-        return this.http.post(ENDPOINTS.COURSES.UNENROLL, { courseId, studentId, tenantId }, {
-            headers: this.getHeaders()
-        });
+    unenrollStudent(courseId: string, studentId: string, tenantId?: string): Observable<CourseActionResponse> {
+        const payload: Record<string, string> = { courseId, studentId };
+        if (tenantId) {
+            payload['tenantId'] = tenantId;
+        }
+        return this.http.post<CourseActionResponse>(ENDPOINTS.COURSES.UNENROLL, payload);
     }
 
     /**
      * Create a new course (Teacher/Admin)
      */
     createCourse(courseData: CourseCreate): Observable<BackendCourse> {
-        return this.http.post<BackendCourse>(ENDPOINTS.COURSES.BASE, courseData, {
-            headers: this.getHeaders()
-        });
+        return this.http.post<BackendCourse>(ENDPOINTS.COURSES.BASE, courseData);
     }
 
     /**
@@ -145,7 +152,6 @@ export class CourseService {
     updateCourse(courseId: string, tenantId: string, updates: Partial<CourseCreate>): Observable<BackendCourse> {
         const params = new HttpParams().set('tenantId', tenantId);
         return this.http.put<BackendCourse>(ENDPOINTS.COURSES.BY_ID(courseId), updates, {
-            headers: this.getHeaders(),
             params
         });
     }
@@ -153,18 +159,15 @@ export class CourseService {
     /**
      * Delete a course
      */
-    deleteCourse(courseId: string, tenantId: string): Observable<any> {
+    deleteCourse(courseId: string, tenantId: string): Observable<CourseActionResponse> {
         const params = new HttpParams().set('tenantId', tenantId);
-        return this.http.delete(ENDPOINTS.COURSES.BY_ID(courseId), {
-            headers: this.getHeaders(),
+        return this.http.delete<CourseActionResponse>(ENDPOINTS.COURSES.BY_ID(courseId), {
             params
         });
     }
 
     // Create a Stripe checkout session for a specific course
     createCheckoutSession(courseId: string): Observable<{clientSecret: string}> {
-         return this.http.post<{clientSecret: string}>(`${ENDPOINTS.STUDENTS.BASE}/checkout`, { courseId }, {
-             headers: this.getHeaders()
-         });
+         return this.http.post<{clientSecret: string}>(ENDPOINTS.PAYMENTS.CREATE_PAYMENT_INTENT, { courseId });
     }
 }

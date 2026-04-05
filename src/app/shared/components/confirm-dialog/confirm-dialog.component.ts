@@ -33,13 +33,13 @@ export class ConfirmDialogComponent implements OnInit, OnDestroy {
   getIconBgClass(): string {
     switch (this.config?.type) {
       case 'danger':
-        return 'bg-red-100';
+        return 'bg-red-50';
       case 'warning':
-        return 'bg-yellow-100';
+        return 'bg-amber-50';
       case 'info':
-        return 'bg-blue-100';
+        return 'bg-[#ecf9f6]';
       default:
-        return 'bg-yellow-100';
+        return 'bg-[#ecf9f6]';
     }
   }
 
@@ -48,24 +48,37 @@ export class ConfirmDialogComponent implements OnInit, OnDestroy {
       case 'danger':
         return 'text-red-600';
       case 'warning':
-        return 'text-yellow-600';
+        return 'text-amber-500';
       case 'info':
-        return 'text-blue-600';
+        return 'text-[#23A997]';
       default:
-        return 'text-yellow-600';
+        return 'text-[#23A997]';
+    }
+  }
+
+  getAccentClass(): string {
+    switch (this.config?.type) {
+      case 'danger':
+        return 'bg-red-500';
+      case 'warning':
+        return 'bg-amber-400';
+      case 'info':
+        return 'bg-[#23A997]';
+      default:
+        return 'bg-[#23A997]';
     }
   }
 
   getConfirmButtonClass(): string {
     switch (this.config?.type) {
       case 'danger':
-        return 'bg-red-600 hover:bg-red-700 text-white';
+        return 'bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white';
       case 'warning':
-        return 'bg-yellow-500 hover:bg-yellow-600 text-white';
+        return 'bg-[#23A997] hover:bg-[#1e9585] focus:ring-[#23A997] text-white';
       case 'info':
-        return 'bg-blue-600 hover:bg-blue-700 text-white';
+        return 'bg-[#23A997] hover:bg-[#1e9585] focus:ring-[#23A997] text-white';
       default:
-        return 'bg-blue-600 hover:bg-blue-700 text-white';
+        return 'bg-[#23A997] hover:bg-[#1e9585] focus:ring-[#23A997] text-white';
     }
   }
 

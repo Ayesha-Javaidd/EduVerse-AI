@@ -9,19 +9,19 @@
           <button
             class="px-3 py-2 text-[15px] font-medium border-b-2 transition-colors"
             [ngClass]="activeTab === 'profile' ? 'border-[#23A997] text-[#23A997]' : 'border-transparent text-[#64748b] hover:text-[#181F39] hover:border-[#e2e8f0]'"
-            (click)="activeTab = 'profile'">
+            (click)="selectTab('profile')">
             Profile Settings
           </button>
           <button
             class="px-3 py-2 text-[15px] font-medium border-b-2 transition-colors"
             [ngClass]="activeTab === 'system' ? 'border-[#23A997] text-[#23A997]' : 'border-transparent text-[#64748b] hover:text-[#181F39] hover:border-[#e2e8f0]'"
-            (click)="activeTab = 'system'">
+            (click)="selectTab('system')">
             System Settings
           </button>
           <button
             class="px-3 py-2 text-[15px] font-medium border-b-2 transition-colors"
             [ngClass]="activeTab === 'billing' ? 'border-[#23A997] text-[#23A997]' : 'border-transparent text-[#64748b] hover:text-[#181F39] hover:border-[#e2e8f0]'"
-            (click)="activeTab = 'billing'">
+            (click)="selectTab('billing')">
             Billing & Plans
           </button>
         </nav>
@@ -36,7 +36,7 @@
         <app-system-settings></app-system-settings>
       </div>
       <div *ngIf="activeTab === 'billing'" class="space-y-6">
-        <app-admin-billing></app-admin-billing>
+        <app-admin-billing [initialSuccessMessage]="billingFlashMessage"></app-admin-billing>
       </div>
     </div>
   </main>

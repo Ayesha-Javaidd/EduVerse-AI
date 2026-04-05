@@ -26,8 +26,7 @@ export interface Course {
   selector: 'app-course-card',
   standalone: true,
   imports: [CommonModule, ButtonComponent],
-  templateUrl: './course-card.component.html',
-  styleUrls: ['./course-card.component.css']
+  templateUrl: './course-card.component.html'
 })
 export class CourseCardComponent {
   @Input() course!: Course;
@@ -47,6 +46,10 @@ export class CourseCardComponent {
     return this.variant === 'enrolled' && this.course.progress !== undefined;
   }
 
+  get isCompletedCourse(): boolean {
+    return (this.course.progress || 0) >= 100;
+  }
+
   onCourseClick() {
     this.courseClick.emit(this.course);
   }
@@ -58,35 +61,41 @@ export class CourseCardComponent {
 
   get levelColor(): string {
     switch (this.course.level) {
-      case 'Beginner': return 'bg-teal-500';
-      case 'Intermediate': return 'bg-violet-500';
-      case 'Advanced': return 'bg-rose-500';
-      default: return 'bg-gray-500';
+      case 'Beginner': return 'bg-[#23A997]';
+      case 'Intermediate': return 'bg-[#181F39]';
+      case 'Advanced': return 'bg-amber-500';
+      default: return 'bg-slate-500';
     }
   }
 
   get levelBadgeClass(): string {
     switch (this.course.level) {
-      case 'Beginner': return 'bg-teal-100 text-teal-700';
-      case 'Intermediate': return 'bg-violet-100 text-violet-700';
-      case 'Advanced': return 'bg-rose-100 text-rose-700';
+      case 'Beginner': return 'bg-[#ecf9f6] text-[#1b8c7d]';
+      case 'Intermediate': return 'bg-slate-100 text-slate-700';
+      case 'Advanced': return 'bg-amber-100 text-amber-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   }
 
   get progressColor(): string {
     const progress = this.course.progress || 0;
-    if (progress >= 75) return 'bg-teal-500';
-    if (progress >= 50) return 'bg-cyan-500';
-    if (progress >= 25) return 'bg-violet-500';
-    return 'bg-gray-400';
+    if (progress >= 75) return 'bg-[#23A997]';
+    if (progress >= 50) return 'bg-[#34b8a8]';
+    if (progress >= 25) return 'bg-slate-400';
+    return 'bg-slate-300';
   }
 
   get progressStrokeColor(): string {
     const progress = this.course.progress || 0;
-    if (progress >= 75) return '#14b8a6';
-    if (progress >= 50) return '#06b6d4';
-    if (progress >= 25) return '#8b5cf6';
-    return '#9ca3af';
+    if (progress >= 75) return '#23A997';
+    if (progress >= 50) return '#34b8a8';
+    if (progress >= 25) return '#94a3b8';
+    return '#cbd5e1';
+  }
+
+  get actionLabel(): string {
+    if (this.isCompletedCourse) return 'Review Course';
+    if ((this.course.progress || 0) === 0) return 'Start Course';
+    return 'Continue';
   }
 }

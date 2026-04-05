@@ -11,6 +11,7 @@ import {
   BackendCourse,
   CourseCreate,
 } from '../../../../core/services/course.service';
+import { calculateTotalDuration } from '../../../../shared/models/course-builder.model';
 import { AuthService } from '../../../auth/services/auth.service';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
@@ -31,6 +32,8 @@ import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog
   standalone: true,
 })
 export class TeacherCoursesComponent implements OnInit {
+  private readonly fallbackCourseDuration = '0m';
+
   columns: TableColumn[] = [
     { key: 'title', label: 'Course Name', type: 'text' },
     { key: 'courseCode', label: 'Course Code', type: 'text' },
@@ -51,8 +54,8 @@ export class TeacherCoursesComponent implements OnInit {
   // Use view icon instead of edit
   visibleActions = ['view', 'delete'];
 
-  courses: any[] = []; // UPDATED: Now empty by default
-  allCourses: any[] = []; // Store original data for client-side filtering
+  courses: TeacherCourseRow[] = [];
+  allCourses: TeacherCourseRow[] = [];
   loading: boolean = true;
   currentPage = 1;
   readonly pageSize = 5;
@@ -95,13 +98,12 @@ export class TeacherCoursesComponent implements OnInit {
         .getCourses(tenantId, { teacher_id: teacherId })
         .subscribe({
           next: (backendCourses) => {
-            // Transform data to ensure all display fields have values
-            this.allCourses = backendCourses.map(course => ({
+            this.allCourses = backendCourses.map((course) => ({
               ...course,
               courseCode: course.courseCode || this.generateCourseCode(course.title),
               duration: this.calculateCourseDuration(course),
               enrolledStudents: course.enrolledStudents ?? 0,
-              visibility: (course.isPublic !== false) ? 'public' : 'private'
+              visibility: course.isPublic !== false ? 'public' : 'private',
             }));
             this.courses = [...this.allCourses];
             this.currentPage = 1;
@@ -202,7 +204,7 @@ export class TeacherCoursesComponent implements OnInit {
     }
   }
 
-  onView(course: any): void {
+  onView(course: TeacherCourseRow): void {
     this.onEditCourse(course);
   }
 
@@ -220,33 +222,20 @@ export class TeacherCoursesComponent implements OnInit {
   /**
    * Calculate total duration from course modules and lessons
    */
-  private calculateCourseDuration(course: any): string {
-    if (!course.modules || course.modules.length === 0) {
-      return course.duration || '0m';
+  private calculateCourseDuration(course: BackendCourse): string {
+    if (!course.modules?.length) {
+      return course.duration || this.fallbackCourseDuration;
     }
 
-    let totalSeconds = 0;
-    course.modules.forEach((mod: any) => {
-      if (mod.lessons) {
-        mod.lessons.forEach((lesson: any) => {
-          if (lesson.duration) {
-            const parts = lesson.duration.split(':').map(Number);
-            if (parts.length === 2) {
-              totalSeconds += parts[0] * 60 + parts[1];
-            } else if (parts.length === 3) {
-              totalSeconds += parts[0] * 3600 + parts[1] * 60 + parts[2];
-            }
-          }
-        });
-      }
-    });
-
-    if (totalSeconds === 0) {
-      return course.duration || '0m';
-    }
-
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+    const calculatedDuration = calculateTotalDuration(course.modules);
+    return calculatedDuration === this.fallbackCourseDuration
+      ? course.duration || this.fallbackCourseDuration
+      : calculatedDuration;
   }
+}
+
+interface TeacherCourseRow extends BackendCourse {
+  courseCode: string;
+  duration: string;
+  visibility: 'public' | 'private';
 }

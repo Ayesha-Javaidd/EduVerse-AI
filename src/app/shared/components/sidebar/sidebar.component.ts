@@ -1,14 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import {
   Component,
   EventEmitter,
   Input,
   Output,
   OnChanges,
+  OnInit,
   SimpleChanges,
   HostListener,
-  OnInit,
 } from '@angular/core';
 import { AuthService } from '../../../features/auth/services/auth.service';
 
@@ -24,9 +24,8 @@ interface MenuItem {
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './sidebar.component.html',
-  styleUrls: ['./sidebar.component.css'],
 })
-export class SidebarComponent implements OnChanges {
+export class SidebarComponent implements OnChanges, OnInit {
   @Input() role: 'admin' | 'teacher' | 'super-admin' | 'student' = 'admin';
   @Output() toggleSidebar = new EventEmitter<boolean>();
 
@@ -35,13 +34,11 @@ export class SidebarComponent implements OnChanges {
   isMobile = false;
   menuItems: MenuItem[] = [];
 
-  constructor(
-    private router: Router,
-    private authService: AuthService,
-  ) {}
+  constructor(private authService: AuthService) {}
 
   ngOnInit() {
     this.updateScreenSize();
+    this.setMenuItems();
   }
 
   @HostListener('window:resize')
@@ -79,8 +76,6 @@ export class SidebarComponent implements OnChanges {
           path: 'dashboard',
         },
         { icon: 'fa-solid fa-book', label: 'My Courses', path: 'courses' },
-        { icon: 'fa-solid fa-question', label: 'Quizzes', path: 'quizzes' },
-        { icon: 'fa-solid fa-file', label: 'Assignments', path: 'assignments' },
         {
           icon: 'fa-solid fa-user',
           label: 'Track Student',
@@ -100,13 +95,6 @@ export class SidebarComponent implements OnChanges {
           icon: 'fa-solid fa-book',
           label: 'Explore Courses',
           path: 'explore-courses',
-        },
-        { icon: 'fa-solid fa-question', label: 'Quizzes', path: 'quizzes' },
-        { icon: 'fa-solid fa-file', label: 'Assignments', path: 'assignments' },
-        {
-          icon: 'fa-solid fa-robot',
-          label: 'Ai Assistant',
-          path: 'ai-assistant',
         },
         { icon: 'fa-solid fa-user', label: 'Leaderboard', path: 'leaderboard' },
         { icon: 'fa-solid fa-cog', label: 'Settings', path: 'settings' },

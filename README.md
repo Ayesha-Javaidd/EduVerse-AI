@@ -1,59 +1,100 @@
-# SettingPage
+# EduVerse Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.17.
+Angular 19 frontend for the EduVerse multi-tenant e-learning platform.
 
-## Development server
+## Stack
 
-To start a local development server, run:
+Angular 19
 
-```bash
-ng serve
-```
+Tailwind CSS
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+RxJS
 
-## Code scaffolding
+Chart.js / ng2-charts
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Stripe Embedded Checkout
 
-```bash
-ng generate component component-name
-```
+`ngx-markdown`
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Core Product Areas
 
-```bash
-ng generate --help
-```
+- Auth: login, signup, role-based entry flows
+- Admin: dashboard, teachers, students, courses, billing, settings
+- Super Admin: tenants, subscriptions, platform settings
+- Teacher: dashboard, course management, course builder, student tracking
+- Student: dashboard, my courses, explore, course details, course player, leaderboard, settings
+- Public: landing page, pricing, documentation/help/legal pages
 
-## Building
+## Configuration
 
-To build the project run:
+Frontend runtime-style build configuration is centralized here:
 
-```bash
-ng build
-```
+- [src/environments/environment.ts](./src/environments/environment.ts)
+- [src/environments/environment.development.ts](./src/environments/environment.development.ts)
+- [src/app/core/constants/api.constants.ts](./src/app/core/constants/api.constants.ts)
+- [src/app/core/constants/app.constants.ts](./src/app/core/constants/app.constants.ts)
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+If the backend URL, app branding, or shared limits change, update the environment/constants files instead of editing individual services.
 
-## Running unit tests
+## Local Development
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+Install dependencies:
 
 ```bash
-ng e2e
+npm install
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Run the dev server:
 
-## Additional Resources
+```bash
+npm run dev
+```
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+App URL:
+
+```text
+http://localhost:4200
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+Production output is generated in:
+
+```text
+dist/setting-page
+```
+
+## Test
+
+```bash
+npm test
+```
+
+## Project Structure
+
+```text
+src/
+  app/
+    core/         shared app constants, interceptors, global services
+    features/     role-based modules and public pages
+    layouts/      admin / teacher / student / auth / super-admin shells
+    shared/       reusable UI components, shared models, shared services
+  environments/   environment-specific build config
+```
+
+## UI Guidelines
+
+- Prefer Tailwind utilities over component-specific CSS whenever practical.
+- Keep shared visual decisions in reusable components and shared constants.
+- Avoid hardcoding API URLs, storage keys, plan caps, or branding strings inside feature components.
+- Reuse existing shared components before introducing new one-off markup patterns.
+
+## Notes
+
+- `intl-tel-input` styling still uses a small amount of custom CSS because it is a third-party widget.
+- Some complex screens like the course player still keep a limited amount of custom CSS for behavior-heavy layout cases.
+- Responsive behavior has been improved in the shared layouts and key pages, but final device QA should still be done in a real browser.

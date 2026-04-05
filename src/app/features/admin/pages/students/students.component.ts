@@ -5,7 +5,6 @@ import { DataTableComponent, TableColumn } from '../../../../shared/components/d
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 import { AdminService, AdminStudent } from '../../../../core/services/admin.service';
-import { AuthService } from '../../../auth/services/auth.service';
 import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
 import { FormField } from '../../../../shared/components/entity-modal/entity-modal.component';
 
@@ -62,7 +61,6 @@ export class StudentsComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private authService: AuthService,
     private confirmDialogService: ConfirmDialogService,
     private route: ActivatedRoute
   ) { }
@@ -129,15 +127,8 @@ export class StudentsComponent implements OnInit {
   }
 
   async onModalSubmit(formData: Partial<AdminStudent>) {
-    const tenantId = this.authService.getTenantId();
-    if (!tenantId) {
-      await this.confirmDialogService.alert('Tenant ID not found. Please log in again.', 'Error', 'danger');
-      return;
-    }
-
     const studentData: Partial<AdminStudent> = {
       ...formData,
-      tenantId,
       role: 'student'
     };
 
@@ -145,7 +136,6 @@ export class StudentsComponent implements OnInit {
     if (this.isEditMode) {
       delete studentData.password;
       delete studentData.role;
-      delete studentData.tenantId;
     } else {
       // Default status for new students
       if (!studentData.status) studentData.status = 'active';

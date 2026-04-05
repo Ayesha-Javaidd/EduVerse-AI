@@ -1,14 +1,70 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import {
   CourseBuilderData,
   Module,
   EnrolledStudent,
-  ReorderPayload,
-  PublishPayload,
 } from '../../../shared/models/course-builder.model';
+import { ENDPOINTS } from '../../../core/constants/api.constants';
+
+interface CourseBuilderApiLesson {
+  id?: string;
+  title?: string;
+  type?: 'video' | 'document' | 'quiz';
+  duration?: string;
+  content?: string;
+  order?: number;
+}
+
+interface CourseBuilderApiModule {
+  id?: string;
+  title?: string;
+  description?: string;
+  order?: number;
+  lessons?: CourseBuilderApiLesson[];
+}
+
+interface CourseBuilderApiResponse {
+  _id?: string;
+  id?: string;
+  title?: string;
+  description?: string;
+  category?: string;
+  level?: string;
+  status?: 'draft' | 'published';
+  isPublic?: boolean;
+  modules?: CourseBuilderApiModule[];
+  enrolledStudents?: number;
+  thumbnailUrl?: string;
+  teacherId?: string;
+  tenantId?: string;
+  courseCode?: string;
+  isFree?: boolean;
+  price?: number;
+  currency?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  instructorBio?: string;
+  hasCertificate?: boolean;
+  hasBadges?: boolean;
+  hasLifetimeAccess?: boolean;
+}
+
+interface EnrolledStudentApiResponse {
+  _id?: string;
+  id?: string;
+  fullName?: string;
+  name?: string;
+  email?: string;
+  enrolledAt?: string;
+  createdAt?: string;
+  progress?: number;
+  lessonsCompleted?: number;
+  lastAccessed?: string;
+  lastActive?: string;
+}
 
 /**
  * CourseBuilderService
@@ -19,7 +75,7 @@ import {
   providedIn: 'root',
 })
 export class CourseBuilderService {
-  private readonly API_URL = 'http://localhost:8000/courses';
+  private readonly API_URL = ENDPOINTS.COURSES.BASE;
 
   constructor(private http: HttpClient) { }
 
@@ -32,7 +88,7 @@ export class CourseBuilderService {
   ): Observable<CourseBuilderData> {
     const params = new HttpParams().set('tenantId', tenantId);
     return this.http
-      .get<any>(`${this.API_URL}/${courseId}`, { params })
+      .get<CourseBuilderApiResponse>(`${this.API_URL}/${courseId}`, { params })
       .pipe(
         map((course) => this.transformCourseResponse(course))
       );
@@ -48,7 +104,7 @@ export class CourseBuilderService {
   ): Observable<CourseBuilderData> {
     const params = new HttpParams().set('tenantId', tenantId);
     return this.http
-      .put<any>(`${this.API_URL}/${courseId}`, data, { params })
+      .put<CourseBuilderApiResponse>(`${this.API_URL}/${courseId}`, data, { params })
       .pipe(
         map((course) => this.transformCourseResponse(course))
       );
@@ -65,7 +121,7 @@ export class CourseBuilderService {
   ): Observable<CourseBuilderData> {
     const params = new HttpParams().set('tenantId', tenantId);
     return this.http
-      .patch<any>(
+      .patch<CourseBuilderApiResponse>(
         `${this.API_URL}/${courseId}/reorder/lessons`,
         { moduleId, lessonIds },
         { params }
@@ -83,7 +139,7 @@ export class CourseBuilderService {
   ): Observable<CourseBuilderData> {
     const params = new HttpParams().set('tenantId', tenantId);
     return this.http
-      .patch<any>(
+      .patch<CourseBuilderApiResponse>(
         `${this.API_URL}/${courseId}/reorder/modules`,
         { moduleIds },
         { params }
@@ -101,7 +157,7 @@ export class CourseBuilderService {
   ): Observable<CourseBuilderData> {
     const params = new HttpParams().set('tenantId', tenantId);
     return this.http
-      .post<any>(
+      .post<CourseBuilderApiResponse>(
         `${this.API_URL}/${courseId}/publish`,
         { publish },
         { params }
@@ -117,15 +173,12 @@ export class CourseBuilderService {
     tenantId: string,
     module: Partial<Module>
   ): Observable<CourseBuilderData> {
-    // This will use the updateCourse method with the new modules array
-    // The actual implementation will be handled by getting current course,
-    // adding the module, and calling updateCourse
     const params = new HttpParams().set('tenantId', tenantId);
     return this.http
-      .get<any>(`${this.API_URL}/${courseId}`, { params })
+      .get<CourseBuilderApiResponse>(`${this.API_URL}/${courseId}`, { params })
       .pipe(
         map((course) => {
-          const modules = course.modules || [];
+          const modules = [...(course.modules || [])];
           modules.push({
             ...module,
             id: module.id || 'mod_' + Date.now(),
@@ -134,28 +187,29 @@ export class CourseBuilderService {
           });
           return modules;
         }),
-        // Chain to update
-        map((modules) => {
-          this.http
-            .put<any>(`${this.API_URL}/${courseId}`, { modules }, { params })
-            .subscribe();
-          return modules;
-        })
-      ) as any;
+        switchMap((modules) =>
+          this.http.put<CourseBuilderApiResponse>(
+            `${this.API_URL}/${courseId}`,
+            { modules },
+            { params }
+          )
+        ),
+        map((course) => this.transformCourseResponse(course))
+      );
   }
 
   /**
    * Transform backend course response to CourseBuilderData format
    */
-  private transformCourseResponse(course: any): CourseBuilderData {
+  private transformCourseResponse(course: CourseBuilderApiResponse): CourseBuilderData {
     const modules = (course.modules || []).map(
-      (mod: any, index: number) => ({
+      (mod, index: number) => ({
         id: mod.id || `mod_${index}_${Date.now()}`,
         title: mod.title || `Module ${index + 1}`,
         description: mod.description || '',
         order: mod.order ?? index,
         lessons: (mod.lessons || []).map(
-          (lesson: any, lessonIndex: number) => ({
+          (lesson, lessonIndex: number) => ({
             id: lesson.id || `lesson_${index}_${lessonIndex}_${Date.now()}`,
             title: lesson.title || `Lesson ${lessonIndex + 1}`,
             type: lesson.type || 'video',
@@ -197,7 +251,7 @@ export class CourseBuilderService {
     }
 
     return {
-      id: course._id || course.id,
+      id: course._id || course.id || '',
       title: course.title || '',
       description: course.description || '',
       category: course.category || '',
@@ -238,11 +292,11 @@ export class CourseBuilderService {
   ): Observable<EnrolledStudent[]> {
     const params = new HttpParams().set('tenantId', tenantId);
     return this.http
-      .get<any[]>(`${this.API_URL}/${courseId}/students`, { params })
+      .get<EnrolledStudentApiResponse[]>(`${this.API_URL}/${courseId}/students`, { params })
       .pipe(
         map((students) =>
           students.map((s) => ({
-            id: s._id || s.id,
+            id: s._id || s.id || '',
             fullName: s.fullName || s.name || 'Unknown',
             email: s.email || '',
             enrolledAt: s.enrolledAt || s.createdAt || new Date().toISOString(),

@@ -4,18 +4,19 @@ import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { SubscriptionPlansService, SubscriptionPlan } from '../../services/subscription-plans.service';
 import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
+import { APP_LIMITS } from '../../../../core/constants/app.constants';
 
 @Component({
   selector: 'app-super-admin-subscriptions',
   standalone: true,
   imports: [CommonModule, FormsModule, HeaderComponent],
-  templateUrl: './super-admin-subscriptions.component.html',
-  styleUrls: ['./super-admin-subscriptions.component.css']
+  templateUrl: './super-admin-subscriptions.component.html'
 })
 export class SuperAdminSubscriptionsComponent implements OnInit {
   pageTitle = 'Manage Subscription Plans';
   notificationCount = 0;
   plans: SubscriptionPlan[] = [];
+  readonly maxSubscriptionPlans = APP_LIMITS.MAX_SUBSCRIPTION_PLANS;
   
   showModal = false;
   isEditMode = false;
@@ -32,9 +33,17 @@ export class SuperAdminSubscriptionsComponent implements OnInit {
 
   loadPlans() {
     this.subscriptionService.getAllPlans().subscribe({
-      next: (data) => this.plans = data,
+      next: (data) => {
+        this.plans = [...data].sort(
+          (left, right) => (left.pricePerMonth ?? 0) - (right.pricePerMonth ?? 0)
+        );
+      },
       error: (err) => console.error("Failed to load plans", err)
     });
+  }
+
+  get canCreateMorePlans(): boolean {
+    return this.plans.length < this.maxSubscriptionPlans;
   }
 
   getEmptyPlan(): SubscriptionPlan {
@@ -50,6 +59,9 @@ export class SuperAdminSubscriptionsComponent implements OnInit {
   }
 
   openCreateModal() {
+    if (!this.canCreateMorePlans) {
+      return;
+    }
     this.isEditMode = false;
     this.currentPlan = this.getEmptyPlan();
     this.showModal = true;
@@ -108,5 +120,18 @@ export class SuperAdminSubscriptionsComponent implements OnInit {
 
   removeFeature(index: number) {
     this.currentPlan.features = this.currentPlan.features.filter((_, i) => i !== index);
+  }
+
+  getDisplayFeatures(plan: SubscriptionPlan): string[] {
+    const features = plan.features || [];
+    return features.filter((feature) => {
+      const normalized = feature.toLowerCase();
+      return !(
+        normalized.includes('student') ||
+        normalized.includes('teacher') ||
+        normalized.includes('course') ||
+        normalized.includes('storage')
+      );
+    });
   }
 }

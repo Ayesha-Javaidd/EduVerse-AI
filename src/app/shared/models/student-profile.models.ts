@@ -10,7 +10,7 @@ export interface StudentProfile {
   country?: string | null;
   status?: string;
   role: string;
-  tenantId: string;
+  tenantId?: string | null;
   enrolledCourses: string[];
   completedCourses: string[];
   createdAt: string;

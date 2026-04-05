@@ -8,10 +8,10 @@ import { ButtonComponent } from "../../../../shared/components/button/button.com
   styleUrl: './empty-state.component.css',
 })
 export class EmptyStateComponent {
-  @Input() title = 'No Assignments Yet';
-  @Input() description = 'Get started by creating your first assignment';
+  @Input() title = 'No Content Yet';
+  @Input() description = 'Get started by creating your first item';
   @Input() iconClass = 'fa-solid fa-folder-open';
-  @Input() actionLabel = 'Create Assignment';
+  @Input() actionLabel = 'Create Item';
   @Input() showAction = true;
 
   @Output() createClick = new EventEmitter<void>();

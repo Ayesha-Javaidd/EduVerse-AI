@@ -15,23 +15,24 @@ export interface FormField {
   colSpan?: 1 | 2;
 }
 
+export type EntityFormData = Record<string, string | string[] | undefined>;
+
 @Component({
   selector: 'app-entity-modal',
   standalone: true,
   imports: [CommonModule, FormsModule, PhoneInputComponent, CountrySelectComponent],
   templateUrl: './entity-modal.component.html',
-  styles: []
 })
 export class EntityModalComponent implements OnInit {
   @Input() isOpen = false;
   @Input() title = 'Add Entity';
   @Input() fields: FormField[] = [];
-  @Input() initialData: any = null;
+  @Input() initialData: object | null = null;
   @Input() isEditMode = false;
   @Output() close$ = new EventEmitter<void>();
-  @Output() submit$ = new EventEmitter<any>();
+  @Output() submit$ = new EventEmitter<EntityFormData>();
 
-  formData: any = {};
+  formData: EntityFormData = {};
   showPasswords: { [key: string]: boolean } = {};
   loading = false;
   errorMessage = '';
@@ -53,31 +54,30 @@ export class EntityModalComponent implements OnInit {
   initializeForm() {
     this.formData = {};
     this.errorMessage = '';
+    const initialData = this.asRecord(this.initialData);
 
     // Initialize form data
     this.fields.forEach(field => {
       if (field.type === 'array') {
-        const initialArray = this.initialData?.[field.name];
+        const initialArray = initialData[field.name];
         this.formData[field.name] = Array.isArray(initialArray) ? [...initialArray] : [''];
       } else {
-        this.formData[field.name] = this.initialData?.[field.name] ?? '';
+        const initialValue = initialData[field.name];
+        this.formData[field.name] = typeof initialValue === 'string' ? initialValue : '';
       }
     });
   }
 
-  trackByFn(index: number, item: any): number {
+  trackByFn(index: number): number {
     return index;
   }
 
   addArrayItem(fieldName: string) {
-    if (!this.formData[fieldName]) {
-      this.formData[fieldName] = [];
-    }
-    this.formData[fieldName].push('');
+    this.formData[fieldName] = [...this.getArrayFieldValues(fieldName), ''];
   }
 
   removeArrayItem(fieldName: string, index: number) {
-    this.formData[fieldName].splice(index, 1);
+    this.formData[fieldName] = this.getArrayFieldValues(fieldName).filter((_, itemIndex) => itemIndex !== index);
   }
 
   onBackdropClick(event: MouseEvent) {
@@ -95,7 +95,8 @@ export class EntityModalComponent implements OnInit {
       if (field.required && !isPasswordInEdit) {
         const val = this.formData[field.name];
         if (field.type === 'array') {
-          return !val || val.length === 0 || val.every((i: string) => !i || i.trim() === '');
+          const values = this.getArrayFieldValues(field.name);
+          return values.length === 0 || values.every((item) => !item || item.trim() === '');
         }
         return !val || (typeof val === 'string' && val.trim() === '');
       }
@@ -105,6 +106,7 @@ export class EntityModalComponent implements OnInit {
 
   hasUnsavedChanges(): boolean {
     if (!this.isEditMode || !this.initialData) return true;
+    const initialData = this.asRecord(this.initialData);
 
     for (const field of this.fields) {
       if (field.type === 'password') {
@@ -113,11 +115,13 @@ export class EntityModalComponent implements OnInit {
       }
 
       let current = this.formData[field.name];
-      let initial = this.initialData[field.name];
+      let initial = initialData[field.name];
 
       if (field.type === 'array') {
-        current = (current || []).filter((i: string) => i && i.trim() !== '');
-        initial = (initial || []).filter((i: string) => i && i.trim() !== '');
+        current = this.getArrayFieldValues(field.name).filter((item) => item && item.trim() !== '');
+        initial = Array.isArray(initial)
+          ? initial.filter((item): item is string => typeof item === 'string' && item.trim() !== '')
+          : [];
         if (JSON.stringify(current) !== JSON.stringify(initial)) return true;
       } else {
         current = current == null ? '' : String(current);
@@ -139,8 +143,8 @@ export class EntityModalComponent implements OnInit {
     // Clean up array fields (remove empty strings)
     const cleanedData = { ...this.formData };
     this.fields.forEach(field => {
-      if (field.type === 'array' && cleanedData[field.name]) {
-        cleanedData[field.name] = cleanedData[field.name].filter((item: string) => item.trim() !== '');
+      if (field.type === 'array') {
+        cleanedData[field.name] = this.getArrayFieldValues(field.name).filter((item) => item.trim() !== '');
       }
     });
 
@@ -150,10 +154,10 @@ export class EntityModalComponent implements OnInit {
   resolvePhoneCountry(fieldName: string): string {
     const linkedCountryField = this.fields.find((field) => field.type === 'country');
     if (linkedCountryField) {
-      return this.formData[linkedCountryField.name] ?? '';
+      return this.getStringValue(linkedCountryField.name);
     }
 
-    return this.formData.country || this.formData.address || '';
+    return this.getStringValue('country') || this.getStringValue('address');
   }
 
   shouldSpanFullWidth(field: FormField, index: number): boolean {
@@ -174,5 +178,25 @@ export class EntityModalComponent implements OnInit {
     }
 
     return false;
+  }
+
+  getArrayFieldValues(fieldName: string): string[] {
+    const value = this.formData[fieldName];
+    return Array.isArray(value) ? value : [];
+  }
+
+  updateArrayFieldValue(fieldName: string, index: number, value: string): void {
+    const values = [...this.getArrayFieldValues(fieldName)];
+    values[index] = value;
+    this.formData[fieldName] = values;
+  }
+
+  getStringValue(fieldName: string): string {
+    const value = this.formData[fieldName];
+    return typeof value === 'string' ? value : '';
+  }
+
+  private asRecord(value: object | null): Record<string, unknown> {
+    return value ? value as Record<string, unknown> : {};
   }
 }

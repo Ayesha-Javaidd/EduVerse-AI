@@ -1,41 +1,24 @@
 <div
-  class="course-card bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-slate-200 h-full flex flex-col"
+  class="course-card flex h-full flex-col overflow-hidden rounded-[22px] border border-[#e2e8f0] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
   (click)="onCourseClick()">
 
   <!-- Thumbnail -->
-  <div class="relative h-48 flex-shrink-0">
+  <div class="relative h-36 flex-shrink-0">
     <img [src]="imageSource" [alt]="course.title" class="w-full h-full object-cover" />
 
-    <!-- Overlay Gradient -->
-    <div class="absolute inset-0 bg-gradient-to-br from-slate-900/40 via-transparent to-transparent"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-[#181F39]/15 via-transparent to-transparent"></div>
 
     <!-- Category Badge -->
     <div
-      class="absolute top-3 left-3 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-slate-900/70 backdrop-blur-sm border border-white/20">
+      class="absolute top-3 left-3 rounded-full border border-white/40 bg-[#181F39]/70 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm">
       {{ course.category }}
     </div>
 
     <!-- Level Badge -->
-    <div class="absolute top-3 right-3 px-3 py-1.5 rounded-lg text-xs font-bold text-white backdrop-blur-sm"
+    <div class="absolute top-3 right-3 rounded-full px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm"
       [ngClass]="levelColor">
       {{ course.level }}
     </div>
-
-    <!-- Progress Circle (Only for enrolled courses) -->
-    <div *ngIf="isEnrolledCourse"
-      class="absolute bottom-3 left-3 w-14 h-14 bg-white/95 backdrop-blur-sm rounded-full p-1.5 shadow-lg">
-      <svg class="transform -rotate-90" viewBox="0 0 48 48">
-        <circle cx="24" cy="24" r="20" stroke="#e5e7eb" stroke-width="4" fill="none" />
-        <circle cx="24" cy="24" r="20" [attr.stroke]="progressStrokeColor" stroke-width="4" fill="none"
-          [attr.stroke-dasharray]="2 * 3.14159 * 20"
-          [attr.stroke-dashoffset]="2 * 3.14159 * 20 * (1 - (course.progress || 0) / 100)"
-          class="transition-all duration-1000" />
-      </svg>
-      <div class="absolute inset-0 flex items-center justify-center">
-        <span class="text-xs font-bold text-slate-700">{{ course.progress || 0 }}%</span>
-      </div>
-    </div>
-
 
     <!-- Enrolled Students Count (Only for explore courses) -->
     <div *ngIf="!isEnrolledCourse && course.enrolledStudents"
@@ -49,57 +32,69 @@
   </div>
 
   <!-- Content -->
-  <div class="flex-1 p-5 flex flex-col">
+  <div class="flex flex-1 flex-col p-5">
 
     <!-- Title & Instructor -->
     <div class="mb-3">
-      <h3 class="text-lg font-bold text-slate-800 mb-2 line-clamp-2 min-h-[3.5rem]">
+      <h3 class="mb-2 min-h-[3rem] line-clamp-2 text-lg font-bold text-[#181F39]">
         {{ course.title }}
       </h3>
 
       <div class="flex items-center gap-2">
         <div
-          class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-sm font-bold shadow-md">
+          class="flex h-8 w-8 items-center justify-center rounded-full bg-[#ecf9f6] text-sm font-bold text-[#23A997]">
           {{ course.instructor.charAt(0) }}
         </div>
-        <p class="text-sm text-slate-600 font-medium truncate">{{ course.instructor }}</p>
+        <p class="truncate text-sm font-medium text-slate-600">{{ course.instructor }}</p>
       </div>
     </div>
 
     <!-- Description (Only for explore courses) -->
-    <p *ngIf="!isEnrolledCourse && course.description" class="text-sm text-slate-600 mb-3 line-clamp-2">
+    <p *ngIf="!isEnrolledCourse && course.description" class="mb-3 line-clamp-2 text-sm text-slate-600">
       {{ course.description }}
     </p>
 
     <!-- Progress Section (Only for enrolled courses) -->
-    <div *ngIf="isEnrolledCourse" class="mb-3">
-      <div class="flex justify-between items-center mb-2">
-        <span class="text-xs font-bold text-slate-600 uppercase tracking-wide">Progress</span>
-        <span class="text-sm font-bold text-cyan-600">{{ course.progress || 0 }}%</span>
+    <div *ngIf="isEnrolledCourse" class="mb-4">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wide text-slate-500">
+          {{ isCompletedCourse ? 'Status' : 'Progress' }}
+        </span>
+        <span
+          class="text-sm font-bold"
+          [ngClass]="isCompletedCourse ? 'text-[#181F39]' : 'text-[#23A997]'">
+          {{ isCompletedCourse ? 'Completed' : ((course.progress || 0) + '%') }}
+        </span>
       </div>
 
-      <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+      <div *ngIf="!isCompletedCourse" class="h-2.5 overflow-hidden rounded-full bg-slate-100 shadow-inner">
         <div [ngClass]="progressColor" [style.width.%]="course.progress || 0"
-          class="h-full transition-all duration-1000 rounded-full shadow-sm">
+          class="h-full rounded-full shadow-sm transition-all duration-1000">
         </div>
       </div>
 
-      <div class="flex items-center gap-1.5 mt-2">
+      <div
+        *ngIf="isCompletedCourse"
+        class="rounded-[14px] border border-[#dbe4ea] bg-[#f8f9fc] px-3 py-3 text-sm font-medium text-slate-600">
+        You have completed this course.
+      </div>
+
+      <div class="mt-2 flex items-center gap-1.5">
         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <span class="text-xs text-slate-500 font-medium">
+        <span class="text-xs font-medium text-slate-500">
           {{ course.lessonsCompleted || 0 }} of {{ course.totalLessons || 0 }} lessons completed
         </span>
       </div>
     </div>
 
     <!-- Next Lesson (Only for enrolled courses) -->
-    <div *ngIf="isEnrolledCourse && course.nextLesson"
-      class="mb-3 p-3 rounded-xl bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200">
+    <div *ngIf="isEnrolledCourse && course.nextLesson && !isCompletedCourse"
+      class="mb-3 rounded-[16px] border border-[#dbe4ea] bg-[#f8f9fc] p-3">
       <div class="flex items-start gap-2">
-        <div class="w-6 h-6 bg-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+        <div class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg bg-[#23A997]">
           <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -108,8 +103,8 @@
           </svg>
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-xs font-bold text-cyan-700 mb-0.5">Up Next</p>
-          <p class="text-sm text-slate-700 font-medium line-clamp-1">{{ course.nextLesson }}</p>
+          <p class="mb-0.5 text-xs font-bold text-[#23A997]">Up Next</p>
+          <p class="line-clamp-1 text-sm font-medium text-slate-700">{{ course.nextLesson }}</p>
         </div>
       </div>
     </div>
@@ -118,9 +113,9 @@
     <div class="flex-grow"></div>
 
     <!-- Footer Info & Button -->
-    <div class="pt-3 border-t border-slate-100 mt-auto">
+    <div class="mt-auto border-t border-slate-100 pt-3">
       <!-- Duration and Additional Info -->
-      <div class="flex items-center justify-between mb-3">
+      <div class="mb-3 flex items-center justify-between">
         <div *ngIf="course.duration" class="flex items-center gap-1.5 text-slate-500">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -128,37 +123,26 @@
           </svg>
           <span class="text-xs font-semibold">{{ course.duration }}</span>
         </div>
-
-
-        <!-- Price (for explore courses) -->
-        <div *ngIf="!isEnrolledCourse && course.price !== undefined" class="text-right">
-          <span *ngIf="course.price === 0" class="text-sm font-bold text-teal-600">Free</span>
-          <span *ngIf="course.price > 0" class="text-sm font-bold text-slate-700">${{ course.price }}</span>
+        <div *ngIf="!isEnrolledCourse" class="text-right">
+          <span *ngIf="course.price === 0" class="text-sm font-bold text-[#23A997]">Free</span>
+          <span *ngIf="course.price && course.price > 0" class="text-sm font-bold text-slate-700">${{ course.price }}</span>
         </div>
-
-        <!-- Level Badge (for explore courses without other info) -->
-        <span *ngIf="!isEnrolledCourse && !course.price && !course.duration"
-          class="px-2.5 py-1 rounded-full text-xs font-semibold" [ngClass]="levelBadgeClass">
-          {{ course.level }}
-        </span>
       </div>
 
       <!-- Action Button -->
       <app-button *ngIf="isEnrolledCourse" [variant]="'primary'" [size]="'md'" [fullWidth]="true"
-        customColor="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+        customColor="bg-[#23A997] hover:bg-[#1e9585] text-white font-semibold shadow-sm transition-all duration-300 rounded-xl"
         (buttonClick)="onCourseClick()">
-        {{ (course.progress || 0) === 100 ? 'Completed' : ((course.progress || 0) === 0 ? 'Start Course' : 'Continue')
-        }}
-        <svg *ngIf="(course.progress || 0) < 100" class="w-4 h-4 ml-1 inline-block" fill="none" stroke="currentColor"
+        {{ actionLabel }}
+        <svg class="w-4 h-4 ml-1 inline-block" fill="none" stroke="currentColor"
           viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
         </svg>
-        <i *ngIf="(course.progress || 0) === 100" class="fa-solid fa-check-circle ml-1"></i>
       </app-button>
 
-      <app-button *ngIf="!isEnrolledCourse && variant !== 'explore'" [variant]="'success'" [size]="'md'"
+      <app-button *ngIf="!isEnrolledCourse && variant === 'explore'" [variant]="'success'" [size]="'md'"
         [fullWidth]="true"
-        customColor="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+        customColor="bg-[#23A997] hover:bg-[#1e9585] text-white font-semibold shadow-sm transition-all duration-300 rounded-xl"
         (buttonClick)="onEnrollClick($event)">
         <svg class="w-4 h-4 mr-1.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

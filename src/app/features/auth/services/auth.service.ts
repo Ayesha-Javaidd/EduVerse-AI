@@ -11,9 +11,9 @@ import {
 } from '../models/signup-request.model';
 import { AuthResponse } from '../models/auth-response.model';
 import { JwtPayload, User } from '../models/user.model';
+import { ENDPOINTS } from '../../../core/constants/api.constants';
+import { STORAGE_KEYS } from '../../../core/constants/app.constants';
 export type { JwtPayload, User };
-
-const TOKEN_KEY = 'eduverse_access_token';
 
 @Injectable({
   providedIn: 'root',
@@ -21,8 +21,6 @@ const TOKEN_KEY = 'eduverse_access_token';
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();
-
-  private API_BASE = 'http://localhost:8000/auth/token'; // adjust if needed
 
   constructor(
     private http: HttpClient,
@@ -42,7 +40,7 @@ export class AuthService {
     body.set('grant_type', 'password');
 
     return this.http
-      .post<AuthResponse>(`${this.API_BASE}`, body.toString(), {
+      .post<AuthResponse>(ENDPOINTS.AUTH.TOKEN, body.toString(), {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -50,17 +48,20 @@ export class AuthService {
       .pipe(tap((res) => this.handleAuthSuccess(res.access_token)));
   }
 
-  signup(payload: any, role: 'student' | 'teacher' | 'admin'): Observable<any> {
+  signup(
+    payload: UserSignupRequest | AdminSignupRequest | Record<string, unknown>,
+    role: 'student' | 'teacher' | 'admin',
+  ): Observable<unknown> {
     let url = '';
     switch (role) {
       case 'student':
-        url = 'http://localhost:8000/auth/student/signup';
+        url = ENDPOINTS.AUTH.STUDENT_SIGNUP;
         break;
       case 'teacher':
-        url = 'http://localhost:8000/auth/teacher/signup';
+        url = ENDPOINTS.AUTH.TEACHER_SIGNUP;
         break;
       case 'admin':
-        url = 'http://localhost:8000/auth/admin/signup';
+        url = ENDPOINTS.AUTH.ADMIN_SIGNUP;
         break;
       default:
         throw new Error('Invalid role for signup');
@@ -70,8 +71,10 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem('tenantId');
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.TENANT_ID);
+    localStorage.removeItem(STORAGE_KEYS.USER_ID);
+    localStorage.removeItem(STORAGE_KEYS.STUDENT_ID);
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
@@ -81,7 +84,7 @@ export class AuthService {
   }
 
   getAccessToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
   }
 
   getUser(): User | null {
@@ -97,6 +100,9 @@ export class AuthService {
   // }
 
   getTenantId(): string | null {
+    if (this.currentUserSubject.value?.role === 'student') {
+      return null;
+    }
     return this.currentUserSubject.value?.tenantId ?? null;
   }
 
@@ -117,13 +123,13 @@ export class AuthService {
 
     const user = this.mapJwtToUser(payload);
     if (user.tenantId) {
-      localStorage.setItem('tenantId', user.tenantId);
+      localStorage.setItem(STORAGE_KEYS.TENANT_ID, user.tenantId);
     }
     if (user.id) {
-      localStorage.setItem('eduverse_user_id', user.id);
+      localStorage.setItem(STORAGE_KEYS.USER_ID, user.id);
     }
     if (user.studentId) {
-      localStorage.setItem('eduverse_student_id', user.studentId);
+      localStorage.setItem(STORAGE_KEYS.STUDENT_ID, user.studentId);
     }
     this.currentUserSubject.next(user);
   }
@@ -137,7 +143,7 @@ export class AuthService {
       id: payload.user_id, // was sub
       email: payload.email ?? '', // fallback if email not present in JWT
       role: payload.role,
-      tenantId: payload.tenant_id,
+      tenantId: payload.role === 'student' ? undefined : payload.tenant_id,
       studentId: payload.student_id,
       teacherId: payload.teacher_id,
       adminId: payload.admin_id,
@@ -169,10 +175,9 @@ export class AuthService {
     }
   }
   private handleAuthSuccess(token: string): void {
-    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
 
     const payload = this.decodeJwt(token);
-    console.log('JWT payload:', payload); // <-- debug
 
     if (this.isTokenExpired(payload)) {
       this.logout();
@@ -181,18 +186,15 @@ export class AuthService {
 
     const user = this.mapJwtToUser(payload);
     if (user.tenantId) {
-      localStorage.setItem('tenantId', user.tenantId);
+      localStorage.setItem(STORAGE_KEYS.TENANT_ID, user.tenantId);
     }
     if (user.id) {
-      localStorage.setItem('eduverse_user_id', user.id);
+      localStorage.setItem(STORAGE_KEYS.USER_ID, user.id);
     }
     if (user.studentId) {
-      localStorage.setItem('eduverse_student_id', user.studentId);
+      localStorage.setItem(STORAGE_KEYS.STUDENT_ID, user.studentId);
     }
-    console.log('Mapped user:', user); // <-- debug
     this.currentUserSubject.next(user);
-
-    console.log('Redirecting to dashboard for role:', user.role);
     this.redirectByRole(user.role);
   }
 }

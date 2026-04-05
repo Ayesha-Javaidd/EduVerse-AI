@@ -1,22 +1,23 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { API_BASE_URL } from '../../../core/constants/api.constants';
+import { ENDPOINTS } from '../../../core/constants/api.constants';
+
+interface EmbeddedCheckoutInstance {
+  mount(element: HTMLElement): void;
+  destroy(): void;
+}
+
+interface StripeWithEmbeddedCheckout {
+  createEmbeddedCheckoutPage(options: { clientSecret: string }): Promise<EmbeddedCheckoutInstance>;
+}
 
 @Component({
   selector: 'app-stripe-embedded-modal',
   standalone: true,
   imports: [CommonModule, HttpClientModule],
   templateUrl: './stripe-embedded-modal.component.html',
-  styles: [`
-    :host {
-      display: contents;
-    }
-    #checkout {
-       width: 100%;
-       min-height: 500px;
-    }
-  `]
+  styleUrl: './stripe-embedded-modal.component.css',
 })
 export class StripeEmbeddedModalComponent implements OnInit, OnDestroy {
   @Input() clientSecret: string = '';
@@ -26,7 +27,7 @@ export class StripeEmbeddedModalComponent implements OnInit, OnDestroy {
 
   @ViewChild('checkoutContainer', { static: true }) checkoutContainer!: ElementRef;
 
-  private checkoutInstance: any = null;
+  private checkoutInstance: EmbeddedCheckoutInstance | null = null;
   loading: boolean = true;
   error: string | null = null;
 
@@ -42,15 +43,14 @@ export class StripeEmbeddedModalComponent implements OnInit, OnDestroy {
     }
 
     try {
-      this.http.get<{publishableKey: string}>(`${API_BASE_URL}/payments/config`).subscribe({
+      this.http.get<{publishableKey: string}>(ENDPOINTS.PAYMENTS.CONFIG).subscribe({
         next: async (res) => {
           try {
-            // dynamic import to ensure DOM is ready and types don't panic
             const { loadStripe } = await import('@stripe/stripe-js');
-            const stripe = await loadStripe(res.publishableKey) as any;
+            const stripe = await loadStripe(res.publishableKey);
             if (!stripe) throw new Error("Stripe failed to initialize.");
 
-            this.checkoutInstance = await stripe.createEmbeddedCheckoutPage({
+            this.checkoutInstance = await (stripe as StripeWithEmbeddedCheckout).createEmbeddedCheckoutPage({
               clientSecret: this.clientSecret,
             });
 
@@ -59,9 +59,10 @@ export class StripeEmbeddedModalComponent implements OnInit, OnDestroy {
               this.checkoutInstance.mount(this.checkoutContainer.nativeElement);
               this.loading = false;
             }
-          } catch(e: any) {
-             console.error("Stripe SDK Error:", e?.message || e);
-             this.error = e?.message || "Failed to load secure payment terminal.";
+          } catch(e: unknown) {
+             const message = e instanceof Error ? e.message : "Failed to load secure payment terminal.";
+             console.error("Stripe SDK Error:", message);
+             this.error = message;
              this.loading = false;
           }
         },
@@ -70,9 +71,9 @@ export class StripeEmbeddedModalComponent implements OnInit, OnDestroy {
            this.loading = false;
         }
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Stripe Checkout Error:", err);
-      this.error = "Failed to load secure payment terminal.";
+      this.error = err instanceof Error ? err.message : "Failed to load secure payment terminal.";
       this.loading = false;
     }
   }

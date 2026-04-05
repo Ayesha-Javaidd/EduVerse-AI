@@ -5,12 +5,7 @@ import { CommonModule } from '@angular/common';
   selector: 'app-section-title',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <!-- Render the title with dynamic classes -->
-    <h2 [class]="titleClasses">
-      {{ title }}
-    </h2>
-  `
+  templateUrl: './section-title.component.html',
 })
 export class SectionTitleComponent {
   // The actual text for the title 

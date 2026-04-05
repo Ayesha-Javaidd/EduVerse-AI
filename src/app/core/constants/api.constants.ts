@@ -1,9 +1,15 @@
-export const API_BASE_URL = 'http://localhost:8000';
+import { environment } from '../../../environments/environment';
+
+export const API_BASE_URL = environment.apiBaseUrl.replace(/\/+$/, '');
 
 export const ENDPOINTS = {
   AUTH: {
     LOGIN: `${API_BASE_URL}/login`,
     STUDENT_LOGIN: `${API_BASE_URL}/students/login`,
+    TOKEN: `${API_BASE_URL}/auth/token`,
+    STUDENT_SIGNUP: `${API_BASE_URL}/auth/student/signup`,
+    TEACHER_SIGNUP: `${API_BASE_URL}/auth/teacher/signup`,
+    ADMIN_SIGNUP: `${API_BASE_URL}/auth/admin/signup`,
   },
   COURSES: {
     BASE: `${API_BASE_URL}/courses`,
@@ -17,6 +23,8 @@ export const ENDPOINTS = {
   },
   STUDENTS: {
     BASE: `${API_BASE_URL}/students`,
+    ME: `${API_BASE_URL}/students/me`,
+    PASSWORD: `${API_BASE_URL}/students/me/password`,
   },
   TEACHERS: {
     BASE: `${API_BASE_URL}/teachers`,
@@ -24,22 +32,15 @@ export const ENDPOINTS = {
   ADMINS: {
     BASE: `${API_BASE_URL}/admin/dashboard`,
   },
+  PAYMENTS: {
+    CONFIG: `${API_BASE_URL}/payments/config`,
+    CREATE_PAYMENT_INTENT: `${API_BASE_URL}/payments/create-payment-intent`,
+  },
+  QUIZ_SUBMISSIONS: {
+    BASE: `${API_BASE_URL}/quiz-submissions`,
+  },
   PERFORMANCE: {
     BASE: `${API_BASE_URL}/studentPerformance`,
-  },
-
-  ASSIGNMENTS: {
-    BASE: `${API_BASE_URL}/assignments`,
-    BY_ID: (id: string) => `${API_BASE_URL}/assignments/${id}`,
-  },
-
-  ASSIGNMENT_SUBMISSIONS: {
-    BASE: `${API_BASE_URL}/assignment-submissions`,
-    BY_STUDENT: `${API_BASE_URL}/assignment-submissions/me`,
-    BY_ASSIGNMENT: (assignmentId: string) =>
-      `${API_BASE_URL}/assignment-submissions/assignment/${assignmentId}`,
-    SUBMISSION: (submissionId: string) =>
-      `${API_BASE_URL}/assignment-submissions/${submissionId}`,
   },
   ADAPTIVE: {
     BASE: `${API_BASE_URL}/adaptive`,

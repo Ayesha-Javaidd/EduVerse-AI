@@ -1,89 +1,109 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
+<div class="flex min-h-screen flex-col animate-fade-in">
   <app-header pageTitle="My Courses"></app-header>
 
-  <main class="p-6 lg:p-8">
-    <div class="max-w-7xl mx-auto">
-      <!-- Hero Section -->
-      <div class="mb-8">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
-          <div>
-            <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-              My Learning Journey
-            </h1>
-            <p class="text-gray-600">
-              Continue where you left off and achieve your goals
-            </p>
-          </div>
+  <main class="p-6">
+    <div class="mx-auto flex max-w-7xl flex-col gap-6">
+      <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h2 class="text-3xl font-bold tracking-tight text-[#181F39]">
+            Your learning library
+          </h2>
+          <p class="mt-2 text-sm text-slate-500">
+            Revisit active courses, monitor progress, and jump back into the next lesson when you are ready.
+          </p>
+        </div>
 
-          <app-button [variant]="'primary'" [size]="'lg'"
-            customColor="bg-blue-950 text-white hover:bg-blue-900 transition-colors duration-300 cursor-pointer"
+        <div class="flex flex-wrap gap-3">
+          <app-button [variant]="'outline'" [size]="'md'"
+            [class]="'rounded-full border-[#dbe4ea] bg-white px-5 text-slate-700 hover:bg-slate-50'"
             (buttonClick)="navigateToExplore()">
             <i class="fa-solid fa-compass mr-2"></i>
             Explore Courses
           </app-button>
         </div>
+      </section>
 
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <app-stat-card title="Total Courses" [value]="stats.total" icon="fa-solid fa-book" iconBgClass="bg-indigo-100"
-            bgColor="bg-blue-50" iconColorClass="text-indigo-600">
-          </app-stat-card>
+      <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <app-stat-card title="Total Courses" [value]="stats.total" icon="fa-solid fa-book-open"
+          iconBgClass="bg-[#ecf9f6]" bgColor="bg-white" iconColorClass="text-[#23A997]">
+        </app-stat-card>
 
-          <app-stat-card title="In Progress" [value]="stats.inProgress" icon="fa-solid fa-spinner"
-            iconBgClass="bg-blue-100" bgColor="bg-blue-50" iconColorClass="text-blue-600">
-          </app-stat-card>
+        <app-stat-card title="In Progress" [value]="stats.inProgress" icon="fa-solid fa-spinner"
+          iconBgClass="bg-slate-100" bgColor="bg-white" iconColorClass="text-[#181F39]">
+        </app-stat-card>
 
-          <app-stat-card title="Completed" [value]="stats.completed" icon="fa-solid fa-check-circle"
-            bgColor="bg-blue-50" iconBgClass="bg-emerald-100" iconColorClass="text-emerald-600">
-          </app-stat-card>
+        <app-stat-card title="Completed" [value]="stats.completed" icon="fa-solid fa-check-circle"
+          bgColor="bg-white" iconBgClass="bg-[#ecf9f6]" iconColorClass="text-[#23A997]">
+        </app-stat-card>
 
-          <app-stat-card title="Total Hours" [value]="stats.hours" icon="fa-solid fa-clock" iconBgClass="bg-amber-100"
-            bgColor="bg-blue-50" iconColorClass="text-amber-600">
-          </app-stat-card>
-        </div>
-      </div>
+        <app-stat-card title="Total Hours" [value]="stats.hours" icon="fa-solid fa-clock" iconBgClass="bg-amber-100"
+          bgColor="bg-white" iconColorClass="text-amber-600">
+        </app-stat-card>
+      </section>
 
-      <!-- Filters Component -->
-      <div class="mb-8">
+      <section>
         <app-filters [searchPlaceholder]="filterConfig.searchPlaceholder" [dropdowns]="filterConfig.dropdowns"
           (filtersChange)="onFiltersChange($event)">
+          <div toolbar-actions class="flex flex-wrap gap-3">
+            <app-button [size]="'md'"
+              [class]="'rounded-full bg-[#23A997] px-5 text-white hover:bg-[#1e9585] focus:ring-[#23A997]'"
+              (buttonClick)="navigateToExplore()">
+              <i class="fa-solid fa-plus mr-2"></i>
+              Add Course
+            </app-button>
+          </div>
         </app-filters>
-      </div>
+      </section>
 
-      <!-- Courses Grid -->
-      <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">
-          {{ filteredCourses.length }} Course{{
-          filteredCourses.length !== 1 ? "s" : ""
-          }}
-          Found
-        </h2>
-
-        <div *ngIf="filteredCourses.length === 0" class="text-center py-12 bg-white rounded-xl shadow-md">
-          <i class="fa-solid fa-inbox text-6xl text-gray-300 mb-4"></i>
-          <p class="text-gray-500 text-lg font-semibold">No courses found</p>
+      <section class="rounded-[24px] border border-[#dbe4ea] bg-white p-6 shadow-sm">
+        <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 class="text-xl font-bold tracking-tight text-[#181F39]">
+              {{ filteredCourses.length }} course{{ filteredCourses.length !== 1 ? "s" : "" }}
+            </h3>
+            <p class="mt-1 text-sm text-slate-500">
+              Your enrolled courses, filtered and ready to continue.
+            </p>
+          </div>
+          <span class="inline-flex w-fit items-center rounded-full bg-[#ecf9f6] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#1b8c7d]">
+            Student learning
+          </span>
         </div>
 
-        <div *ngIf="filteredCourses.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngIf="loading" class="rounded-[20px] border border-dashed border-[#dbe4ea] bg-[#f8f9fc] px-6 py-12 text-center">
+          <div class="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[#d8f1ec] border-t-[#23A997]"></div>
+          <p class="mt-4 text-sm font-medium text-slate-600">Loading your courses...</p>
+        </div>
+
+        <div *ngIf="!loading && filteredCourses.length === 0" class="rounded-[20px] border border-dashed border-[#dbe4ea] bg-[#f8f9fc] px-6 py-10 text-center">
+          <i class="fa-solid fa-inbox text-4xl text-slate-300"></i>
+          <p class="mt-4 text-lg font-semibold text-[#181F39]">No courses found</p>
+          <p class="mt-1 text-sm text-slate-500">Try adjusting your filters or explore more courses to enroll in.</p>
+        </div>
+
+        <div *ngIf="!loading && filteredCourses.length > 0" class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           <app-course-card *ngFor="let course of filteredCourses" [course]="course"
             (courseClick)="onCourseClick($event)">
           </app-course-card>
         </div>
-      </div>
+      </section>
 
-      <!-- CTA Section -->
-      <div class="bg-slate-900 rounded-2xl p-8 md:p-12 text-center text-white">
-        <h2 class="text-2xl md:text-3xl font-bold mb-4">
-          Ready to Learn More?
-        </h2>
-        <p class="text-base md:text-lg mb-6 opacity-90">
-          Explore thousands of courses and expand your knowledge
-        </p>
-        <app-button [variant]="'light'" [size]="'xl'" (buttonClick)="navigateToExplore()">
-          <i class="fa-solid fa-compass mr-2"></i>
-          Browse All Courses
-        </app-button>
-      </div>
+      <section class="rounded-[28px] bg-[#181F39] px-8 py-10 text-white shadow-sm md:px-10">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h3 class="text-2xl font-bold tracking-tight">Ready to pick your next course?</h3>
+            <p class="mt-2 text-sm text-slate-300">
+              Discover more courses while keeping the same clean learning workflow across the student module.
+            </p>
+          </div>
+          <app-button [size]="'lg'"
+            [class]="'rounded-full bg-[#23A997] px-7 text-white hover:bg-[#1e9585] focus:ring-[#23A997]'"
+            (buttonClick)="navigateToExplore()">
+            <i class="fa-solid fa-compass mr-2"></i>
+            Browse All Courses
+          </app-button>
+        </div>
+      </section>
     </div>
   </main>
 </div>

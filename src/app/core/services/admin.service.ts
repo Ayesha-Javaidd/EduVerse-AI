@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ENDPOINTS } from '../constants/api.constants';
 import { BackendCourse } from './course.service';
+import { AuthService } from '../../features/auth/services/auth.service';
 
 export interface AdminTeacher {
     id?: string;
@@ -50,6 +51,7 @@ export interface BillingPlan {
     description: string;
     price: number;
     pricePerMonth: number;
+    billingCycle: 'monthly' | 'quarterly' | 'yearly';
     currency: string;
     code: string;
     maxStudents: number;
@@ -88,19 +90,22 @@ export interface CheckoutResponse {
 })
 export class AdminService {
 
-    constructor(private http: HttpClient) { }
+    constructor(
+        private http: HttpClient,
+        private authService: AuthService
+    ) { }
 
-    private getHeaders(): HttpHeaders {
-        const token = localStorage.getItem('eduverse_access_token');
-        return new HttpHeaders({
-            'Authorization': `Bearer ${token}`
-        });
+    private requireTenantId(): string {
+        const tenantId = this.authService.getTenantId();
+        if (!tenantId) {
+            throw new Error('Tenant context missing for admin request');
+        }
+        return tenantId;
     }
 
     // Fetch all teachers (Admin only)
     getTeachers(): Observable<AdminTeacher[]> {
         return this.http.get<{ total: number, teachers: AdminTeacher[] }>(`${ENDPOINTS.ADMINS.BASE}/teachers`, {
-            headers: this.getHeaders()
         }).pipe(
             map(response => response.teachers || [])
         );
@@ -109,7 +114,6 @@ export class AdminService {
     // Fetch all students (Admin only)
     getStudents(): Observable<AdminStudent[]> {
         return this.http.get<{ total: number, students: AdminStudent[] }>(`${ENDPOINTS.ADMINS.BASE}/students`, {
-            headers: this.getHeaders()
         }).pipe(
             map(response => response.students || [])
         );
@@ -118,7 +122,6 @@ export class AdminService {
     // Fetch all courses (Admin only)
     getCourses(): Observable<BackendCourse[]> {
         return this.http.get<{ total: number, courses: BackendCourse[] }>(`${ENDPOINTS.ADMINS.BASE}/courses`, {
-            headers: this.getHeaders()
         }).pipe(
             map(response => response.courses || [])
         );
@@ -127,7 +130,6 @@ export class AdminService {
     // Delete a teacher
     deleteTeacher(teacherId: string): Observable<void> {
         return this.http.delete<void>(`${ENDPOINTS.TEACHERS.BASE}/${teacherId}`, {
-            headers: this.getHeaders()
         });
     }
 
@@ -136,7 +138,6 @@ export class AdminService {
     // Create a teacher
     createTeacher(data: Partial<AdminTeacher>): Observable<AdminTeacher> {
         return this.http.post<AdminTeacher>(`${ENDPOINTS.TEACHERS.BASE}/`, data, {
-            headers: this.getHeaders()
         });
     }
 
@@ -147,40 +148,35 @@ export class AdminService {
         // Backend admin update teacher endpoint is /admin/update-teacher/{id}
         const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
         return this.http.put<AdminTeacher>(`${baseUrl}/update-teacher/${teacherId}`, updateData, {
-            headers: this.getHeaders()
         });
     }
 
     // Create a student
     createStudent(data: Partial<AdminStudent>): Observable<AdminStudent> {
-        const tenantId = localStorage.getItem('tenantId');
-        return this.http.post<AdminStudent>(`${ENDPOINTS.STUDENTS.BASE}/${tenantId}`, data, {
-            headers: this.getHeaders()
+        const { id, _id, role, tenantId, ...createData } = data as AdminStudent;
+        return this.http.post<AdminStudent>(`${ENDPOINTS.STUDENTS.BASE.replace('/students', '/auth/student/signup')}`, createData, {
         });
     }
 
     // Update a student
     updateStudent(studentId: string, data: Partial<AdminStudent>): Observable<AdminStudent> {
-        const tenantId = localStorage.getItem('tenantId');
         // Remove id/_id from payload
         const { id, _id, ...updateData } = data as AdminStudent; // cast back from partial because we are destructing _id safely
-        return this.http.patch<AdminStudent>(`${ENDPOINTS.STUDENTS.BASE}/${tenantId}/${studentId}`, updateData, {
-            headers: this.getHeaders()
+        const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
+        return this.http.patch<AdminStudent>(`${baseUrl}/students/${studentId}`, updateData, {
         });
     }
 
     // Delete a student
     deleteStudent(studentId: string): Observable<void> {
-        const tenantId = localStorage.getItem('tenantId');
-        return this.http.delete<void>(`${ENDPOINTS.STUDENTS.BASE}/${tenantId}/${studentId}`, {
-            headers: this.getHeaders()
+        const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
+        return this.http.delete<void>(`${baseUrl}/students/${studentId}`, {
         });
     }
 
     // Create a course
     createCourse(data: Partial<BackendCourse>): Observable<BackendCourse> {
         return this.http.post<BackendCourse>(`${ENDPOINTS.COURSES.BASE}/`, data, {
-            headers: this.getHeaders()
         });
     }
 
@@ -188,17 +184,15 @@ export class AdminService {
     updateCourse(courseId: string, data: Partial<BackendCourse>): Observable<BackendCourse> {
         // Remove id/_id from payload
         const { id, _id, instructorName, enrolledStudents, ...updateData } = data as BackendCourse;
-        const tenantId = localStorage.getItem('tenantId');
+        const tenantId = this.requireTenantId();
         return this.http.put<BackendCourse>(`${ENDPOINTS.COURSES.BASE}/${courseId}?tenantId=${tenantId}`, updateData, {
-            headers: this.getHeaders()
         });
     }
 
     // Delete a course
     deleteCourse(courseId: string): Observable<void> {
-        const tenantId = localStorage.getItem('tenantId');
+        const tenantId = this.requireTenantId();
         return this.http.delete<void>(`${ENDPOINTS.COURSES.BASE}/${courseId}?tenantId=${tenantId}`, {
-            headers: this.getHeaders()
         });
     }
 
@@ -207,14 +201,12 @@ export class AdminService {
         // ENDPOINTS.ADMINS.BASE is /admin/dashboard, so we need to target /admin/settings/system
         const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
         return this.http.get<SystemSettingsConfig>(`${baseUrl}/settings/system`, {
-            headers: this.getHeaders()
         });
     }
 
     updateSystemSettings(data: SystemSettingsConfig): Observable<SystemSettingsConfig> {
         const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
         return this.http.put<SystemSettingsConfig>(`${baseUrl}/settings/system`, data, {
-            headers: this.getHeaders()
         });
     }
 
@@ -222,28 +214,24 @@ export class AdminService {
     getBillingUsage(): Observable<BillingUsage> {
         const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
         return this.http.get<BillingUsage>(`${baseUrl}/billing/usage`, {
-            headers: this.getHeaders()
         });
     }
 
     getBillingStatus(): Observable<BillingStatus> {
         const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
         return this.http.get<BillingStatus>(`${baseUrl}/billing/status`, {
-            headers: this.getHeaders()
         });
     }
 
     getAvailablePlans(): Observable<BillingPlan[]> {
         const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
         return this.http.get<BillingPlan[]>(`${baseUrl}/billing/plans`, {
-            headers: this.getHeaders()
         });
     }
 
     createSubscriptionCheckout(planId: string): Observable<CheckoutResponse> {
         const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
         return this.http.post<CheckoutResponse>(`${baseUrl}/billing/checkout`, { planId }, {
-            headers: this.getHeaders()
         });
     }
 }

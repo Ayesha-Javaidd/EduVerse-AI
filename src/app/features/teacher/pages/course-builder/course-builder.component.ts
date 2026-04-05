@@ -14,10 +14,10 @@ import { BulkUploadModalComponent } from '../../components/bulk-upload-modal/bul
 
 // Services
 import { CourseBuilderService } from '../../services/course-builder.service';
-import { TeacherProfileService } from '../../services/teacher-profile.service';
 import { CourseMetadataService } from '../../../../shared/services/course-metadata.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
+import { TeacherProfileService } from '../../../../shared/services/teacher-profile.service';
 
 // Models
 import {
@@ -25,12 +25,25 @@ import {
   Module,
   Lesson,
   EnrolledStudent,
-  generateId,
-  generateCourseCode,
   calculateTotalLessons,
   calculateTotalDuration,
 } from '../../../../shared/models/course-builder.model';
 import { CourseMetadata } from '../../../../shared/models/course-metadata.model';
+import { TeacherResponse } from '../../../../shared/models/teacher-profile.models';
+import {
+  appendBulkModules,
+  buildCourseUpdatePayload,
+  deriveTeacherIdentity,
+  filterEnrolledStudents,
+  formatCourseBuilderDate,
+  getPublishValidationError,
+  normalizeCourseTotals,
+  removeLesson,
+  removeModule,
+  syncCourseMetadataOptions,
+  upsertLesson,
+  upsertModule,
+} from './course-builder.helpers';
 
 type TabType = 'content' | 'settings' | 'students';
 
@@ -120,14 +133,12 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
       .getMyProfile()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (profile: any) => {
-          this.tenantId = profile.tenantId || '';
-          this.teacherId = profile.id || '';
-
-          // Get teacher name with multiple fallbacks (root level or nested in user object)
-          const fullName = profile.fullName || profile.user?.fullName || profile.email?.split('@')[0] || 'Teacher';
-          this.teacherName = fullName;
-          this.teacherInitial = fullName.charAt(0).toUpperCase();
+        next: (profile: TeacherResponse & { user?: { fullName?: string } }) => {
+          const teacherIdentity = deriveTeacherIdentity(profile);
+          this.tenantId = teacherIdentity.tenantId;
+          this.teacherId = teacherIdentity.teacherId;
+          this.teacherName = teacherIdentity.teacherName;
+          this.teacherInitial = teacherIdentity.teacherInitial;
 
           this.courseId = this.route.snapshot.paramMap.get('id') || '';
 
@@ -196,34 +207,10 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.course) {
-      if (!this.course.category) {
-        this.course.category = this.courseMetadata.defaultCategory;
-      }
-      if (!this.course.level) {
-        this.course.level = this.courseMetadata.defaultLevel;
-      }
-    }
-
-    this.categoryOptions = this.withCurrentOption(
-      this.courseMetadata.categories,
-      this.course?.category
-    );
-    this.levelOptions = this.withCurrentOption(
-      this.courseMetadata.levels,
-      this.course?.level
-    );
-  }
-
-  private withCurrentOption(options: string[], currentValue?: string): string[] {
-    const normalizedCurrentValue = currentValue?.trim();
-    if (!normalizedCurrentValue) {
-      return [...options];
-    }
-
-    return options.includes(normalizedCurrentValue)
-      ? [...options]
-      : [normalizedCurrentValue, ...options];
+    const metadataState = syncCourseMetadataOptions(this.courseMetadata, this.course);
+    this.course = metadataState.course;
+    this.categoryOptions = metadataState.categoryOptions;
+    this.levelOptions = metadataState.levelOptions;
   }
 
   /**
@@ -267,25 +254,14 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
   onSaveModule(moduleData: Partial<Module>): void {
     if (!this.course) return;
 
-    if (this.editingModule) {
-      // Edit existing module
-      this.course.modules = this.course.modules.map((mod) =>
-        mod.id === this.editingModule!.id ? { ...mod, ...moduleData } : mod
-      );
-      this.toastService.success('Module updated successfully');
-    } else {
-      // Add new module
-      const newModule: Module = {
-        id: generateId(),
-        title: moduleData.title || 'New Module',
-        description: moduleData.description || '',
-        order: this.course.modules.length,
-        lessons: [],
-        isExpanded: true,
-      };
-      this.course.modules.push(newModule);
-      this.toastService.success('Module added successfully');
-    }
+    this.course.modules = upsertModule(
+      this.course.modules,
+      moduleData,
+      this.editingModule
+    );
+    this.toastService.success(
+      this.editingModule ? 'Module updated successfully' : 'Module added successfully'
+    );
 
     this.closeAddModuleModal();
     this.saveCourse();
@@ -298,9 +274,7 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     const confirmed = await this.confirmDialog.confirmDelete(module?.title);
 
     if (confirmed) {
-      this.course.modules = this.course.modules
-        .filter((m) => m.id !== moduleId)
-        .map((m, index) => ({ ...m, order: index }));
+      this.course.modules = removeModule(this.course.modules, moduleId);
 
       this.course.totalLessons = calculateTotalLessons(this.course.modules);
       this.toastService.success('Module deleted successfully');
@@ -327,34 +301,15 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
   onSaveLesson(lessonData: Partial<Lesson>): void {
     if (!this.course || !this.selectedModuleId) return;
 
-    const moduleIndex = this.course.modules.findIndex(
-      (m) => m.id === this.selectedModuleId
+    this.course.modules = upsertLesson(
+      this.course.modules,
+      this.selectedModuleId,
+      lessonData,
+      this.editingLesson
     );
-    if (moduleIndex === -1) return;
-
-    const module = this.course.modules[moduleIndex];
-
-    if (this.editingLesson) {
-      // Edit existing lesson
-      module.lessons = module.lessons.map((lesson) =>
-        lesson.id === this.editingLesson!.id
-          ? { ...lesson, ...lessonData }
-          : lesson
-      );
-      this.toastService.success('Lesson updated successfully');
-    } else {
-      // Add new lesson
-      const newLesson: Lesson = {
-        id: generateId(),
-        title: lessonData.title || 'New Lesson',
-        type: lessonData.type || 'video',
-        duration: lessonData.duration || '',
-        content: lessonData.content || '',
-        order: module.lessons.length,
-      };
-      module.lessons.push(newLesson);
-      this.toastService.success('Lesson added successfully');
-    }
+    this.toastService.success(
+      this.editingLesson ? 'Lesson updated successfully' : 'Lesson added successfully'
+    );
 
     this.course.totalLessons = calculateTotalLessons(this.course.modules);
     this.closeAddLessonModal();
@@ -371,9 +326,7 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     const confirmed = await this.confirmDialog.confirmDelete(lesson?.title);
 
     if (confirmed) {
-      module.lessons = module.lessons
-        .filter((l) => l.id !== lessonId)
-        .map((l, index) => ({ ...l, order: index }));
+      this.course.modules = removeLesson(this.course.modules, moduleId, lessonId);
 
       this.course.totalLessons = calculateTotalLessons(this.course.modules);
       this.toastService.success('Lesson deleted successfully');
@@ -542,15 +495,9 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
   async onPublish(): Promise<void> {
     if (!this.course) return;
 
-    // Validation: must have at least 1 module with 1 lesson
-    if (this.course.modules.length === 0) {
-      this.toastService.error('Course must have at least one module to publish');
-      return;
-    }
-
-    const hasLessons = this.course.modules.some((m) => m.lessons.length > 0);
-    if (!hasLessons) {
-      this.toastService.error('Course must have at least one lesson to publish');
+    const publishValidationError = getPublishValidationError(this.course);
+    if (publishValidationError) {
+      this.toastService.error(publishValidationError);
       return;
     }
 
@@ -598,47 +545,8 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     if (!this.course) return;
 
     this.isSaving = true;
-
-    // Recalculate totals
-    this.course.totalLessons = calculateTotalLessons(this.course.modules);
-    this.course.totalDuration = calculateTotalDuration(this.course.modules);
-
-    // Auto-generate course code if not set
-    if (!this.course.courseCode) {
-      this.course.courseCode = generateCourseCode(this.course.title);
-    }
-
-    const updateData = {
-      title: this.course.title,
-      description: this.course.description,
-      category: this.course.category,
-      level: this.course.level,
-      thumbnailUrl: this.course.thumbnailUrl,
-      courseCode: this.course.courseCode,
-      modules: this.course.modules.map((m) => ({
-        id: m.id,
-        title: m.title,
-        description: m.description,
-        order: m.order,
-        lessons: m.lessons.map((l) => ({
-          id: l.id,
-          title: l.title,
-          type: l.type,
-          duration: l.duration,
-          content: l.content,
-          order: l.order,
-        })),
-      })),
-      duration: this.course.totalDuration, // Save the calculated total duration
-      isPublic: this.course.isPublic,
-      isFree: this.course.isFree,
-      price: this.course.price,
-      currency: this.course.currency || 'USD',
-      instructorBio: this.course.instructorBio,
-      hasCertificate: this.course.hasCertificate,
-      hasBadges: this.course.hasBadges,
-      hasLifetimeAccess: this.course.hasLifetimeAccess,
-    };
+    this.course = normalizeCourseTotals(this.course);
+    const updateData = buildCourseUpdatePayload(this.course);
 
     this.courseBuilderService
       .updateCourse(this.courseId, this.tenantId, updateData)
@@ -677,14 +585,7 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
   onBulkUpload(modules: Module[]): void {
     if (!this.course) return;
 
-    // Append new modules to existing ones
-    const startOrder = this.course.modules.length;
-    const modulesToAdd = modules.map((m, index) => ({
-      ...m,
-      order: startOrder + index
-    }));
-
-    this.course.modules = [...this.course.modules, ...modulesToAdd];
+    this.course.modules = appendBulkModules(this.course.modules, modules);
     this.course.totalLessons = calculateTotalLessons(this.course.modules);
     this.course.totalDuration = calculateTotalDuration(this.course.modules);
 
@@ -728,23 +629,10 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
   }
 
   get filteredStudents(): EnrolledStudent[] {
-    if (!this.studentSearchQuery.trim()) {
-      return this.enrolledStudents;
-    }
-    const query = this.studentSearchQuery.toLowerCase();
-    return this.enrolledStudents.filter(
-      (s) =>
-        s.fullName.toLowerCase().includes(query) ||
-        s.email.toLowerCase().includes(query)
-    );
+    return filterEnrolledStudents(this.enrolledStudents, this.studentSearchQuery);
   }
 
   formatDate(dateString: string): string {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    return formatCourseBuilderDate(dateString);
   }
 }

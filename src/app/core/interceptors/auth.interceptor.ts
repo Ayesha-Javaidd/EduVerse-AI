@@ -7,8 +7,9 @@ import { AuthService } from '../../features/auth/services/auth.service';
 export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.getAccessToken(); // string | null
+  const isPublicPricingRequest = req.url.includes('/subscription-plans/public');
 
-  if (token) {
+  if (token && !isPublicPricingRequest) {
     req = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`,
@@ -18,7 +19,7 @@ export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((err) => {
-      if (err.status === 401) {
+      if (err.status === 401 && !isPublicPricingRequest) {
         authService.logout(); // global logout
       }
       return throwError(() => err);

@@ -10,7 +10,6 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
   standalone: true,
   imports: [CommonModule, ButtonComponent],
   templateUrl: './hero.component.html',
-  styleUrls: []
 })
 export class HeroComponent {
   

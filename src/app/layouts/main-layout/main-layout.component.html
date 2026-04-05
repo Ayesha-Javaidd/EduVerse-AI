@@ -1,9 +1,10 @@
 <div class="min-h-screen bg-[#f8f9fc]">
-  <app-sidebar (toggleSidebar)="isSidebarOpen = $event"></app-sidebar>
+  <app-sidebar (toggleSidebar)="onSidebarToggle($event)"></app-sidebar>
 
   <div class="transition-all duration-300 w-full min-h-screen relative" [ngClass]="{
-      'pl-[250px]': isSidebarOpen,
-      'pl-[80px]': !isSidebarOpen
+      'pl-[250px]': !isMobile && isSidebarOpen,
+      'pl-[80px]': !isMobile && !isSidebarOpen,
+      'pl-0': isMobile
     }">
     <router-outlet></router-outlet>
   </div>

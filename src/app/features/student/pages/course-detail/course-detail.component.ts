@@ -28,7 +28,6 @@ export class CourseDetailComponent implements OnInit {
   isEnrolled: boolean = false;
   progress: number = 0;
   quizCount: number = 0;
-  assignmentCount: number = 0; // Currently mapping 'reading' or custom types to assignments if applicable
 
   constructor(
     private route: ActivatedRoute,
@@ -46,16 +45,21 @@ export class CourseDetailComponent implements OnInit {
         this.loadCourse();
       }
     });
+
+    this.route.queryParamMap.subscribe((params) => {
+      if (params.get('checkout_success') === '1') {
+        this.showPaymentModal = false;
+        this.clientSecret = '';
+        this.loadCourse();
+      }
+    });
     // Scroll to top when navigation occurs
     window.scrollTo(0, 0);
   }
 
   loadCourse() {
-    const tenantId = this.authService.getTenantId();
-
-    this.courseService.getCourseById(this.courseId, tenantId || '').subscribe({
+    this.courseService.getCourseById(this.courseId).subscribe({
       next: (course) => {
-        console.log('Loaded Course:', course); // DEBUG
         this.course = course;
         this.calculateStats();
         this.checkEnrollment();
@@ -71,7 +75,6 @@ export class CourseDetailComponent implements OnInit {
 
   calculateStats() {
     this.quizCount = 0;
-    this.assignmentCount = 0;
     if (this.course?.modules) {
       this.course.modules.forEach(module => {
         if (module.lessons) {
@@ -79,8 +82,6 @@ export class CourseDetailComponent implements OnInit {
             const type = (lesson.type || '').toLowerCase();
             if (type === 'quiz') {
               this.quizCount++;
-            } else if (type === 'document' || type === 'reading' || type === 'assignment' || type === 'file') {
-              this.assignmentCount++;
             }
           });
         }
@@ -88,24 +89,53 @@ export class CourseDetailComponent implements OnInit {
     }
   }
 
+  get moduleCount(): number {
+    return this.course?.modules?.length || 0;
+  }
+
+  get lessonCount(): number {
+    return this.course?.modules?.reduce((total, module) => total + (module.lessons?.length || 0), 0) || 0;
+  }
+
+  get displayPrice(): string {
+    if (!this.course || this.course.isFree || !this.course.price) {
+      return 'Free';
+    }
+
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: this.course.currency || 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(this.course.price);
+  }
+
   checkEnrollment() {
     const user = this.authService.getUser();
-    const tenantId = this.authService.getTenantId() || '';
     if (!user) return;
 
     const studentId = user.studentId || user.id;
-    this.courseService.getStudentCourses(studentId, tenantId).subscribe({
+    this.courseService.getStudentCourses(studentId).subscribe({
       next: (courses) => {
         this.isEnrolled = courses.some(c => c._id === this.courseId || c.id === this.courseId);
         if (this.isEnrolled) {
-          this.loadProgress(this.course?.tenantId || tenantId);
+          this.loadProgress(this.course?.tenantId);
+          if (this.route.snapshot.queryParamMap.get('checkout_success') === '1') {
+            this.showSuccessModal = true;
+            this.router.navigate([], {
+              relativeTo: this.route,
+              queryParams: { checkout_success: null },
+              queryParamsHandling: 'merge',
+              replaceUrl: true,
+            });
+          }
         }
       },
       error: (err) => console.error('Error checking enrollment:', err)
     });
   }
 
-  loadProgress(tenantId: string) {
+  loadProgress(tenantId?: string) {
     this.progressService.getCourseProgress(this.courseId, tenantId).subscribe({
       next: (prog) => {
         this.progress = prog.progressPercentage;
@@ -146,7 +176,7 @@ export class CourseDetailComponent implements OnInit {
     this.processEnrollment();
   }
 
-  enroll() {
+  async enroll() {
     const user = this.authService.getUser();
     if (!user) {
       this.router.navigate(['/login']);
@@ -158,20 +188,38 @@ export class CourseDetailComponent implements OnInit {
       return;
     }
 
+    const isPaidCourse = !!(this.course && !this.course.isFree && (this.course.price || 0) > 0);
+    const confirmed = await this.confirmDialogService.show({
+      title: isPaidCourse ? 'Continue to Checkout' : 'Enroll in Course',
+      message: isPaidCourse
+        ? `You are about to continue to checkout for "${this.course?.title}".`
+        : `You are about to enroll in "${this.course?.title}".`,
+      confirmText: isPaidCourse ? 'Continue' : 'Enroll',
+      cancelText: 'Cancel',
+      type: 'warning',
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
     // Check if course is paid
-    if (this.course && !this.course.isFree && (this.course.price || 0) > 0) {
+    if (isPaidCourse) {
       this.enrolling = true;
       this.courseService.createCheckoutSession(this.courseId).subscribe({
          next: (res) => {
             if(res.clientSecret) {
                this.clientSecret = res.clientSecret;
                this.showPaymentModal = true;
+            } else {
+               this.confirmDialogService.alert('Unable to start checkout right now. Please try again.', 'Checkout unavailable', 'warning');
             }
             this.enrolling = false;
          },
-         error: (err) => {
+         error: async (err) => {
             console.error("Failed to generate stripe checkout", err);
             this.enrolling = false;
+            await this.confirmDialogService.alert(err.error?.detail || 'Unable to open checkout right now.', 'Checkout unavailable', 'danger');
          }
       });
     } else {
@@ -186,15 +234,12 @@ export class CourseDetailComponent implements OnInit {
 
   processEnrollment() {
     const user = this.authService.getUser();
-    const userTenantId = this.authService.getTenantId();
-    const tenantId = this.course?.tenantId || userTenantId;
-
-    if (!user || !tenantId) return;
+    if (!user) return;
 
     this.enrolling = true;
     const studentId = user.studentId || user.id;
 
-    this.courseService.enrollStudent(this.courseId, studentId, tenantId).subscribe({
+    this.courseService.enrollStudent(this.courseId, studentId, this.course?.tenantId).subscribe({
       next: () => {
         this.enrolling = false;
         this.isEnrolled = true;

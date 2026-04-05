@@ -5,8 +5,9 @@
 
 export interface Lesson {
   id: string;
+  _id?: string;
   title: string;
-  type: 'video' | 'document' | 'quiz';
+  type: 'video' | 'document' | 'quiz' | 'reading' | 'file';
   duration?: string; // For video: actual duration, for document: provided or auto-calculated
   content: string; // For document: text/file URL; for video: URL; for quiz: quiz ID (required)
   order: number;

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -9,16 +9,31 @@ import { StudentProgressService, CourseProgress } from '../../services/student-p
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { QuizService, Quiz } from '../../services/quiz.service';
 import { QuizSubmissionService } from '../../services/quiz-submission.service';
-import { AiTutorService } from '../../services/ai-tutor.service';
+import { AiTutorMessageResponse, AiTutorService } from '../../services/ai-tutor.service';
 import { AdaptiveLearningService } from '../../services/adaptive-learning.service';
+import { CoursePlayerStorageService } from '../../services/course-player-storage.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { STORAGE_KEYS } from '../../../../core/constants/app.constants';
 import { MarkdownModule } from 'ngx-markdown';
-
-interface ChatMessage {
-    sender: 'AI' | 'Student';
-    text: string;
-    time: Date;
-}
+import {
+    findGeneratedQuizForLesson,
+    getLessonId,
+    getNextLearningLesson,
+    getTeacherLessonSource,
+    isFirstCourseLesson,
+    lessonsMatch,
+    selectMatchingAdaptiveLesson,
+    shouldGenerateBaseLesson,
+    shouldWaitForAdaptiveLesson,
+    toEmbedVideoUrl,
+    upsertAdaptiveLesson,
+} from './course-player.helpers';
+import {
+    AdaptiveLesson,
+    ChatMessage,
+    CoursePlayerLesson,
+    QuizSubmissionResponse,
+} from './course-player.models';
 
 @Component({
     selector: 'app-course-player',
@@ -28,13 +43,15 @@ interface ChatMessage {
     styleUrls: ['./course-player.component.css']
 })
 export class CoursePlayerComponent implements OnInit, OnDestroy {
+    private readonly playerPrefsStorageKey = STORAGE_KEYS.COURSE_PLAYER_PREFERENCES;
+    isCompactViewport = false;
     courseId: string = '';
     course: BackendCourse | null = null;
     progress: CourseProgress | null = null;
     loading: boolean = true;
-    activeLesson: any = null;
+    activeLesson: CoursePlayerLesson | null = null;
     activeModuleIndex: number = 0;
-    allLessons: any[] = [];
+    allLessons: CoursePlayerLesson[] = [];
     videoUrl: SafeResourceUrl | null = null;
 
     // Quiz State
@@ -47,10 +64,38 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
     // Sidebar visibility
     isSidebarOpen: boolean = true;
+    isAiAssistantOpen: boolean = true;
+    aiAssistantWidth: number = 288;
+    private readonly minAiAssistantWidth = 260;
+    private readonly maxAiAssistantWidth = 420;
+    private isResizingAiAssistant = false;
+    private readonly handleAiAssistantResize = (event: MouseEvent) => {
+        if (!this.isResizingAiAssistant) {
+            return;
+        }
+
+        const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+        const nextWidth = Math.min(
+            this.maxAiAssistantWidth,
+            Math.max(this.minAiAssistantWidth, viewportWidth - event.clientX)
+        );
+        this.aiAssistantWidth = nextWidth;
+    };
+    private readonly stopAiAssistantResize = () => {
+        if (!this.isResizingAiAssistant) {
+            return;
+        }
+        this.isResizingAiAssistant = false;
+        document.body.classList.remove('select-none', 'cursor-col-resize');
+        window.removeEventListener('mousemove', this.handleAiAssistantResize);
+        window.removeEventListener('mouseup', this.stopAiAssistantResize);
+        this.persistPlayerPreferences();
+    };
 
     // Notes
     userNotes: string = '';
     isSavingNotes: boolean = false;
+    private lessonNoteDrafts: Record<string, string> = {};
 
     // Chat
     chatInput: string = '';
@@ -62,9 +107,9 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     // Adaptive Flow
     isGeneratingAiLesson: boolean = false;
     isWaitingForAdaptiveLesson: boolean = false;
-    aiGeneratedLessons: any[] = [];
+    aiGeneratedLessons: AdaptiveLesson[] = [];
     studentQuizzes: Quiz[] = [];
-    activeAdaptiveLesson: any = null;
+    activeAdaptiveLesson: AdaptiveLesson | null = null;
     private generatingBaseLessonForId: string | null = null;
     private pendingAdaptiveLessonId: string | null = null;
     private adaptiveLessonPollToken: number = 0;
@@ -72,18 +117,21 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     constructor(
         private route: ActivatedRoute,
         private router: Router,
-        private courseService: CourseService,
         private authService: AuthService,
+        private courseService: CourseService,
         private progressService: StudentProgressService,
         private quizService: QuizService,
         private submissionService: QuizSubmissionService,
         private aiTutorService: AiTutorService,
         private adaptiveService: AdaptiveLearningService,
+        private coursePlayerStorage: CoursePlayerStorageService,
         private toastService: ToastService,
         private sanitizer: DomSanitizer
     ) { }
 
     ngOnInit() {
+        this.updateViewportState();
+        this.restorePlayerPreferences();
         this.route.paramMap.subscribe(params => {
             this.courseId = params.get('id') || '';
             if (this.courseId) {
@@ -92,20 +140,46 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         });
     }
 
-    ngOnDestroy() { }
+    ngOnDestroy() {
+        this.stopAiAssistantResize();
+    }
+
+    @HostListener('window:resize')
+    updateViewportState() {
+        this.isCompactViewport = window.innerWidth < 1280;
+    }
+
+    private restorePlayerPreferences() {
+        const preferences = this.coursePlayerStorage.restorePreferences(
+            this.playerPrefsStorageKey,
+            this.minAiAssistantWidth,
+            this.maxAiAssistantWidth
+        );
+        if (typeof preferences.isSidebarOpen === 'boolean') {
+            this.isSidebarOpen = preferences.isSidebarOpen;
+        }
+        if (typeof preferences.isAiAssistantOpen === 'boolean') {
+            this.isAiAssistantOpen = preferences.isAiAssistantOpen;
+        }
+        if (typeof preferences.aiAssistantWidth === 'number') {
+            this.aiAssistantWidth = preferences.aiAssistantWidth;
+        }
+    }
+
+    private persistPlayerPreferences() {
+        this.coursePlayerStorage.persistPreferences(this.playerPrefsStorageKey, {
+            isSidebarOpen: this.isSidebarOpen,
+            isAiAssistantOpen: this.isAiAssistantOpen,
+            aiAssistantWidth: this.aiAssistantWidth,
+        });
+    }
 
     loadCourseAndProgress() {
-        const tenantId = this.authService.getTenantId() || '';
-
-        // Load local notes
-        const savedNotes = localStorage.getItem(`notes_${this.courseId}`);
-        if (savedNotes) this.userNotes = savedNotes;
-
-        this.courseService.getCourseById(this.courseId, tenantId).subscribe({
+        this.courseService.getCourseById(this.courseId).subscribe({
             next: (course) => {
                 this.course = course;
                 this.flattenLessons();
-                this.loadProgress(tenantId);
+                this.loadProgress(course?.tenantId);
                 this.loadAiGeneratedLessons();
                 this.loadStudentQuizzes();
             },
@@ -121,14 +195,14 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         if (!this.course?.modules) return;
         this.course.modules.forEach((module, mIdx) => {
             if (module.lessons) {
-                module.lessons.forEach((lesson: any) => {
+                module.lessons.forEach((lesson: CoursePlayerLesson) => {
                     this.allLessons.push({ ...lesson, moduleIndex: mIdx });
                 });
             }
         });
     }
 
-    loadProgress(tenantId: string) {
+    loadProgress(tenantId?: string) {
         this.progressService.getCourseProgress(this.courseId, tenantId).subscribe({
             next: (progress) => {
                 this.progress = progress;
@@ -137,7 +211,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                         this.allLessons.find((lesson) => !this.isLessonCompleted(this.getLessonId(lesson))) ||
                         this.allLessons[0];
                     if (nextLesson) {
-                        this.selectLesson(nextLesson, nextLesson.moduleIndex);
+                        this.selectLesson(nextLesson, nextLesson.moduleIndex ?? 0);
                     }
                 }
                 this.loading = false;
@@ -151,7 +225,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
     loadAiGeneratedLessons() {
         this.adaptiveService.getStudentLessons(this.courseId).subscribe({
-            next: (lessons: any[]) => {
+            next: (lessons: AdaptiveLesson[]) => {
                 this.aiGeneratedLessons = lessons;
                 this.syncActiveAdaptiveLesson();
                 if (this.activeAdaptiveLesson && this.pendingAdaptiveLessonId === this.getLessonId(this.activeLesson)) {
@@ -199,18 +273,18 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         });
     }
 
-    selectLesson(lesson: any, moduleIndex: number) {
+    selectLesson(lesson: CoursePlayerLesson, moduleIndex: number) {
+        this.persistCurrentLessonDraft();
         this.activeLesson = lesson;
         this.activeModuleIndex = moduleIndex;
         this.quizSubmitted = false;
         this.activeQuiz = null;
         this.quizAnswers = [];
         this.loadingQuiz = true;
+        this.loadNotesForCurrentLesson();
         this.syncActiveAdaptiveLesson();
         this.ensureBaseLessonContent();
         this.ensureAdaptiveLessonReady();
-
-        console.log('Selected Lesson:', lesson.title, 'Type:', lesson.type);
 
         // Handle Video URL
         if (lesson.type === 'video' && lesson.content) {
@@ -225,6 +299,11 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         // Auto-scroll to top of content
         const mainContent = document.querySelector('main');
         if (mainContent) mainContent.scrollTo(0, 0);
+
+        if (this.isCompactViewport && this.isSidebarOpen) {
+            this.isSidebarOpen = false;
+            this.persistPlayerPreferences();
+        }
     }
 
     loadQuiz(quizId: string) {
@@ -240,7 +319,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         });
     }
 
-    loadQuizForLesson(lesson: any) {
+    loadQuizForLesson(lesson: CoursePlayerLesson) {
         const lessonId = this.getLessonId(lesson);
         let quizId = null;
 
@@ -262,20 +341,28 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
     submitQuiz() {
         if (!this.activeQuiz) return;
+        const studentId = this.authService.getUser()?.studentId || '';
+        const tenantId = this.course?.tenantId || '';
+        if (!studentId || !tenantId) {
+            this.toastService.error('Quiz context is incomplete right now. Please refresh and try again.');
+            return;
+        }
         this.submittingQuiz = true;
         this.loadingQuiz = true;
 
         const payload = {
+            studentId,
             quizId: this.activeQuiz.id,
             courseId: this.courseId,
+            tenantId,
             answers: this.quizAnswers.map((selected, questionIndex) => ({
                 questionIndex,
                 selected,
             })),
         };
 
-        this.submissionService.submitQuiz(payload as any).subscribe({
-            next: (submission: any) => {
+        this.submissionService.submitQuiz(payload).subscribe({
+            next: (submission: QuizSubmissionResponse) => {
                 this.quizScore = submission.percentage || 0;
                 this.quizSubmitted = true;
                 this.submittingQuiz = false;
@@ -304,81 +391,65 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         });
     }
 
-    getSafeVideoUrl(url: string): SafeResourceUrl {
-        if (!url) return this.sanitizer.bypassSecurityTrustResourceUrl('');
-        
-        let embedUrl = url;
-        
-        // Robust YouTube matching
-        const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
-        if (ytMatch && ytMatch[1]) {
-            embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}`;
-        }
-        
-        return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+    getSafeVideoUrl(url: string): SafeResourceUrl | null {
+        const embedUrl = toEmbedVideoUrl(url);
+        return embedUrl
+            ? this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl)
+            : null;
     }
 
     // Helper to compare IDs safely
-    lessonsMatch(l1: any, l2: any): boolean {
-        if (!l1 || !l2) return false;
-        const id1 = l1.id || l1._id;
-        const id2 = l2.id || l2._id;
-        return id1 === id2;
+    lessonsMatch(l1: CoursePlayerLesson | null, l2: CoursePlayerLesson | null): boolean {
+        return lessonsMatch(l1, l2);
     }
 
-    getLessonId(lesson: any): string {
-        return lesson?.id || lesson?._id || '';
+    getLessonId(lesson: CoursePlayerLesson | AdaptiveLesson | null): string {
+        return getLessonId(lesson);
     }
 
     syncActiveAdaptiveLesson() {
-        if (!this.activeLesson) {
-            this.activeAdaptiveLesson = null;
-            return;
-        }
-        const lessonId = this.getLessonId(this.activeLesson);
-        const matchingLessons = this.aiGeneratedLessons.filter(
-            (lesson) => lesson.lessonId === lessonId || lesson.sourceTopic === this.activeLesson?.title
+        this.activeAdaptiveLesson = selectMatchingAdaptiveLesson(
+            this.activeLesson,
+            this.aiGeneratedLessons,
+            this.allLessons
         );
-
-        if (this.isFirstCourseLesson(this.activeLesson)) {
-            this.activeAdaptiveLesson =
-                matchingLessons.find((lesson) => lesson.generationType === 'base') ||
-                matchingLessons[0] ||
-                null;
-            return;
-        }
-
-        this.activeAdaptiveLesson =
-            matchingLessons.find((lesson) => lesson.generationType !== 'base') ||
-            matchingLessons[0] ||
-            null;
     }
 
-    get personalizedLessons(): any[] {
+    get personalizedLessons(): AdaptiveLesson[] {
         return this.aiGeneratedLessons.filter((lesson) => lesson?.generationType !== 'base');
     }
 
-    getNextLearningLesson(afterLesson: any): any | null {
-        const currentIndex = this.allLessons.findIndex((lesson) => this.lessonsMatch(lesson, afterLesson));
-        if (currentIndex === -1) {
-            return null;
-        }
+    get totalLessons(): number {
+        return this.allLessons.length;
+    }
 
-        for (let index = currentIndex + 1; index < this.allLessons.length; index += 1) {
-            const candidate = this.allLessons[index];
-            if (candidate?.type !== 'quiz') {
-                return candidate;
-            }
-        }
+    get completedLessonCount(): number {
+        return this.progress?.completedLessons?.length || 0;
+    }
 
-        return null;
+    get currentLessonNumber(): number {
+        const index = this.allLessons.findIndex((lesson) => this.lessonsMatch(lesson, this.activeLesson));
+        return index >= 0 ? index + 1 : 0;
+    }
+
+    get progressWidth(): number {
+        return this.progress?.progressPercentage || 0;
+    }
+
+    get activeModuleTitle(): string {
+        return this.course?.modules?.[this.activeModuleIndex]?.title || 'Current module';
+    }
+
+    get hasPersonalizedLessons(): boolean {
+        return this.personalizedLessons.length > 0;
+    }
+
+    getNextLearningLesson(afterLesson: CoursePlayerLesson | null): CoursePlayerLesson | null {
+        return getNextLearningLesson(this.allLessons, afterLesson);
     }
 
     findGeneratedQuizForLesson(lessonId: string): Quiz | null {
-        return (
-            this.studentQuizzes.find((quiz) => quiz.lessonId === lessonId && quiz.courseId === this.courseId) ||
-            null
-        );
+        return findGeneratedQuizForLesson(lessonId, this.studentQuizzes, this.courseId);
     }
 
     applyQuiz(quiz: Quiz) {
@@ -387,7 +458,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.loadingQuiz = false;
     }
 
-    openPersonalizedLesson(aiLesson: any) {
+    openPersonalizedLesson(aiLesson: AdaptiveLesson) {
         const matchingLesson =
             this.allLessons.find((lesson) => this.getLessonId(lesson) === aiLesson.lessonId) ||
             this.allLessons.find((lesson) => lesson.title === aiLesson.sourceTopic);
@@ -397,39 +468,24 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.selectLesson(matchingLesson, matchingLesson.moduleIndex);
+        this.selectLesson(matchingLesson, matchingLesson.moduleIndex ?? 0);
         this.activeAdaptiveLesson = aiLesson;
     }
 
-    isFirstCourseLesson(lesson: any): boolean {
-        return this.allLessons.length > 0 && this.lessonsMatch(this.allLessons[0], lesson);
+    isFirstCourseLesson(lesson: CoursePlayerLesson | null): boolean {
+        return isFirstCourseLesson(this.allLessons, lesson);
     }
 
-    getTeacherLessonSource(lesson: any): string {
-        return String(lesson?.description || lesson?.content || '').trim();
+    getTeacherLessonSource(lesson: CoursePlayerLesson | null): string {
+        return getTeacherLessonSource(lesson);
     }
 
-    shouldGenerateBaseLesson(lesson: any): boolean {
-        const textLessonTypes = ['document', 'reading', 'file', 'assignment'];
-        return Boolean(
-            lesson &&
-            this.isFirstCourseLesson(lesson) &&
-            (!lesson.type || textLessonTypes.includes(lesson.type)) &&
-            this.getTeacherLessonSource(lesson)
-        );
+    shouldGenerateBaseLesson(lesson: CoursePlayerLesson | null): boolean {
+        return shouldGenerateBaseLesson(this.allLessons, lesson);
     }
 
-    upsertAiGeneratedLesson(generatedLesson: any) {
-        this.aiGeneratedLessons = [
-            generatedLesson,
-            ...this.aiGeneratedLessons.filter((lesson) =>
-                lesson.id !== generatedLesson.id &&
-                !(
-                    lesson.lessonId === generatedLesson.lessonId &&
-                    lesson.generationType === generatedLesson.generationType
-                )
-            ),
-        ];
+    upsertAiGeneratedLesson(generatedLesson: AdaptiveLesson) {
+        this.aiGeneratedLessons = upsertAdaptiveLesson(this.aiGeneratedLessons, generatedLesson);
     }
 
     ensureBaseLessonContent() {
@@ -471,17 +527,12 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         });
     }
 
-    shouldWaitForAdaptiveLesson(lesson: any): boolean {
-        const textLessonTypes = ['document', 'reading', 'file', 'assignment'];
-        const lessonId = this.getLessonId(lesson);
-
-        return Boolean(
-            lesson &&
-            lessonId &&
-            this.pendingAdaptiveLessonId === lessonId &&
-            !this.activeAdaptiveLesson &&
-            !this.isFirstCourseLesson(lesson) &&
-            (!lesson.type || textLessonTypes.includes(lesson.type))
+    shouldWaitForAdaptiveLesson(lesson: CoursePlayerLesson | null): boolean {
+        return shouldWaitForAdaptiveLesson(
+            this.pendingAdaptiveLessonId,
+            this.activeAdaptiveLesson,
+            this.allLessons,
+            lesson
         );
     }
 
@@ -501,7 +552,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.isWaitingForAdaptiveLesson = true;
 
         this.adaptiveService.getStudentLessons(this.courseId).subscribe({
-            next: (lessons: any[]) => {
+            next: (lessons: AdaptiveLesson[]) => {
                 if (pollToken !== this.adaptiveLessonPollToken) {
                     return;
                 }
@@ -552,14 +603,18 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         return this.activeAdaptiveLesson?.title || this.activeLesson?.title || '';
     }
 
+    getActiveLessonId(): string {
+        return this.getLessonId(this.activeLesson);
+    }
+
     isLessonCompleted(lessonId: string): boolean {
         return this.progress?.completedLessons.includes(lessonId) || false;
     }
 
     markComplete() {
         if (!this.activeLesson) return;
-        const lessonId = this.activeLesson.id || this.activeLesson._id;
-        const tenantId = this.authService.getTenantId() || '';
+        const lessonId = this.getLessonId(this.activeLesson);
+        const tenantId = this.course?.tenantId;
         
         if (!lessonId) return;
 
@@ -567,7 +622,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
             next: (updatedProgress) => {
                 this.progress = updatedProgress;
 
-                if (this.activeLesson.type !== 'quiz') {
+                if (this.activeLesson?.type !== 'quiz') {
                     this.toastService.info('Preparing your lesson quiz...');
                     this.loadingQuiz = true;
                     this.quizSubmitted = false;
@@ -581,11 +636,44 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     }
 
     saveNotes() {
+        const storageKey = this.getCurrentLessonNotesStorageKey();
+        if (!storageKey) return;
         this.isSavingNotes = true;
-        localStorage.setItem(`notes_${this.courseId}`, this.userNotes);
+        this.coursePlayerStorage.saveLessonNotes(storageKey, this.userNotes);
+        this.lessonNoteDrafts[storageKey] = this.userNotes;
         setTimeout(() => {
             this.isSavingNotes = false;
         }, 800);
+    }
+
+    private getLessonNotesStorageKey(lesson: CoursePlayerLesson | null): string {
+        const lessonId = this.getLessonId(lesson);
+        return this.coursePlayerStorage.getLessonNotesStorageKey(this.courseId, lessonId);
+    }
+
+    private getCurrentLessonNotesStorageKey(): string {
+        return this.getLessonNotesStorageKey(this.activeLesson);
+    }
+
+    private persistCurrentLessonDraft() {
+        const storageKey = this.getCurrentLessonNotesStorageKey();
+        if (!storageKey) return;
+        this.lessonNoteDrafts[storageKey] = this.userNotes;
+    }
+
+    private loadNotesForCurrentLesson() {
+        const storageKey = this.getCurrentLessonNotesStorageKey();
+        if (!storageKey) {
+            this.userNotes = '';
+            return;
+        }
+
+        if (storageKey in this.lessonNoteDrafts) {
+            this.userNotes = this.lessonNoteDrafts[storageKey];
+            return;
+        }
+
+        this.userNotes = this.coursePlayerStorage.loadLessonNotes(storageKey);
     }
 
     sendChatMessage() {
@@ -601,8 +689,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         const lessonId = this.activeLesson?.id || this.activeLesson?._id;
 
         this.aiTutorService.sendMessage(message, this.courseId, lessonId).subscribe({
-            next: (response: any) => {
-                console.log('AI Tutor Response:', response);
+            next: (response: AiTutorMessageResponse) => {
                 this.chatMessages.push({
                     sender: 'AI',
                     text: response.response || response.reply || response.message || response.content || "I couldn't generate a response.",
@@ -610,7 +697,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                 });
                 this.isSendingChat = false;
             },
-            error: (err: any) => {
+            error: (err: unknown) => {
                 console.error('AI Tutor error:', err);
                 this.chatMessages.push({
                     sender: 'AI',
@@ -629,7 +716,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         const currentIndex = this.allLessons.findIndex(l => this.lessonsMatch(l, this.activeLesson));
         if (currentIndex !== -1 && currentIndex < this.allLessons.length - 1) {
             const next = this.allLessons[currentIndex + 1];
-            this.selectLesson(next, next.moduleIndex);
+            this.selectLesson(next, next.moduleIndex ?? 0);
         }
     }
 
@@ -637,7 +724,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         const currentIndex = this.allLessons.findIndex(l => this.lessonsMatch(l, this.activeLesson));
         if (currentIndex > 0) {
             const prev = this.allLessons[currentIndex - 1];
-            this.selectLesson(prev, prev.moduleIndex);
+            this.selectLesson(prev, prev.moduleIndex ?? 0);
         }
     }
 
@@ -657,6 +744,24 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
     toggleSidebar() {
         this.isSidebarOpen = !this.isSidebarOpen;
+        this.persistPlayerPreferences();
+    }
+
+    toggleAiAssistant() {
+        this.isAiAssistantOpen = !this.isAiAssistantOpen;
+        this.persistPlayerPreferences();
+    }
+
+    startAiAssistantResize(event: MouseEvent) {
+        event.preventDefault();
+        if (!this.isAiAssistantOpen || this.isCompactViewport) {
+            return;
+        }
+
+        this.isResizingAiAssistant = true;
+        document.body.classList.add('select-none', 'cursor-col-resize');
+        window.addEventListener('mousemove', this.handleAiAssistantResize);
+        window.addEventListener('mouseup', this.stopAiAssistantResize);
     }
 
     goBack() {

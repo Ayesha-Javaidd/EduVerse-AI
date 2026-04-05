@@ -4,13 +4,12 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { FiltersComponent } from '../../../../shared/components/filters/filters.component';
 import { CourseCardComponent, Course } from '../../components/course-card/course-card.component';
 import { CourseService, BackendCourse } from '../../../../core/services/course.service';
 import { AuthService } from '../../../auth/services/auth.service';
-import { StudentProgressService, CourseProgress } from '../../services/student-progress.service';
-import { forkJoin, map, catchError, of } from 'rxjs';
-import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
+import { forkJoin, catchError, of } from 'rxjs';
 import { CourseMetadataService } from '../../../../shared/services/course-metadata.service';
 
 @Component({
@@ -20,6 +19,7 @@ import { CourseMetadataService } from '../../../../shared/services/course-metada
     CommonModule,
     HeaderComponent,
     ButtonComponent,
+    StatCardComponent,
     FiltersComponent,
     CourseCardComponent
   ],
@@ -56,13 +56,17 @@ export class ExploreCoursesComponent implements OnInit {
   availableCourses: Course[] = []; // UPDATED: Initialized as empty
   filteredCourses: Course[] = [];
   loading: boolean = true;
+  stats = {
+    total: 0,
+    free: 0,
+    beginner: 0,
+    categories: 0
+  };
 
   constructor(
     private router: Router,
     private courseService: CourseService,
     private authService: AuthService,
-    private progressService: StudentProgressService,
-    private confirmDialogService: ConfirmDialogService,
     private courseMetadataService: CourseMetadataService
   ) { }
 
@@ -99,47 +103,31 @@ export class ExploreCoursesComponent implements OnInit {
   // UPDATED: Fetch all courses for the tenant that are not necessarily the student's enrolled ones
   loadAvailableCourses() {
     const user = this.authService.getUser();
-    const tenantId = this.authService.getTenantId();
 
     if (user) {
       this.profile.name = user.fullName || 'Student';
       this.profile.initials = this.profile.name.trim().charAt(0).toUpperCase();
 
       const studentId = user.studentId || user.id;
-      const isStudent = user.role === 'student';
-
-      // Prepare observables: Fetch all courses globally by passing an empty tenantId
-      const courses$ = this.courseService.getCourses('');
-      const studentCourses$ = isStudent ? this.courseService.getStudentCourses(studentId, tenantId || '').pipe(catchError(() => of([]))) : of([]);
-      const progress$ = isStudent && tenantId ? this.progressService.getAllProgress(tenantId).pipe(catchError(() => of([]))) : of([]);
+      const courses$ = this.courseService.getCourses();
+      const studentCourses$ = this.courseService.getStudentCourses(studentId).pipe(catchError(() => of([])));
 
       forkJoin({
         all: courses$,
-        enrolled: studentCourses$,
-        progress: progress$
+        enrolled: studentCourses$
       }).subscribe({
-        next: ({ all, enrolled, progress }) => {
-          const enrolledMap = new Map((enrolled || []).map(c => [c._id, c]));
-          const progressMap = new Map<string, CourseProgress>((progress || []).map(p => [p.courseId, p]));
+        next: ({ all, enrolled }) => {
+          const enrolledIds = new Set((enrolled || []).map(c => c._id));
 
-          this.availableCourses = (all || []).map(bc => {
-            const course = this.mapToFrontendCourse(bc);
-            const en = enrolledMap.get(bc._id);
-            if (en) {
-              // Mark as enrolled variant to show progress
-              course.variant = 'enrolled';
-              course.nextLesson = en.nextLesson;
-
-              const prog = progressMap.get(bc._id);
-              if (prog) {
-                course.progress = prog.progressPercentage;
-                course.lessonsCompleted = prog.completedLessons.length;
-              }
-            }
-            return course;
-          });
+          this.availableCourses = (all || [])
+            .filter((course) => !enrolledIds.has(course._id))
+            .map((course) => ({
+              ...this.mapToFrontendCourse(course),
+              variant: 'explore' as const
+            }));
 
           this.filteredCourses = [...this.availableCourses];
+          this.calculateStats();
           this.loading = false;
         },
         error: (err) => {
@@ -170,6 +158,15 @@ export class ExploreCoursesComponent implements OnInit {
     };
   }
 
+  private calculateStats() {
+    const uniqueCategories = new Set(this.availableCourses.map((course) => course.category));
+
+    this.stats.total = this.availableCourses.length;
+    this.stats.free = this.availableCourses.filter((course) => (course.price || 0) === 0).length;
+    this.stats.beginner = this.availableCourses.filter((course) => course.level === 'Beginner').length;
+    this.stats.categories = uniqueCategories.size;
+  }
+
   // Handle filter changes
   onFiltersChange(filters: { [key: string]: string }) {
     let filtered = [...this.availableCourses];
@@ -180,7 +177,7 @@ export class ExploreCoursesComponent implements OnInit {
       filtered = filtered.filter(c =>
         c.title.toLowerCase().includes(query) ||
         c.category.toLowerCase().includes(query) ||
-        (c.tenantId && c.tenantId.toLowerCase().includes(query)) ||
+        (c.instructor && c.instructor.toLowerCase().includes(query)) ||
         (c.description && c.description.toLowerCase().includes(query))
       );
     }
@@ -203,34 +200,8 @@ export class ExploreCoursesComponent implements OnInit {
     this.router.navigate(['/student/enroll-course', course.id]);
   }
 
-  async onEnrollClick(course: Course) {
-    const user = this.authService.getUser();
-    const tenantId = this.authService.getTenantId();
-
-    if (user) {
-      const confirmEnroll = await this.confirmDialogService.confirm('Confirm Enrollment', `Are you sure you want to enroll in "${course.title}"?`);
-      if (!confirmEnroll) return;
-
-      const studentId = user.studentId || user.id;
-
-      // Use the course's tenantId for enrollment, not the student's
-      const courseTenantId = course.tenantId || tenantId;
-
-      // UPDATED: Now calling real enrollment endpoint with global context
-      this.courseService.enrollStudent(course.id, studentId, courseTenantId || '').subscribe({
-        next: async (res) => {
-
-          await this.confirmDialogService.alert(`Successfully enrolled in: ${course.title}`, 'Success', 'info');
-          this.router.navigate(['/student/courses']);
-        },
-        error: async (err) => {
-          console.error('Enrollment failed', err);
-          await this.confirmDialogService.alert(`Enrollment failed: ${err.error?.detail || 'Unknown error'}`, 'Error', 'danger');
-        }
-      });
-    } else {
-      this.router.navigate(['/login']);
-    }
+  onEnrollClick(course: Course) {
+    this.onCourseClick(course);
   }
 
   navigateToMyCourses() {

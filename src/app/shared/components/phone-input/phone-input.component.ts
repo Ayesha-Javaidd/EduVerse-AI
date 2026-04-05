@@ -6,6 +6,7 @@ import { normalizeCountryIso2 } from '../../constants/countries';
 
 type IntlTelCountry = ReturnType<typeof intlTelInput.getCountryData>[number];
 type IntlTelCountryIso2 = IntlTelCountry['iso2'];
+type IntlTelInstance = ReturnType<typeof intlTelInput>;
 const PHONE_WRAPPER_CLASSES = ['w-full'];
 const PHONE_SELECTED_COUNTRY_CLASSES = ['rounded-l-xl', 'pl-3'];
 const PHONE_COUNTRY_LIST_CLASSES = [
@@ -110,7 +111,7 @@ export class PhoneInputComponent implements AfterViewInit, OnDestroy, ControlVal
     this.syncCountryFromInput();
   }
 
-  private iti: any;
+  private iti!: IntlTelInstance;
   private isDisabled = false;
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};

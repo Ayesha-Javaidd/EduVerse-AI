@@ -43,17 +43,14 @@
                   class="h-10 w-10 min-w-10 rounded-full bg-[#23A997]/10 flex items-center justify-center text-[#23A997] font-bold text-[14px] tracking-wide relative">
                   <!-- Light subtle green inner shadow simulation to match mockup -->
                   <div class="absolute inset-0 rounded-full border border-[#23A997]/20"></div>
-                  {{ (row[col.key] && row[col.key] !== 'SP') ? row[col.key].charAt(0).toUpperCase() :
-                  (row['fullName'] ? row['fullName'].charAt(0).toUpperCase() :
-                  (row['studentName'] ? row['studentName'].charAt(0).toUpperCase() :
-                  (row['name'] ? row['name'].charAt(0).toUpperCase() : 'S'))) }}
+                  {{ getAvatarInitial(row, col.key) }}
                 </div>
                 <div class="ml-4 truncate">
                   <div class="text-[14px] font-bold text-[#181F39] truncate">
-                    {{ row["fullName"] || row["studentName"] || row["name"] }}
+                    {{ getPrimaryLabel(row) }}
                   </div>
                   <div class="text-[13px] text-[#64748b] font-medium mt-0.5 truncate border-transparent">
-                    {{ row["email"] }}
+                    {{ getTextValue(row, 'email') }}
                   </div>
                 </div>
               </div>
@@ -63,37 +60,33 @@
             <ng-container *ngIf="col.type === 'progress'">
               <div class="flex items-center space-x-2">
                 <div class="w-32 bg-gray-200 rounded-full h-2.5">
-                  <div class="h-2.5 rounded-full" [ngClass]="getProgressColor(row[col.key])"
-                    [style.width.%]="row[col.key]"></div>
+                  <div class="h-2.5 rounded-full" [ngClass]="getProgressColor(getNumberValue(row, col.key))"
+                    [style.width.%]="getNumberValue(row, col.key)"></div>
                 </div>
-                <span class="text-sm font-medium">{{ row[col.key] }}%</span>
+                <span class="text-sm font-medium">{{ getNumberValue(row, col.key) }}%</span>
               </div>
             </ng-container>
 
             <!-- Badge -->
             <ng-container *ngIf="col.type === 'badge'">
               <span class="inline-flex px-3 py-1 text-[11px] font-bold uppercase rounded-[6px] border shadow-sm"
-                [ngClass]="{
-                  'bg-[#23A997]/10 text-[#23A997] border-[#23A997]/20': ['active', 'published', 'enrolled', 'upcoming'].includes(row[col.key]?.toLowerCase()),
-                  'bg-slate-100 text-[#64748b] border-slate-200': ['inactive', 'draft', 'dropped', 'graduated', 'completed'].includes(row[col.key]?.toLowerCase()),
-                  'bg-[#f8fafc] text-[#181F39] border-[#e2e8f0]': !['active', 'published', 'enrolled', 'upcoming', 'inactive', 'draft', 'dropped', 'graduated', 'completed'].includes(row[col.key]?.toLowerCase())
-                }">
-                {{ row[col.key] }}
+                [ngClass]="getBadgeClass(row, col.key)">
+                {{ getTextValue(row, col.key) }}
               </span>
             </ng-container>
 
             <!-- Date -->
             <ng-container *ngIf="col.type === 'date'">
-              {{ row[col.key] | date : "yyyy-MM-dd" }}
+              {{ getCellValue(row, col.key) | date : "yyyy-MM-dd" }}
             </ng-container>
 
             <!-- Default text -->
             <ng-container *ngIf="!col.type || col.type === 'text'">
               <span *ngIf="col.key === 'courses' || col.key === 'courseCount'" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-[#181F39] font-bold text-sm">
-                {{ row[col.key] !== null && row[col.key] !== undefined ? row[col.key] : '1' }}
+                {{ getCellValue(row, col.key) !== null && getCellValue(row, col.key) !== undefined ? getCellValue(row, col.key) : '1' }}
               </span>
               <span *ngIf="col.key !== 'courses' && col.key !== 'courseCount'" class="text-[#64748b] font-medium whitespace-nowrap">
-                {{ row[col.key] !== null && row[col.key] !== undefined ? row[col.key] : "" }}
+                {{ getTextValue(row, col.key) }}
               </span>
             </ng-container>
 
@@ -109,7 +102,7 @@
 
             <!-- Action as link -->
             <ng-container *ngIf="col.type === 'link'">
-              <a [routerLink]="[col.link, row.id]" class="text-blue-500 hover:underline font-medium">
+              <a [routerLink]="[col.link, getRowId(row)]" class="text-blue-500 hover:underline font-medium">
                 View Details
               </a>
             </ng-container>

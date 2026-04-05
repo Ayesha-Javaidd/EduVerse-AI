@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 
 export interface PendingTaskItem {
   id: string;
-  type: 'quiz' | 'assignment';
+  type: 'quiz';
   title: string;
   courseName: string;
   dueDate: Date;

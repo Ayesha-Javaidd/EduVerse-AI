@@ -112,9 +112,9 @@
                                 <span *ngIf="field.required" class="text-red-500">*</span>
                             </label>
                             <div class="space-y-3 mt-1">
-                                <div *ngFor="let item of formData[field.name]; let i = index; trackBy: trackByFn"
+                                <div *ngFor="let item of getArrayFieldValues(field.name); let i = index; trackBy: trackByFn"
                                     class="flex gap-2">
-                                    <input type="text" [(ngModel)]="formData[field.name][i]" [name]="field.name + '_' + i"
+                                    <input type="text" [ngModel]="item" (ngModelChange)="updateArrayFieldValue(field.name, i, $event)" [name]="field.name + '_' + i"
                                         class="flex-1 px-4 h-[46px] bg-white border border-[#cbd5e1] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#23A997]/20 focus:border-[#23A997] transition-all"
                                         [placeholder]="field.placeholder || 'Enter ' + field.label" />
                                     <button type="button" (click)="removeArrayItem(field.name, i)"

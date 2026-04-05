@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { NotificationsComponent, PendingTaskItem } from '../../components/notifications/notifications.component';
 import { ProgressSnapshotComponent } from '../../components/progress-snapshot/progress-snapshot.component';
 import { ContinueLearningComponent } from '../../components/continue-learning/continue-learning.component';
@@ -8,12 +9,12 @@ import { CoursesCardComponent, Course } from '../../components/courses-card/cour
 import { CommonModule } from '@angular/common';
 import { CourseService } from '../../../../core/services/course.service';
 import { AuthService } from '../../../auth/services/auth.service';
-import { QuizService } from '../../../teacher/services/quiz.service';
+import { QuizService, Quiz } from '../../services/quiz.service';
 import { QuizSubmissionService } from '../../services/quiz-submission.service';
-import { AssignmentService } from '../../../../shared/services/assignment.service';
 import { forkJoin } from 'rxjs';
 import { StudentProgressService, CourseProgress } from '../../services/student-progress.service';
 import { ContinueCourse } from '../../components/continue-learning/continue-learning.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-student-dashboard',
@@ -22,6 +23,7 @@ import { ContinueCourse } from '../../components/continue-learning/continue-lear
     CommonModule,
     HeaderComponent,
     StatCardComponent,
+    ButtonComponent,
     NotificationsComponent,
     ProgressSnapshotComponent,
     ContinueLearningComponent,
@@ -36,25 +38,25 @@ export class StudentDashboardComponent implements OnInit {
       title: 'Courses Enrolled',
       value: '0',
       icon: 'fas fa-graduation-cap',
-      bgColor: 'bg-blue-50',
-      iconBgClass: 'bg-blue-100',
-      iconColorClass: 'text-blue-600',
-    },
-    {
-      title: 'Assignments Due',
-      value: '0', // TODO: Implement Assignment Service logic similar to Quizzes
-      icon: 'fas fa-book-open',
-      bgColor: 'bg-purple-50',
-      iconBgClass: 'bg-purple-100',
-      iconColorClass: 'text-purple-600',
+      bgColor: 'bg-white',
+      iconBgClass: 'bg-[#ecf9f6]',
+      iconColorClass: 'text-[#23A997]',
     },
     {
       title: 'Pending Quizzes',
+      value: '0', // TODO: Implement Assignment Service logic similar to Quizzes
+      icon: 'fas fa-clipboard-question',
+      bgColor: 'bg-white',
+      iconBgClass: 'bg-amber-100',
+      iconColorClass: 'text-amber-600',
+    },
+    {
+      title: 'Completed Courses',
       value: '0',
-      icon: 'fas fa-chalkboard-teacher',
-      bgColor: 'bg-orange-50',
-      iconBgClass: 'bg-orange-100',
-      iconColorClass: 'text-orange-600',
+      icon: 'fas fa-circle-check',
+      bgColor: 'bg-white',
+      iconBgClass: 'bg-[#ecf9f6]',
+      iconColorClass: 'text-[#23A997]',
     },
   ];
 
@@ -62,13 +64,14 @@ export class StudentDashboardComponent implements OnInit {
   pendingTasks: PendingTaskItem[] = [];
   continueCourses: ContinueCourse[] = [];
   recommendations: Course[] = []; // Initially empty
+  hasEnrolledCourses: boolean = false;
 
   constructor(
+    private router: Router,
     private courseService: CourseService,
     private authService: AuthService,
     private quizService: QuizService,
     private submissionService: QuizSubmissionService,
-    private assignmentService: AssignmentService,
     private progressService: StudentProgressService
   ) { }
 
@@ -76,17 +79,35 @@ export class StudentDashboardComponent implements OnInit {
     this.loadDashboardData();
   }
 
+  private getPendingQuizTitle(quiz: Quiz): string {
+    const topic = quiz.topic?.trim();
+    const description = quiz.description?.trim();
+
+    if (topic) {
+      return topic;
+    }
+
+    if (description) {
+      return description;
+    }
+
+    if (quiz.quizNumber !== undefined && quiz.quizNumber !== null) {
+      return `Quiz ${quiz.quizNumber}`;
+    }
+
+    return 'Course Quiz';
+  }
+
   // UPDATED: New method to load dashboard data from backend with proper types
   loadDashboardData() {
     const user = this.authService.getUser();
-    const tenantId = this.authService.getTenantId() || '';
 
     if (user) {
       // Use studentId if available, otherwise fallback to user.id (though backend expects studentId)
       const studentId = user.studentId || user.id;
 
       // 1. Fetch Enrolled Courses
-      this.courseService.getStudentCourses(studentId, tenantId).subscribe({
+      this.courseService.getStudentCourses(studentId).subscribe({
         next: (courses: any[]) => {
           this.statsCards[0].value = courses.length.toString();
         },
@@ -95,75 +116,63 @@ export class StudentDashboardComponent implements OnInit {
 
       // 2. Tasks & Deadlines Pipeline
       forkJoin({
-        quizzes: this.quizService.getStudentAvailableQuizzes(),
+        quizzes: this.quizService.getMyQuizzes(),
         quizSubs: this.submissionService.getSubmissionsByStudent(studentId),
-        assignmentsResp: this.assignmentService.getAssignments({ tenantId: tenantId, status: 'active' }),
-        assignmentSubs: this.assignmentService.getMySubmissions()
+        enrolledCourses: this.courseService.getStudentCourses(studentId),
       }).subscribe({
-        next: ({ quizzes, quizSubs, assignmentsResp, assignmentSubs }) => {
-          // A. Filter Quizzes
+        next: ({ quizzes, quizSubs, enrolledCourses }) => {
           const pendingQuizzes = quizzes.filter(q => !quizSubs.some(s => s.quizId === q.id));
-          this.statsCards[2].value = pendingQuizzes.length.toString();
+          this.statsCards[1].value = pendingQuizzes.length.toString();
 
-          // B. Filter Assignments
-          const assignments = assignmentsResp.data || [];
-          const pendingAssignments = assignments.filter(a => !assignmentSubs.some(s => s.assignmentId === a.id));
-          this.statsCards[1].value = pendingAssignments.length.toString();
+          const courseNameById = new Map<string, string>(
+            enrolledCourses.map((course: any) => [
+              course._id || course.id,
+              course.title || course.courseName || 'Course',
+            ])
+          );
 
-          // C. Build Timeline
-          const combinedTasks: PendingTaskItem[] = [
-            ...pendingQuizzes.map(q => ({
-               id: q.id,
-               type: 'quiz' as const,
-               title: q.description || `Quiz ${q.quizNumber}`,
-               courseName: q.courseName || 'Course Assessment',
-               dueDate: new Date(q.dueDate),
-               icon: 'fa-solid fa-clock',
-               iconBgClass: 'bg-orange-200',
-               iconColorClass: 'text-orange-600',
-               bgClass: 'bg-orange-50',
-               route: `/student/quizzes`
-            })),
-            ...pendingAssignments.map(a => ({
-               id: a.id,
-               type: 'assignment' as const,
-               title: a.title,
-               courseName: a.courseName || 'Course Assignment',
-               dueDate: new Date(a.dueDate),
-               icon: 'fa-solid fa-book-open',
-               iconBgClass: 'bg-purple-200',
-               iconColorClass: 'text-purple-600',
-               bgClass: 'bg-purple-50',
-               route: `/student/assignments`
+          const quizTasks: PendingTaskItem[] = pendingQuizzes
+            .map(q => ({
+              id: q.id,
+              type: 'quiz' as const,
+              title: this.getPendingQuizTitle(q),
+              courseName: courseNameById.get(q.courseId) || 'Course',
+              dueDate: new Date(q.generatedAt || Date.now()),
+              icon: 'fa-solid fa-clock',
+              iconBgClass: 'bg-[#ecf9f6]',
+              iconColorClass: 'text-[#23A997]',
+              bgClass: 'bg-white',
+              route: `/student/learn/${q.courseId}`
             }))
-          ];
+            .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
 
-          // Sort by Due Date ascending (soonest first)
-          combinedTasks.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
-
-          this.pendingTasks = combinedTasks.slice(0, 4);
+          this.pendingTasks = quizTasks.slice(0, 4);
         },
         error: (err) => console.error('Error loading tasks pipeline', err)
       });
 
       // 4. Fetch Dashboard Widgets Data (Courses, Progress, Recommendations)
       forkJoin({
-        enrolled: this.courseService.getStudentCourses(studentId, tenantId),
-        progress: this.progressService.getAllProgress(tenantId),
-        allCourses: this.courseService.getCourses(tenantId)
+        enrolled: this.courseService.getStudentCourses(studentId),
+        progress: this.progressService.getAllProgress(),
+        allCourses: this.courseService.getCourses()
       }).subscribe({
         next: ({ enrolled, progress, allCourses }) => {
+          this.hasEnrolledCourses = enrolled.length > 0;
+
           // A. Calculate Progress Snapshot
           if (progress.length > 0) {
             const totalProgress = progress.reduce((sum: number, p: CourseProgress) => sum + p.progressPercentage, 0);
             this.overallProgress = Math.round(totalProgress / progress.length);
           }
+          this.statsCards[2].value = progress.filter((p: CourseProgress) => p.progressPercentage >= 100).length.toString();
 
           // B. Continue Learning (Top 2 Active Courses)
           const progressMap = new Map<string, CourseProgress>(progress.map((p: CourseProgress) => [p.courseId, p]));
           const activeCourses = enrolled.map((c: any) => {
             const p = progressMap.get(c._id);
             return {
+               id: c._id,
                title: c.title,
                lesson: p ? `Completed ${p.completedLessons.length} lessons` : 'Start learning',
                progress: p ? p.progressPercentage : 0,
@@ -192,6 +201,14 @@ export class StudentDashboardComponent implements OnInit {
         error: (err) => console.error('Error loading dashboard widgets', err)
       });
     }
+  }
+
+  navigateToExplore() {
+    this.router.navigate(['/student/explore-courses']);
+  }
+
+  navigateToMyCourses() {
+    this.router.navigate(['/student/courses']);
   }
 }
 

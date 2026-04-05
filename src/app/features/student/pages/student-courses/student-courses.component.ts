@@ -73,7 +73,6 @@ export class StudentCoursesComponent implements OnInit {
   // UPDATED: New method to fetch courses from backend
   loadStudentCourses() {
     const user = this.authService.getUser();
-    const tenantId = this.authService.getTenantId() || '';
 
     if (user) {
       this.profile.name = user.fullName || 'Student';
@@ -82,8 +81,8 @@ export class StudentCoursesComponent implements OnInit {
       const studentId = user.studentId || user.id;
 
       forkJoin({
-        courses: this.courseService.getStudentCourses(studentId, tenantId),
-        progress: this.progressService.getAllProgress(tenantId)
+        courses: this.courseService.getStudentCourses(studentId),
+        progress: this.progressService.getAllProgress()
       }).subscribe({
         next: ({ courses, progress }: { courses: BackendCourse[], progress: CourseProgress[] }) => {
           const progressMap = new Map<string, CourseProgress>(progress.map(p => [p.courseId, p]));

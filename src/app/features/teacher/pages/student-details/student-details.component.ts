@@ -23,7 +23,6 @@ export class StudentDetailsComponent implements OnInit {
   error: string | null = null;
   readonly tablePageSize: number = 5;
   quizPages: Record<string, number> = {};
-  assignmentPages: Record<string, number> = {};
 
   // Columns for tables
   quizColumns: TableColumn[] = [
@@ -31,10 +30,6 @@ export class StudentDetailsComponent implements OnInit {
     { key: 'scoreDisplay', label: 'Score', type: 'text' },
   ];
 
-  assignmentColumns: TableColumn[] = [
-    { key: 'title', label: 'Title', type: 'text' },
-    { key: 'scoreDisplay', label: 'Score', type: 'text' },
-  ];
   constructor(
     private route: ActivatedRoute, 
     private router: Router,
@@ -71,7 +66,6 @@ export class StudentDetailsComponent implements OnInit {
           ...course,
           courseName: course.courseName || 'Untitled Course',
           quizzes: course.quizzes || [],
-          assignments: course.assignments || [],
         }));
         this.courses = this.selectedCourse
           ? normalizedCourses.filter((course) => course.courseName === this.selectedCourse)
@@ -104,26 +98,13 @@ export class StudentDetailsComponent implements OnInit {
     this.quizPages[courseId] = page;
   }
 
-  getAssignmentPage(courseId: string): number {
-    return this.assignmentPages[courseId] || 1;
-  }
-
-  setAssignmentPage(courseId: string, page: number): void {
-    this.assignmentPages[courseId] = page;
-  }
-
   getTotalItems(course: DetailedCoursePerformance): number {
-    return (course.quizzes?.length || 0) + (course.assignments?.length || 0);
+    return course.quizzes?.length || 0;
   }
 
   getTotalQuizCount(): number {
     return this.courses.reduce((total, course) => total + (course.quizzes?.length || 0), 0);
   }
-
-  getTotalAssignmentCount(): number {
-    return this.courses.reduce((total, course) => total + (course.assignments?.length || 0), 0);
-  }
-
   getScopeCopy(): string {
     if (this.selectedCourse) {
       return `Showing performance for ${this.selectedCourse}.`;

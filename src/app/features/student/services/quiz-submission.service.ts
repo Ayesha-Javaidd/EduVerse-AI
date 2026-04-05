@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { ENDPOINTS } from '../../../core/constants/api.constants';
 
 import {
   QuizSubmission,
@@ -25,9 +26,6 @@ import {
   providedIn: 'root',
 })
 export class QuizSubmissionService {
-  // Base URL for quiz submission endpoints
-  private readonly API_URL = 'http://localhost:8000/quiz-submissions';
-
   constructor(private http: HttpClient) {}
 
   // ========================
@@ -45,7 +43,7 @@ export class QuizSubmissionService {
    * @returns Observable<QuizSubmission> - Graded submission with score
    */
   submitQuiz(payload: QuizSubmissionCreate): Observable<QuizSubmission> {
-    return this.http.post<QuizSubmission>(this.API_URL, payload);
+    return this.http.post<QuizSubmission>(ENDPOINTS.QUIZ_SUBMISSIONS.BASE, payload);
   }
 
   // ========================
@@ -65,7 +63,7 @@ export class QuizSubmissionService {
     if (sort) {
       params = params.set('sort', sort);
     }
-    return this.http.get<QuizSubmission[]>(`${this.API_URL}/quiz/${quizId}`, {
+    return this.http.get<QuizSubmission[]>(`${ENDPOINTS.QUIZ_SUBMISSIONS.BASE}/quiz/${quizId}`, {
       params,
     });
   }
@@ -88,7 +86,7 @@ export class QuizSubmissionService {
       params = params.set('sort', sort);
     }
     return this.http.get<QuizSubmission[]>(
-      `${this.API_URL}/student/${studentId}`,
+      `${ENDPOINTS.QUIZ_SUBMISSIONS.BASE}/student/${studentId}`,
       { params },
     );
   }
@@ -103,7 +101,7 @@ export class QuizSubmissionService {
    */
   deleteSubmission(submissionId: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(
-      `${this.API_URL}/${submissionId}`,
+      `${ENDPOINTS.QUIZ_SUBMISSIONS.BASE}/${submissionId}`,
     );
   }
 
@@ -120,7 +118,7 @@ export class QuizSubmissionService {
   getQuizSummary(quizId: string, topN: number = 5): Observable<QuizSummary> {
     const params = new HttpParams().set('top_n', topN.toString());
     return this.http.get<QuizSummary>(
-      `${this.API_URL}/summary/quiz/${quizId}`,
+      `${ENDPOINTS.QUIZ_SUBMISSIONS.BASE}/summary/quiz/${quizId}`,
       {
         params,
       },
@@ -143,7 +141,7 @@ export class QuizSubmissionService {
   ): Observable<StudentAnalytics> {
     const params = new HttpParams().set('recent', recent.toString());
     return this.http.get<StudentAnalytics>(
-      `${this.API_URL}/analytics/student/${studentId}`,
+      `${ENDPOINTS.QUIZ_SUBMISSIONS.BASE}/analytics/student/${studentId}`,
       { params },
     );
   }

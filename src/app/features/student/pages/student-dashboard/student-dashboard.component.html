@@ -1,34 +1,63 @@
-<div class="transition-all min-h-screen bg-gray-50">
-  <!-- Header -->
+<div class="flex min-h-screen flex-col animate-fade-in">
   <app-header pageTitle="Dashboard"></app-header>
 
-  <main class="px-6 py-6 space-y-8 max-w-7xl mx-auto">
-    <!-- Top Section: Stats (Left) + Progress Snapshot (Right) -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-      <!-- Left Column: Stats + Notifications -->
-      <div class="lg:col-span-2 flex flex-col gap-8">
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-          <app-stat-card *ngFor="let stat of statsCards" [title]="stat.title" [value]="stat.value"
-            [bgColor]="stat.bgColor" [icon]="stat.icon" [iconBgClass]="stat.iconBgClass"
-            [iconColorClass]="stat.iconColorClass"></app-stat-card>
+  <main class="p-6">
+    <div class="mx-auto flex max-w-7xl flex-col gap-6">
+      <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h2 class="text-3xl font-bold tracking-tight text-[#181F39]">Keep your learning momentum going</h2>
+          <p class="mt-2 text-sm text-slate-500">
+            Track what is due next, pick up where you left off, and discover the next courses worth exploring.
+          </p>
         </div>
 
-        <!-- Notifications -->
-        <app-notifications [pendingTasks]="pendingTasks"></app-notifications>
-      </div>
+        <div class="flex flex-wrap gap-3">
+          <app-button
+            variant="outline"
+            size="md"
+            (buttonClick)="navigateToMyCourses()"
+            [class]="'rounded-full border-[#dbe4ea] bg-white px-5 text-slate-700 hover:bg-slate-50'">
+            <i class="fa-solid fa-book mr-2"></i>
+            My Courses
+          </app-button>
+          <app-button
+            size="md"
+            (buttonClick)="navigateToExplore()"
+            [class]="'rounded-full bg-[#23A997] px-5 text-white hover:bg-[#1e9585] focus:ring-[#23A997]'">
+            <i class="fa-solid fa-compass mr-2"></i>
+            Explore Courses
+          </app-button>
+        </div>
+      </section>
 
-      <!-- Right Column: Progress + Continue Learning -->
-      <div class="flex flex-col gap-8">
-        <app-progress-snapshot [progress]="overallProgress"></app-progress-snapshot>
-        <app-continue-learning [courses]="continueCourses"></app-continue-learning>
-      </div>
-    </div>
+      <section class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+        <app-stat-card
+          *ngFor="let stat of statsCards"
+          [title]="stat.title"
+          [value]="stat.value"
+          [bgColor]="stat.bgColor"
+          [icon]="stat.icon"
+          [iconBgClass]="stat.iconBgClass"
+          [iconColorClass]="stat.iconColorClass">
+        </app-stat-card>
+      </section>
 
-    <!-- Bottom Section: Recommended Courses -->
-    <div>
+      <section class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.9fr)_minmax(280px,0.82fr)] xl:items-stretch">
+        <app-notifications class="block h-full" [pendingTasks]="pendingTasks"></app-notifications>
 
-      <app-courses-card [recommendations]="recommendations"></app-courses-card>
+        <app-progress-snapshot class="block h-full" [progress]="overallProgress"></app-progress-snapshot>
+      </section>
+
+      <section>
+        <app-continue-learning
+          [courses]="continueCourses"
+          [hasEnrolledCourses]="hasEnrolledCourses">
+        </app-continue-learning>
+      </section>
+
+      <section>
+        <app-courses-card [recommendations]="recommendations"></app-courses-card>
+      </section>
     </div>
   </main>
 </div>

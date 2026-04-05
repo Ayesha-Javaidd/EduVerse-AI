@@ -1,21 +1,16 @@
-<div *ngIf="isVisible" class="fixed inset-0 z-[110] flex items-center justify-center animate-fade-in">
-    <!-- Backdrop -->
+<div *ngIf="isVisible" class="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-fade-in">
     <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" (click)="onCancel()"></div>
 
-    <!-- Dialog -->
-    <div class="relative bg-white rounded-[24px] shadow-2xl max-w-md w-full mx-4 transform transition-all">
-        <div class="p-6">
-            <!-- Icon -->
-            <div class="flex justify-center mb-4">
-                <div class="w-12 h-12 rounded-full flex items-center justify-center" [ngClass]="getIconBgClass()">
-                    <!-- Warning Icon -->
-                    <svg *ngIf="config?.type === 'warning' || config?.type === 'danger'" class="w-6 h-6"
+    <div class="relative w-full max-w-[30rem] overflow-hidden rounded-[28px] border border-[#dbe4ea] bg-white shadow-2xl animate-scale-in">
+        <div class="p-6 sm:p-7">
+            <div class="mb-4 flex justify-center">
+                <div class="flex h-12 w-12 items-center justify-center rounded-full" [ngClass]="getIconBgClass()">
+                    <svg *ngIf="config?.type === 'warning' || config?.type === 'danger'" class="h-6 w-6"
                         [ngClass]="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    <!-- Info Icon -->
-                    <svg *ngIf="config?.type === 'info'" class="w-6 h-6" [ngClass]="getIconClass()" fill="none"
+                    <svg *ngIf="config?.type === 'info'" class="h-6 w-6" [ngClass]="getIconClass()" fill="none"
                         stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -23,24 +18,22 @@
                 </div>
             </div>
 
-            <!-- Title -->
-            <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">
+            <h3 class="text-center text-xl font-bold tracking-tight text-[#181F39] sm:text-[1.75rem]">
                 {{ config?.title || 'Confirm Action' }}
             </h3>
 
-            <!-- Message -->
-            <p class="text-gray-600 text-center mb-6">
+            <p class="mx-auto mt-3 max-w-[24rem] text-center text-sm leading-7 text-slate-500">
                 {{ config?.message || 'Are you sure you want to proceed?' }}
             </p>
 
-            <!-- Buttons -->
-            <div class="flex gap-3 justify-center pt-2">
+            <div class="mt-6 grid gap-3 sm:grid-cols-2">
                 <button *ngIf="!config?.hideCancel" (click)="onCancel()"
-                    class="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-medium transition-colors">
+                    class="inline-flex items-center justify-center rounded-full border border-[#dbe4ea] bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
                     {{ config?.cancelText || 'Cancel' }}
                 </button>
-                <button (click)="onConfirm()" class="px-6 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
-                    [ngClass]="getConfirmButtonClass()">
+                <button (click)="onConfirm()"
+                    class="inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+                    [ngClass]="[getConfirmButtonClass(), config?.hideCancel ? 'sm:col-span-2' : '']">
                     {{ config?.confirmText || 'Confirm' }}
                 </button>
             </div>

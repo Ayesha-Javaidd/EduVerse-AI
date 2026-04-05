@@ -28,7 +28,7 @@ import {
 } from '../../models/teacher-profile.models';
 
 import { StudentProfileService } from '../../services/student-profile-service';
-import { AdminService } from '../../services/admin-profile.service';
+import { AdminProfileService } from '../../services/admin-profile.service';
 import { TeacherProfileService } from '../../services/teacher-profile.service';
 
 @Component({
@@ -52,7 +52,7 @@ export class ProfileFormComponent implements OnInit {
     private toastService: ToastService,
     private authService: AuthService,
     private studentService: StudentProfileService,
-    private adminService: AdminService,
+    private adminService: AdminProfileService,
     private teacherService: TeacherProfileService,
   ) {}
 
@@ -98,7 +98,7 @@ export class ProfileFormComponent implements OnInit {
     }
 
     service$.pipe(finalize(() => (this.isLoading = false))).subscribe({
-      next: (profile: any) => {
+      next: (profile) => {
         this.profileForm.patchValue({
           fullName: profile.fullName ?? '',
           email: profile.email ?? '',

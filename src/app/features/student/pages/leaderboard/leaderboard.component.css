@@ -1,47 +1,5 @@
-.toggle-checkbox {
-  appearance: none;
-  width: 36px;
-  height: 18px;
-  background-color: #d1d5db;
-  border-radius: 9999px;
-  position: relative;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-.toggle-checkbox::before {
-  content: "";
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  top: 1px;
-  left: 1px;
-  border-radius: 50%;
-  background: white;
-  transition: transform 0.3s ease;
-}
-.toggle-checkbox:checked {
-  background-color: #3b82f6;
-}
-.toggle-checkbox:checked::before {
-  transform: translateX(18px);
-}
 :host {
   display: block;
-  overflow-x: hidden;
-  /* Prevent horizontal scroll */
-}
-
-body,
-html {
-  overflow-x: hidden;
-}
-
-.min-h-screen {
-  overflow-x: hidden;
-}
-
-.grid {
-  max-width: 100%;
 }
 
 canvas {

@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AdminService, BillingPlan, BillingUsage, CheckoutResponse } from '../../../../core/services/admin.service';
+import { AdminService, BillingPlan, BillingUsage } from '../../../../core/services/admin.service';
 import { HttpClientModule } from '@angular/common/http';
 import { StripeEmbeddedModalComponent } from '../../../../shared/components/stripe-embedded-modal/stripe-embedded-modal.component';
 
@@ -11,8 +11,9 @@ import { StripeEmbeddedModalComponent } from '../../../../shared/components/stri
   templateUrl: './admin-billing.component.html',
   styleUrls: ['./admin-billing.component.css']
 })
-export class AdminBillingComponent implements OnInit {
-  
+export class AdminBillingComponent implements OnInit, OnChanges {
+  @Input() initialSuccessMessage: string | null = null;
+
   loading = true;
   usageData: BillingUsage | null = null;
   availablePlans: BillingPlan[] = [];
@@ -28,7 +29,14 @@ export class AdminBillingComponent implements OnInit {
   constructor(private adminService: AdminService) {}
 
   ngOnInit(): void {
+    this.applyInitialSuccessMessage();
     this.fetchBillingData();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['initialSuccessMessage']) {
+      this.applyInitialSuccessMessage();
+    }
   }
 
   fetchBillingData(): void {
@@ -47,7 +55,9 @@ export class AdminBillingComponent implements OnInit {
   fetchPlans(): void {
     this.adminService.getAvailablePlans().subscribe({
       next: (plans) => {
-        this.availablePlans = plans;
+        this.availablePlans = [...plans].sort(
+          (left, right) => (left.pricePerMonth ?? 0) - (right.pricePerMonth ?? 0)
+        );
         this.loading = false;
       },
       error: (err) => {
@@ -66,6 +76,43 @@ export class AdminBillingComponent implements OnInit {
 
   isUnlimited(val: number | undefined | null): boolean {
     return val === -1 || val === null || val === undefined;
+  }
+
+  getPriceLabel(plan: BillingPlan): string {
+    if ((plan.pricePerMonth ?? 0) <= 0) {
+      return 'Free';
+    }
+
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: plan.currency || 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(plan.pricePerMonth);
+  }
+
+  getCycleLabel(plan: BillingPlan): string {
+    switch (plan.billingCycle) {
+      case 'yearly':
+        return '/yr';
+      case 'quarterly':
+        return '/qtr';
+      default:
+        return '/mo';
+    }
+  }
+
+  getDisplayFeatures(plan: BillingPlan): string[] {
+    const features = plan.features || [];
+    return features.filter((feature) => {
+      const normalized = feature.toLowerCase();
+      return !(
+        normalized.includes('student') ||
+        normalized.includes('teacher') ||
+        normalized.includes('course') ||
+        normalized.includes('storage')
+      );
+    });
   }
 
   // User clicked "Upgrade" on a tier card
@@ -98,5 +145,11 @@ export class AdminBillingComponent implements OnInit {
     this.showPaymentModal = false;
     this.selectedPlan = null;
     this.clientSecret = '';
+  }
+
+  private applyInitialSuccessMessage(): void {
+    if (this.initialSuccessMessage) {
+      this.successMessage = this.initialSuccessMessage;
+    }
   }
 }

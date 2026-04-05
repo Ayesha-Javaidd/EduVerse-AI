@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { API_BASE_URL } from '../../../core/constants/api.constants';
 
@@ -31,23 +31,12 @@ export class QuizService {
 
     constructor(private http: HttpClient) { }
 
-    private getHeaders(): HttpHeaders {
-        const token = localStorage.getItem('eduverse_access_token');
-        return new HttpHeaders({
-            'Authorization': `Bearer ${token}`
-        });
-    }
-
     getQuizById(quizId: string): Observable<Quiz> {
-        return this.http.get<Quiz>(`${this.baseUrl}/${quizId}`, {
-            headers: this.getHeaders()
-        });
+        return this.http.get<Quiz>(`${this.baseUrl}/${quizId}`);
     }
 
     getMyQuizzes(): Observable<Quiz[]> {
-        return this.http.get<Quiz[]>(`${this.baseUrl}/student/me`, {
-            headers: this.getHeaders()
-        }).pipe(
+        return this.http.get<Quiz[]>(`${this.baseUrl}/student/me`).pipe(
             map((quizzes) =>
                 quizzes.map((quiz) => ({
                     ...quiz,

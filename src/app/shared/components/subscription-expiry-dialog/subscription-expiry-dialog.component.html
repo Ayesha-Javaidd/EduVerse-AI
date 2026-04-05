@@ -1,0 +1,39 @@
+<div class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-md"></div>
+
+  <div class="animate-bounce-in relative w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-2xl">
+    <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-100">
+      <svg class="h-10 w-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 15v2m0 0v2m0-2h2m-2 0H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+
+    <h2 class="mb-3 text-2xl font-bold text-slate-900">Subscription Expired</h2>
+    <p class="mb-8 text-slate-600">
+      Your access to the EduVerse platform has been restricted because your subscription has ended and the grace period has passed.
+    </p>
+
+    <div class="space-y-3">
+      <button
+        [routerLink]="['/admin/settings/billing']"
+        (click)="onUpgrade.emit()"
+        class="w-full rounded-2xl bg-indigo-600 py-4 font-semibold text-white shadow-lg shadow-indigo-200 transition-all hover:scale-[1.02] hover:bg-indigo-700">
+        Renew or Upgrade Now
+      </button>
+
+      <button
+        (click)="onContactSupport.emit()"
+        class="w-full rounded-2xl bg-slate-100 py-4 font-semibold text-slate-700 transition-all hover:bg-slate-200">
+        Contact Support
+      </button>
+    </div>
+
+    <p class="mt-6 text-xs text-slate-400">
+      {{ appName }} Platform • Billing Control
+    </p>
+  </div>
+</div>

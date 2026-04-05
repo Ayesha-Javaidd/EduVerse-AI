@@ -1,17 +1,23 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { ENDPOINTS } from '../../core/constants/api.constants';
 import {
   ChangePasswordPayload,
   TeacherResponse,
   TeacherUpdatePayload,
 } from '../models/teacher-profile.models';
 
+export interface TeacherDashboardMetrics {
+  totalCourses: number;
+  totalQuizLessons: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class TeacherProfileService {
-  private readonly API_URL = 'http://localhost:8000/teachers';
+  private readonly API_URL = ENDPOINTS.TEACHERS.BASE;
 
   constructor(private http: HttpClient) {}
 
@@ -35,5 +41,9 @@ export class TeacherProfileService {
    */
   changeMyPassword(payload: ChangePasswordPayload): Observable<void> {
     return this.http.put<void>(`${this.API_URL}/me/password`, payload);
+  }
+
+  getTeacherDashboard(teacherId: string): Observable<TeacherDashboardMetrics> {
+    return this.http.get<TeacherDashboardMetrics>(`${this.API_URL}/${teacherId}/dashboard`);
   }
 }

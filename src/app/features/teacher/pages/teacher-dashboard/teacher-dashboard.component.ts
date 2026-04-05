@@ -11,7 +11,6 @@ import {
 import { StudentEnrollmentChartComponent } from '../../components/student-enrollment-chart/student-enrollment-chart.component';
 import { CourseService, BackendCourse } from '../../../../core/services/course.service';
 import { AuthService } from '../../../auth/services/auth.service';
-import { TeacherProfileService, TeacherDashboardMetrics } from '../../services/teacher-profile.service';
 
 @Component({
   selector: 'app-teacher-dashboard',
@@ -35,9 +34,8 @@ export class TeacherDashboardComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private courseService: CourseService, // UPDATED: Injected CourseService
-    private authService: AuthService,     // UPDATED: Injected AuthService
-    private teacherService: TeacherProfileService,
+    private courseService: CourseService,
+    private authService: AuthService,
   ) { }
 
   statsCards: StatCard[] = [
@@ -54,20 +52,6 @@ export class TeacherDashboardComponent implements OnInit {
       icon: 'fas fa-users',
       iconBgClass: 'bg-green-100',
       iconColorClass: 'text-green-600',
-    },
-    {
-      title: 'Assignments',
-      value: '0',
-      icon: 'fas fa-file-alt',
-      iconBgClass: 'bg-orange-100',
-      iconColorClass: 'text-orange-600',
-    },
-    {
-      title: 'Awaiting Grading',
-      value: '0',
-      icon: 'fas fa-tasks',
-      iconBgClass: 'bg-red-100',
-      iconColorClass: 'text-red-600',
     },
   ];
 
@@ -109,11 +93,9 @@ export class TeacherDashboardComponent implements OnInit {
           this.courses = data;
           this.statsCards[0].value = data.length.toString();
 
-          // Calculate total students across all courses
           const totalStudents = data.reduce((acc: number, c: BackendCourse) => acc + (c.enrolledStudents || 0), 0);
           this.statsCards[1].value = totalStudents.toString();
 
-          // Map the chart data dynamically
           if (data.length > 0) {
             this.chartSubjects = data.map(c => c.title || c.courseCode || 'Unknown Course');
             this.chartEnrollments = data.map(c => c.enrolledStudents || 0);
@@ -124,22 +106,6 @@ export class TeacherDashboardComponent implements OnInit {
         error: (err: HttpErrorResponse | Error) => {
           console.error('Error loading teacher dashboard data', err);
           this.loading = false;
-        }
-      });
-
-      // Fetch dashboard metrics manually 
-      this.teacherService.getTeacherDashboard(teacherId).subscribe({
-        next: (metrics: TeacherDashboardMetrics) => {
-          // statsCards[2] = Assignments (mapped to totalAssignments)
-          this.statsCards[2].value = (metrics.totalAssignments || 0).toString();
-          
-          // statsCards[3] = Awaiting Grading (mapped to Quizzes for now since grading endpoint is bare)
-          // In the future this should point to total submissions awaiting review!
-          this.statsCards[3].title = 'Total Quizzes';
-          this.statsCards[3].value = (metrics.totalQuizzes || 0).toString();
-        },
-        error: (err: HttpErrorResponse | Error) => {
-          console.error('Error loading dashboard metrics', err);
         }
       });
     }

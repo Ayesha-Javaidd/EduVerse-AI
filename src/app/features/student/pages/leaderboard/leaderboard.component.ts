@@ -1,22 +1,33 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule, DecimalPipe } from '@angular/common';
-import { HeaderComponent } from '../../../../shared/components/header/header.component';
+import { CommonModule } from '@angular/common';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { NgChartsModule } from 'ng2-charts';
-import { StudentPerformanceService, PointsHistoryItem, CertificateItem, LeaderboardUser } from '../../../../shared/services/student-performance.service';
+import { HeaderComponent } from '../../../../shared/components/header/header.component';
+import {
+  StudentPerformanceService,
+  PointsHistoryItem,
+  CertificateItem,
+  LeaderboardUser,
+  LeaderboardSummary,
+} from '../../../../shared/services/student-performance.service';
 import { CourseService } from '../../../../core/services/course.service';
 import { AuthService } from '../../../auth/services/auth.service';
-import { forkJoin } from 'rxjs';
 import { API_BASE_URL } from '../../../../core/constants/api.constants';
+import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
 
 @Component({
   selector: 'app-leaderboard',
   standalone: true,
-  imports: [CommonModule, HeaderComponent, DecimalPipe, NgChartsModule],
+  imports: [CommonModule, HeaderComponent, NgChartsModule, StatCardComponent, ButtonComponent],
   templateUrl: './leaderboard.component.html',
   styleUrl: './leaderboard.component.css',
 })
 export class LeaderboardComponent implements OnInit {
-  selectedRank = 1;
+  loading = true;
+  error: string | null = null;
+
   totalPoints = signal(0);
   pointsChange = signal(0);
   currentLevel = signal(1);
@@ -27,6 +38,12 @@ export class LeaderboardComponent implements OnInit {
   certificates: CertificateItem[] = [];
   pointsHistory: PointsHistoryItem[] = [];
   leaderboard: LeaderboardUser[] = [];
+  topPerformers: LeaderboardUser[] = [];
+  currentStudentEntry: LeaderboardUser | null = null;
+  totalLeaderboardStudents = 0;
+
+  private currentStudentId = '';
+  private currentStudentName = '';
 
   constructor(
     private performanceService: StudentPerformanceService,
@@ -40,16 +57,31 @@ export class LeaderboardComponent implements OnInit {
 
   loadGamificationData() {
     const user = this.authService.getUser();
-    const tenantId = this.authService.getTenantId() || '';
-    if (!user) return;
+
+    if (!user) {
+      this.error = 'Unable to load leaderboard data right now.';
+      this.loading = false;
+      return;
+    }
+
     const studentId = user.studentId || user.id;
+    this.currentStudentId = studentId;
+    this.currentStudentName = user.fullName || '';
 
     forkJoin({
-      performance: this.performanceService.getStudentPerformance(tenantId, studentId),
-      top5: this.performanceService.getTenantTop5(tenantId),
-      courses: this.courseService.getStudentCourses(studentId, tenantId)
+      performance: this.performanceService.getMyPerformance().pipe(catchError(() => of(null))),
+      leaderboardSummary: this.performanceService.getGlobalLeaderboardSummary(10).pipe(
+        catchError(() =>
+          of({
+            top: [],
+            currentStudent: null,
+            totalStudents: 0,
+          } as LeaderboardSummary)
+        )
+      ),
+      courses: this.courseService.getStudentCourses(studentId).pipe(catchError(() => of([]))),
     }).subscribe({
-      next: ({ performance, top5, courses }) => {
+      next: ({ performance, leaderboardSummary, courses }) => {
         if (performance) {
           this.totalPoints.set(performance.totalPoints);
           this.pointsChange.set(performance.pointsThisWeek);
@@ -58,48 +90,142 @@ export class LeaderboardComponent implements OnInit {
           this.xp.set(performance.xp || 0);
           this.xpToNext.set(performance.xpToNextLevel);
           this.certificates = performance.certificates || [];
-          
-          this.pointsHistory = (performance.pointsHistory || []).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          this.pointsHistory = [...(performance.pointsHistory || [])].sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
 
           if (performance.courseStats && performance.courseStats.length > 0) {
-            const courseMap = new Map(courses.map((c: any) => [c._id, c.title]));
+            const courseMap = new Map(courses.map((course: any) => [course._id, course.title]));
             const labels: string[] = [];
             const data: number[] = [];
-            
-            performance.courseStats.slice(0, 7).forEach(stat => {
-               labels.push(courseMap.get(stat.courseId) || 'Course');
-               data.push(stat.completionPercentage);
-            });
 
-            this.courseCompletionData = { ...this.courseCompletionData, labels };
-            this.courseCompletionData.datasets[0].data = data;
+            [...performance.courseStats]
+              .sort(
+                (a, b) =>
+                  new Date(b.lastActive || 0).getTime() -
+                  new Date(a.lastActive || 0).getTime()
+              )
+              .slice(0, 6)
+              .forEach((stat) => {
+                labels.push(courseMap.get(stat.courseId) || 'Course');
+                data.push(stat.completionPercentage);
+              });
+
+            this.courseCompletionData = {
+              ...this.courseCompletionData,
+              labels,
+              datasets: [
+                {
+                  ...this.courseCompletionData.datasets[0],
+                  data,
+                },
+              ],
+            };
           } else {
-             this.courseCompletionData = { ...this.courseCompletionData, labels: [] };
-             this.courseCompletionData.datasets[0].data = [];
+            this.courseCompletionData = {
+              ...this.courseCompletionData,
+              labels: [],
+              datasets: [
+                {
+                  ...this.courseCompletionData.datasets[0],
+                  data: [],
+                },
+              ],
+            };
           }
         }
 
-        if (top5) {
-          this.leaderboard = top5;
-          const meIndex = this.leaderboard.findIndex(l => l.studentName && user.fullName && l.studentName.toLowerCase() === user.fullName.toLowerCase());
-          if (meIndex !== -1) {
-            this.selectedRank = this.leaderboard[meIndex].rank || (meIndex + 1);
-          }
+        this.leaderboard = leaderboardSummary?.top || [];
+        this.topPerformers = this.leaderboard.slice(0, 3);
+        this.totalLeaderboardStudents = leaderboardSummary?.totalStudents || 0;
+        this.currentStudentEntry =
+          leaderboardSummary?.currentStudent ||
+          this.leaderboard.find((entry) => entry.studentId === this.currentStudentId) ||
+          this.leaderboard.find(
+            (entry) =>
+              !!entry.studentName &&
+              !!this.currentStudentName &&
+              entry.studentName.toLowerCase() === this.currentStudentName.toLowerCase()
+          ) ||
+          null;
+
+        if (!this.leaderboard.length && !this.currentStudentEntry && !performance) {
+          this.error = 'Unable to load leaderboard data right now.';
         }
+
+        this.loading = false;
       },
-      error: (err) => console.error('Error loading gamification data', err)
+      error: (err) => {
+        console.error('Error loading leaderboard data', err);
+        this.error = 'Unable to load leaderboard data right now.';
+        this.loading = false;
+      },
     });
   }
 
-  selectPlayer(rank: number): void {
-    this.selectedRank = rank;
+  get summaryCards() {
+    return [
+      {
+        title: 'Your Rank',
+        value: this.currentStudentEntry ? `#${this.currentStudentEntry.rank}` : '--',
+        icon: 'fa-solid fa-trophy',
+        iconBgClass: 'bg-[#ecf9f6]',
+        iconColorClass: 'text-[#23A997]',
+      },
+      {
+        title: 'Total Points',
+        value: this.totalPoints().toLocaleString(),
+        icon: 'fa-solid fa-star',
+        iconBgClass: 'bg-[#ecf9f6]',
+        iconColorClass: 'text-[#23A997]',
+      },
+      {
+        title: 'Current Level',
+        value: `Level ${this.currentLevel()}`,
+        icon: 'fa-solid fa-layer-group',
+        iconBgClass: 'bg-slate-100',
+        iconColorClass: 'text-[#181F39]',
+      },
+      {
+        title: 'Certificates',
+        value: this.certificates.length,
+        icon: 'fa-solid fa-certificate',
+        iconBgClass: 'bg-amber-100',
+        iconColorClass: 'text-amber-600',
+      },
+    ];
   }
 
-  downloadCertificate(filename: string) {
+  get xpProgress(): number {
+    const total = this.xp() + this.xpToNext();
+    return total > 0 ? (this.xp() / total) * 100 : 0;
+  }
+
+  get currentLevelXpTarget(): number {
+    return this.xp() + this.xpToNext();
+  }
+
+  get recentPointsHistory(): PointsHistoryItem[] {
+    return this.pointsHistory.slice(0, 6);
+  }
+
+  isCurrentStudent(entry: LeaderboardUser): boolean {
+    if (entry.studentId && this.currentStudentId) {
+      return entry.studentId === this.currentStudentId;
+    }
+
+    return (
+      !!entry.studentName &&
+      !!this.currentStudentName &&
+      entry.studentName.toLowerCase() === this.currentStudentName.toLowerCase()
+    );
+  }
+
+  downloadCertificate(certificate: CertificateItem) {
+    const desiredName = `${(certificate.title || 'Certificate').trim()}.pdf`;
     const link = document.createElement('a');
-    link.href = `${API_BASE_URL}/uploads/certificate/${filename}`;
-    link.download = filename;
-    link.target = '_blank';
+    link.href = `${API_BASE_URL}/uploads/certificate/${certificate.file}?name=${encodeURIComponent(desiredName)}`;
+    link.download = desiredName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -111,27 +237,11 @@ export class LeaderboardComponent implements OnInit {
       {
         label: 'Completion (%)',
         data: [],
-        backgroundColor: [
-          '#60A5FA', 
-          '#34D399', 
-          '#FBBF24', 
-          '#A78BFA', 
-          '#F87171', 
-          '#34D399', 
-          '#FBBF24', 
-        ],
-        borderRadius: 12,
+        backgroundColor: '#23A997',
+        hoverBackgroundColor: '#1e9585',
+        borderRadius: 10,
         borderSkipped: false,
-        barThickness: 50,
-        hoverBackgroundColor: [
-          '#3B82F6',
-          '#10B981',
-          '#F59E0B',
-          '#8B5CF6',
-          '#EF4444',
-          '#10B981',
-          '#F59E0B',
-        ],
+        barThickness: 34,
       },
     ],
   };
@@ -142,29 +252,29 @@ export class LeaderboardComponent implements OnInit {
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: '#374151', font: { size: 14, weight: '500' } },
+        ticks: { color: '#64748b', font: { size: 12, weight: '500' } },
       },
       y: {
         beginAtZero: true,
         max: 100,
-        grid: { color: 'rgba(243,244,246,0.3)' },
-        ticks: { color: '#6B7280', font: { size: 13 }, stepSize: 25 },
+        grid: { color: '#e8eef2' },
+        ticks: { color: '#94a3b8', font: { size: 12 }, stepSize: 25 },
       },
     },
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#1E3A8A',
+        backgroundColor: '#181F39',
         titleColor: '#fff',
         bodyColor: '#fff',
         padding: 12,
         borderWidth: 0,
-        cornerRadius: 8,
+        cornerRadius: 10,
         displayColors: false,
       },
     },
-    animation: <any>{
-      duration: 1200,
+    animation: {
+      duration: 900,
     },
   };
 }
