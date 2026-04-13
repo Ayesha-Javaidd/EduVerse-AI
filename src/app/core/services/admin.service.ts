@@ -234,4 +234,10 @@ export class AdminService {
         return this.http.post<CheckoutResponse>(`${baseUrl}/billing/checkout`, { planId }, {
         });
     }
+
+    verifySubscriptionCheckout(sessionId: string): Observable<CheckoutResponse> {
+        const baseUrl = ENDPOINTS.ADMINS.BASE.replace('/dashboard', '');
+        return this.http.post<CheckoutResponse>(`${baseUrl}/billing/verify-session`, { session_id: sessionId }, {
+        });
+    }
 }

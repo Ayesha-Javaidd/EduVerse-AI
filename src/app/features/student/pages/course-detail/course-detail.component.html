@@ -315,7 +315,7 @@
                     {{ course.isFree || !course.price ? 'Enroll Now' : 'Continue to Checkout' }}
                   </span>
                   <span *ngIf="enrolling">
-                    <i class="fa-solid fa-circle-notch fa-spin mr-2"></i>
+                    <i class="fa-solid fa-spinner animate-spin mr-2"></i>
                     Processing...
                   </span>
                 </app-button>

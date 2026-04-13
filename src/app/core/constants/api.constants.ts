@@ -20,6 +20,8 @@ export const ENDPOINTS = {
       `${API_BASE_URL}/courses/student/${studentId}`,
     ENROLL: `${API_BASE_URL}/courses/enroll`,
     UNENROLL: `${API_BASE_URL}/courses/unenroll`,
+    RECOMMENDATIONS: (studentId: string) =>
+      `${API_BASE_URL}/courses/recommendations/${studentId}`,
   },
   STUDENTS: {
     BASE: `${API_BASE_URL}/students`,

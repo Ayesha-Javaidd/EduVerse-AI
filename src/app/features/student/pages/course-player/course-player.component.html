@@ -296,7 +296,7 @@
           <div
             *ngIf="isWaitingForAdaptiveLesson && activeLesson.type !== 'quiz'"
             class="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-[#dbe4ea] bg-[#f8f9fc] px-6 py-16 text-center">
-            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-[#23A997]"></i>
+            <i class="fa-solid fa-spinner animate-spin text-4xl text-[#23A997]"></i>
             <p class="mt-4 font-semibold text-[#181F39]">Preparing your personalized lesson</p>
             <p class="mt-2 text-sm text-slate-500">The adaptive version of this lesson is still being generated.</p>
           </div>
@@ -316,7 +316,7 @@
 
           <div *ngIf="activeQuiz" class="quiz-container">
             <div *ngIf="loadingQuiz" class="flex flex-col items-center justify-center py-20">
-              <i class="fa-solid fa-circle-notch fa-spin text-4xl text-[#23A997]"></i>
+              <i class="fa-solid fa-spinner animate-spin text-4xl text-[#23A997]"></i>
               <p class="mt-4 font-medium text-slate-600">Loading your quiz...</p>
             </div>
 
@@ -435,7 +435,7 @@
             </div>
 
             <app-button [variant]="'primary'" [size]="'md'" (buttonClick)="saveNotes()" [disabled]="isSavingNotes">
-              <i *ngIf="isSavingNotes" class="fa-solid fa-circle-notch fa-spin mr-2"></i>
+              <i *ngIf="isSavingNotes" class="fa-solid fa-spinner animate-spin mr-2"></i>
               <i *ngIf="!isSavingNotes" class="fa-solid fa-floppy-disk mr-2"></i>
               {{ isSavingNotes ? 'Saving...' : 'Save Notes' }}
             </app-button>
@@ -518,7 +518,7 @@
             [disabled]="isSendingChat || !chatInput.trim()"
             class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-[#23A997] disabled:opacity-30">
             <i *ngIf="!isSendingChat" class="fa-solid fa-paper-plane"></i>
-            <i *ngIf="isSendingChat" class="fa-solid fa-circle-notch fa-spin"></i>
+            <i *ngIf="isSendingChat" class="fa-solid fa-spinner animate-spin"></i>
           </button>
         </div>
       </div>
@@ -599,7 +599,7 @@
             [disabled]="isSendingChat || !chatInput.trim()"
             class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-[#23A997] disabled:opacity-30">
             <i *ngIf="!isSendingChat" class="fa-solid fa-paper-plane"></i>
-            <i *ngIf="isSendingChat" class="fa-solid fa-circle-notch fa-spin"></i>
+            <i *ngIf="isSendingChat" class="fa-solid fa-spinner animate-spin"></i>
           </button>
         </div>
       </div>

@@ -1,7 +1,7 @@
 <div class="pb-12">
   
   <div *ngIf="loading" class="flex justify-center items-center h-64">
-    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-[#23A997]"></i>
+    <i class="fa-solid fa-spinner animate-spin text-4xl text-[#23A997]"></i>
   </div>
 
   <div *ngIf="!loading && usageData" class="max-w-7xl mx-auto py-2">
@@ -163,7 +163,7 @@
                {{ usageData.plan.pricePerMonth > plan.pricePerMonth ? 'Downgrade to' : 'Upgrade to' }} {{ plan.name.split(' ')[1] || plan.name }}
             </span>
             <span *ngIf="checkoutLoadingId === plan.id" class="flex items-center">
-              <i class="fa-solid fa-circle-notch fa-spin text-lg mr-2"></i> Processing...
+              <i class="fa-solid fa-spinner animate-spin text-lg mr-2"></i> Processing...
             </span>
           </button>
           
@@ -176,8 +176,13 @@
   </div>
 
   <!-- Success Notification -->
-  <div *ngIf="successMessage" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg flex items-center shadow-green-500/20 z-50 animate-bounce">
+  <div *ngIf="successMessage" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg flex items-center shadow-green-500/20 z-50">
     <i class="fa-solid fa-check-circle mr-2"></i> {{ successMessage }}
+  </div>
+
+  <!-- Error Notification -->
+  <div *ngIf="errorMessage" class="fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-full shadow-lg flex items-center shadow-red-500/20 z-50">
+    <i class="fa-solid fa-triangle-exclamation mr-2"></i> {{ errorMessage }}
   </div>
 
   <!-- Checkout Modal Overlay -->

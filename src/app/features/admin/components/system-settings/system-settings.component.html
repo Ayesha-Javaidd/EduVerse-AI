@@ -4,7 +4,7 @@
   <form (ngSubmit)="onSave()" class="space-y-6">
     
     <div *ngIf="isLoading" class="flex justify-center p-10">
-      <i class="fa-solid fa-circle-notch fa-spin text-3xl text-[#23A997]"></i>
+      <i class="fa-solid fa-spinner animate-spin text-3xl text-[#23A997]"></i>
     </div>
 
     <ng-container *ngIf="!isLoading">
@@ -57,7 +57,7 @@
         [disabled]="isSaving"
       >
         <span *ngIf="!isSaving"><i class="fa-solid fa-floppy-disk mr-2"></i>Save Settings</span>
-        <span *ngIf="isSaving"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Saving...</span>
+        <span *ngIf="isSaving"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Saving...</span>
       </app-button>
 
       <!-- Cancel Button -->

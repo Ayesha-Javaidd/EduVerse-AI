@@ -206,7 +206,7 @@ export class LeaderboardComponent implements OnInit {
   }
 
   get recentPointsHistory(): PointsHistoryItem[] {
-    return this.pointsHistory.slice(0, 6);
+    return this.pointsHistory.slice(0, 3);
   }
 
   isCurrentStudent(entry: LeaderboardUser): boolean {

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { take } from 'rxjs/operators';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { SystemSettingsComponent } from '../../components/system-settings/system-settings.component';
 import { ProfileFormComponent } from '../../../../shared/components/profile-form/profile-form.component';
@@ -16,6 +17,7 @@ import { AdminBillingComponent } from '../admin-billing/admin-billing.component'
 export class SettingsComponent implements OnInit {
   activeTab: 'profile' | 'system' | 'billing' = 'profile';
   billingFlashMessage: string | null = null;
+  pendingSessionId: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -23,9 +25,11 @@ export class SettingsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe((params) => {
+    // Use take(1) so cleaning the URL doesn't re-trigger this logic
+    this.route.queryParamMap.pipe(take(1)).subscribe((params) => {
       const requestedTab = params.get('tab');
       const billingSuccess = params.get('billing_success');
+      const sessionId = params.get('session_id');
 
       if (requestedTab === 'profile' || requestedTab === 'system' || requestedTab === 'billing') {
         this.activeTab = requestedTab;
@@ -36,12 +40,19 @@ export class SettingsComponent implements OnInit {
         this.billingFlashMessage = 'Billing updated successfully.';
       }
 
-      if (requestedTab || billingSuccess) {
+      if (sessionId) {
+        this.activeTab = 'billing';
+        this.pendingSessionId = sessionId;
+      }
+
+      // Clean up query params from URL
+      if (requestedTab || billingSuccess || sessionId) {
         this.router.navigate([], {
           relativeTo: this.route,
           queryParams: {
             tab: null,
             billing_success: null,
+            session_id: null,
           },
           queryParamsHandling: 'merge',
           replaceUrl: true,

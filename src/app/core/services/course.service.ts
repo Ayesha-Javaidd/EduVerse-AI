@@ -17,7 +17,7 @@ export interface BackendCourse {
     title: string;
     description?: string;
     category: string;
-    level?: string;
+    level?: 'Beginner' | 'Intermediate' | 'Advanced';
     status: string;
     courseCode?: string;
     duration?: string;
@@ -34,6 +34,7 @@ export interface BackendCourse {
     progress?: number;
     lessonsCompleted?: number;
     totalLessons?: number;
+    totalDuration?: string;
     nextLesson?: string;
     modules?: Module[];
     instructorName?: string;
@@ -169,5 +170,13 @@ export class CourseService {
     // Create a Stripe checkout session for a specific course
     createCheckoutSession(courseId: string): Observable<{clientSecret: string}> {
          return this.http.post<{clientSecret: string}>(ENDPOINTS.PAYMENTS.CREATE_PAYMENT_INTENT, { courseId });
+    }
+
+    /**
+     * Fetch recommended courses for a student
+     */
+    getRecommendedCourses(studentId: string, limit = 10): Observable<BackendCourse[]> {
+        const params = new HttpParams().set('limit', limit.toString());
+        return this.http.get<BackendCourse[]>(ENDPOINTS.COURSES.RECOMMENDATIONS(studentId), { params });
     }
 }

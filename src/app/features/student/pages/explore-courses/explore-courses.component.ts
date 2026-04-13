@@ -53,8 +53,10 @@ export class ExploreCoursesComponent implements OnInit {
     ]
   };
 
-  availableCourses: Course[] = []; // UPDATED: Initialized as empty
+  availableCourses: Course[] = [];
+  exploreCourses: Course[] = [];
   filteredCourses: Course[] = [];
+  recommendedCourses: Course[] = [];
   loading: boolean = true;
   stats = {
     total: 0,
@@ -111,12 +113,14 @@ export class ExploreCoursesComponent implements OnInit {
       const studentId = user.studentId || user.id;
       const courses$ = this.courseService.getCourses();
       const studentCourses$ = this.courseService.getStudentCourses(studentId).pipe(catchError(() => of([])));
+      const recommended$ = this.courseService.getRecommendedCourses(studentId, 6).pipe(catchError(() => of([])));
 
       forkJoin({
         all: courses$,
-        enrolled: studentCourses$
+        enrolled: studentCourses$,
+        recommended: recommended$
       }).subscribe({
-        next: ({ all, enrolled }) => {
+        next: ({ all, enrolled, recommended }) => {
           const enrolledIds = new Set((enrolled || []).map(c => c._id));
 
           this.availableCourses = (all || [])
@@ -126,7 +130,15 @@ export class ExploreCoursesComponent implements OnInit {
               variant: 'explore' as const
             }));
 
-          this.filteredCourses = [...this.availableCourses];
+          this.recommendedCourses = (recommended || []).map((course) => ({
+            ...this.mapToFrontendCourse(course),
+            variant: 'explore' as const
+          }));
+
+          // Remove recommended courses from the explore-all section to avoid duplication
+          const recommendedIds = new Set(this.recommendedCourses.map(c => c.id));
+          this.exploreCourses = this.availableCourses.filter(c => !recommendedIds.has(c.id));
+          this.filteredCourses = [...this.exploreCourses];
           this.calculateStats();
           this.loading = false;
         },
@@ -169,7 +181,7 @@ export class ExploreCoursesComponent implements OnInit {
 
   // Handle filter changes
   onFiltersChange(filters: { [key: string]: string }) {
-    let filtered = [...this.availableCourses];
+    let filtered = [...this.exploreCourses];
 
     const searchQuery = filters['search'] || '';
     if (searchQuery) {

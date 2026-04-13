@@ -13,6 +13,7 @@ import { StripeEmbeddedModalComponent } from '../../../../shared/components/stri
 })
 export class AdminBillingComponent implements OnInit, OnChanges {
   @Input() initialSuccessMessage: string | null = null;
+  @Input() sessionId: string | null = null;
 
   loading = true;
   usageData: BillingUsage | null = null;
@@ -25,17 +26,56 @@ export class AdminBillingComponent implements OnInit, OnChanges {
   
   checkoutLoadingId: string | null = null;
   successMessage: string | null = null;
+  errorMessage: string | null = null;
 
   constructor(private adminService: AdminService) {}
 
   ngOnInit(): void {
     this.applyInitialSuccessMessage();
-    this.fetchBillingData();
+    if (this.sessionId) {
+      console.log('[AdminBilling] Verifying session:', this.sessionId);
+      this.adminService.verifySubscriptionCheckout(this.sessionId).subscribe({
+        next: (res) => {
+          console.log('[AdminBilling] Verify response:', res);
+          if (res.success) {
+            this.showSuccess(res.message || 'Subscription upgraded successfully!');
+          } else {
+            this.showError(res.message || 'Failed to verify subscription.');
+          }
+          this.fetchBillingData();
+        },
+        error: (err) => {
+          console.error('[AdminBilling] Verify error:', err);
+          this.showError('Failed to verify checkout session. Please refresh.');
+          this.fetchBillingData();
+        }
+      });
+    } else {
+      this.fetchBillingData();
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['initialSuccessMessage']) {
       this.applyInitialSuccessMessage();
+    }
+    if (changes['sessionId'] && !changes['sessionId'].firstChange && this.sessionId) {
+      this.loading = true;
+      this.adminService.verifySubscriptionCheckout(this.sessionId).subscribe({
+         next: (res) => {
+           if (res.success) {
+             this.showSuccess(res.message || 'Subscription upgraded successfully!');
+           } else {
+             this.showError(res.message || 'Failed to verify subscription.');
+           }
+           this.fetchBillingData();
+         },
+         error: (err) => {
+           console.error('[AdminBilling] Verify error:', err);
+           this.showError('Failed to verify checkout session. Please refresh.');
+           this.fetchBillingData();
+         }
+      });
     }
   }
 
@@ -128,7 +168,7 @@ export class AdminBillingComponent implements OnInit, OnChanges {
           this.showPaymentModal = true;
         } else if (res.success) {
           // Free/downgrade plan — applied instantly
-          this.successMessage = res.message || 'Plan updated successfully!';
+          this.showSuccess(res.message || 'Plan updated successfully!');
           this.loading = true;
           this.fetchBillingData();
         }
@@ -149,7 +189,19 @@ export class AdminBillingComponent implements OnInit, OnChanges {
 
   private applyInitialSuccessMessage(): void {
     if (this.initialSuccessMessage) {
-      this.successMessage = this.initialSuccessMessage;
+      this.showSuccess(this.initialSuccessMessage);
     }
+  }
+
+  private showSuccess(msg: string): void {
+    this.errorMessage = null;
+    this.successMessage = msg;
+    setTimeout(() => { this.successMessage = null; }, 6000);
+  }
+
+  private showError(msg: string): void {
+    this.successMessage = null;
+    this.errorMessage = msg;
+    setTimeout(() => { this.errorMessage = null; }, 8000);
   }
 }
