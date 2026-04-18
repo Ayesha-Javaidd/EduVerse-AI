@@ -58,12 +58,23 @@ export class ExploreCoursesComponent implements OnInit {
   filteredCourses: Course[] = [];
   recommendedCourses: Course[] = [];
   loading: boolean = true;
+  isNewStudent: boolean = true;
   stats = {
     total: 0,
     free: 0,
     beginner: 0,
     categories: 0
   };
+
+  get recommendedSectionTitle(): string {
+    return this.isNewStudent ? 'Popular Starters' : 'Recommended for you';
+  }
+
+  get recommendedSectionSubtitle(): string {
+    return this.isNewStudent 
+      ? 'Top-rated courses to kickstart your journey' 
+      : 'Personalized picks based on your learning path';
+  }
 
   constructor(
     private router: Router,
@@ -121,6 +132,7 @@ export class ExploreCoursesComponent implements OnInit {
         recommended: recommended$
       }).subscribe({
         next: ({ all, enrolled, recommended }) => {
+          this.isNewStudent = !enrolled || enrolled.length === 0;
           const enrolledIds = new Set((enrolled || []).map(c => c._id));
 
           this.availableCourses = (all || [])
@@ -135,9 +147,9 @@ export class ExploreCoursesComponent implements OnInit {
             variant: 'explore' as const
           }));
 
-          // Remove recommended courses from the explore-all section to avoid duplication
-          const recommendedIds = new Set(this.recommendedCourses.map(c => c.id));
-          this.exploreCourses = this.availableCourses.filter(c => !recommendedIds.has(c.id));
+          // Show all available courses in the explore section (including recommended)
+          // so that the search and filters can find any course.
+          this.exploreCourses = [...this.availableCourses];
           this.filteredCourses = [...this.exploreCourses];
           this.calculateStats();
           this.loading = false;

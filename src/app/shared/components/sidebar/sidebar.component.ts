@@ -6,11 +6,15 @@ import {
   Input,
   Output,
   OnChanges,
+  OnDestroy,
   OnInit,
   SimpleChanges,
   HostListener,
 } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AuthService } from '../../../features/auth/services/auth.service';
+import { TenantBranding, TenantBrandingService } from '../../services/tenant-branding.service';
 
 interface MenuItem {
   icon: string;
@@ -25,20 +29,30 @@ interface MenuItem {
   imports: [CommonModule, RouterModule],
   templateUrl: './sidebar.component.html',
 })
-export class SidebarComponent implements OnChanges, OnInit {
+export class SidebarComponent implements OnChanges, OnInit, OnDestroy {
   @Input() role: 'admin' | 'teacher' | 'super-admin' | 'student' = 'admin';
   @Output() toggleSidebar = new EventEmitter<boolean>();
 
+  private destroy$ = new Subject<void>();
   isOpen = true;
   isMobileSidebarVisible = false;
   isMobile = false;
   menuItems: MenuItem[] = [];
+  tenantBranding: TenantBranding | null = null;
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private tenantBrandingService: TenantBrandingService,
+  ) {}
 
   ngOnInit() {
     this.updateScreenSize();
     this.setMenuItems();
+    this.tenantBrandingService.branding$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((branding) => {
+        this.tenantBranding = branding;
+      });
   }
 
   @HostListener('window:resize')
@@ -53,6 +67,11 @@ export class SidebarComponent implements OnChanges, OnInit {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['role']) this.setMenuItems();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private setMenuItems() {
@@ -138,5 +157,9 @@ export class SidebarComponent implements OnChanges, OnInit {
   toggleDesktopSidebar() {
     this.isOpen = !this.isOpen;
     this.toggleSidebar.emit(this.isOpen);
+  }
+
+  get displayBrandName(): string {
+    return this.tenantBranding?.tenantName?.trim() || 'EduVerse';
   }
 }

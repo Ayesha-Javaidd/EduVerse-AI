@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { AdminService, SystemSettingsConfig } from '../../../../core/services/admin.service';
+import { TenantBrandingService } from '../../../../shared/services/tenant-branding.service';
 
 @Component({
   selector: 'app-system-settings',
@@ -18,7 +19,10 @@ export class SystemSettingsComponent implements OnInit {
   isLoading: boolean = true;
   isSaving: boolean = false;
 
-  constructor(private adminService: AdminService) {}
+  constructor(
+    private adminService: AdminService,
+    private tenantBrandingService: TenantBrandingService,
+  ) {}
 
   ngOnInit() {
     this.fetchSettings();
@@ -30,6 +34,7 @@ export class SystemSettingsComponent implements OnInit {
       next: (data: SystemSettingsConfig) => {
         if (data.tenantName) this.tenantName = data.tenantName;
         if (data.tenantLogoUrl) this.logoPreview = data.tenantLogoUrl;
+        this.tenantBrandingService.updateBranding(data);
         this.isLoading = false;
       },
       error: (err: HttpErrorResponse | Error) => {
@@ -60,6 +65,7 @@ export class SystemSettingsComponent implements OnInit {
     this.adminService.updateSystemSettings(payload).subscribe({
       next: (res: SystemSettingsConfig) => {
         this.isSaving = false;
+        this.tenantBrandingService.updateBranding(res);
         // Optionally show toast success alert here!
       },
       error: (err: HttpErrorResponse | Error) => {

@@ -19,6 +19,7 @@ export class TenantInfoFormComponent implements OnChanges {
 
   form!: FormGroup;
   showChangePassword = false;
+  logoPreview: string | null = 'assets/images/profile.png';
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
@@ -38,11 +39,29 @@ export class TenantInfoFormComponent implements OnChanges {
         contactNumber: data.contactNumber || '',
         address: data.address || data.country || ''
       });
+      this.logoPreview = data.tenantLogoUrl || 'assets/images/profile.png';
     }
   }
 
   toggleChangePassword() {
     this.showChangePassword = !this.showChangePassword;
+  }
+
+  onFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
+
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      this.logoPreview = reader.result as string;
+    };
+
+    reader.readAsDataURL(file);
   }
 
   onSave() {
@@ -52,7 +71,11 @@ export class TenantInfoFormComponent implements OnChanges {
     }
 
     const { country, ...tenantData } = this.tenant || {};
-    const payload = { ...tenantData, ...this.form.getRawValue() };
+    const payload = {
+      ...tenantData,
+      ...this.form.getRawValue(),
+      tenantLogoUrl: this.logoPreview === 'assets/images/profile.png' ? '' : this.logoPreview || '',
+    };
     this.save.emit(payload);
   }
 

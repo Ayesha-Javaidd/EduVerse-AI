@@ -7,6 +7,7 @@ import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog
 import { SuperAdminService, SuperAdminResponse } from '../../services/super-admin.service';
 import { CountrySelectComponent } from '../../../../shared/components/country-select/country-select.component';
 import { PhoneInputComponent } from '../../../../shared/components/phone-input/phone-input.component';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-super-admin-settings',
@@ -23,7 +24,8 @@ export class SuperAdminSettingsComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private superAdminService: SuperAdminService,
-    private confirmDialogService: ConfirmDialogService
+    private confirmDialogService: ConfirmDialogService,
+    private authService: AuthService
   ) {
     this.initForm();
   }
@@ -53,6 +55,7 @@ export class SuperAdminSettingsComponent implements OnInit {
           contactNo: user.contactNo || '',
           country: user.country || ''
         });
+        this.syncCurrentUserProfile(user);
         this.loading = false;
       },
       error: (err) => {
@@ -79,6 +82,7 @@ export class SuperAdminSettingsComponent implements OnInit {
     this.superAdminService.updateProfile(updates).subscribe({
       next: async (res) => {
         this.profile = res;
+        this.syncCurrentUserProfile(res.user);
         await this.confirmDialogService.alert("Profile details successfully updated!");
       },
       error: async (err) => {
@@ -90,5 +94,12 @@ export class SuperAdminSettingsComponent implements OnInit {
   // Uses auth service automatically via component
   onPasswordChanged(event: any): void {
     // Password change logic handled by inner component
+  }
+
+  private syncCurrentUserProfile(user: SuperAdminResponse['user']): void {
+    this.authService.updateCurrentUser({
+      fullName: user.fullName || undefined,
+      profileImageURL: user.profileImageURL || undefined,
+    });
   }
 }

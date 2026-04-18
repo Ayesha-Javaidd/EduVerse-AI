@@ -46,13 +46,39 @@ export function toEmbedVideoUrl(url: string): string | null {
 
 export function findGeneratedQuizForLesson(
   lessonId: string,
+  lessonTitle: string | null | undefined,
   studentQuizzes: Quiz[],
   courseId: string,
 ): Quiz | null {
+  const normalizedLessonTitle = normalizeQuizTopic(lessonTitle);
+
   return (
     studentQuizzes.find((quiz) => quiz.lessonId === lessonId && quiz.courseId === courseId) ||
+    studentQuizzes.find((quiz) => {
+      if (quiz.courseId !== courseId || quiz.lessonId) {
+        return false;
+      }
+
+      const normalizedQuizTopic = normalizeQuizTopic(quiz.topic || quiz.description);
+      return Boolean(
+        normalizedLessonTitle &&
+          normalizedQuizTopic &&
+          (
+            normalizedQuizTopic === normalizedLessonTitle ||
+            normalizedQuizTopic.includes(normalizedLessonTitle) ||
+            normalizedLessonTitle.includes(normalizedQuizTopic)
+          ),
+      );
+    }) ||
     null
   );
+}
+
+function normalizeQuizTopic(value: string | null | undefined): string {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
 }
 
 export function isFirstCourseLesson(
@@ -66,15 +92,31 @@ export function getTeacherLessonSource(lesson: CoursePlayerLesson | null | undef
   return String(lesson?.description || lesson?.content || '').trim();
 }
 
+export function isTextLearningLesson(lesson: CoursePlayerLesson | null | undefined): boolean {
+  const textLessonTypes = ['document', 'reading', 'file'];
+  return Boolean(lesson && (!lesson.type || textLessonTypes.includes(lesson.type)));
+}
+
 export function shouldGenerateBaseLesson(
   lessons: CoursePlayerLesson[],
   lesson: CoursePlayerLesson | null | undefined,
 ): boolean {
-  const textLessonTypes = ['document', 'reading', 'file'];
   return Boolean(
     lesson &&
       isFirstCourseLesson(lessons, lesson) &&
-      (!lesson.type || textLessonTypes.includes(lesson.type)) &&
+      isTextLearningLesson(lesson) &&
+      getTeacherLessonSource(lesson),
+  );
+}
+
+export function shouldUseAdaptiveLessonContent(
+  lessons: CoursePlayerLesson[],
+  lesson: CoursePlayerLesson | null | undefined,
+): boolean {
+  return Boolean(
+    lesson &&
+      !isFirstCourseLesson(lessons, lesson) &&
+      isTextLearningLesson(lesson) &&
       getTeacherLessonSource(lesson),
   );
 }
@@ -85,7 +127,6 @@ export function shouldWaitForAdaptiveLesson(
   lessons: CoursePlayerLesson[],
   lesson: CoursePlayerLesson | null | undefined,
 ): boolean {
-  const textLessonTypes = ['document', 'reading', 'file'];
   const lessonId = getLessonId(lesson);
 
   return Boolean(
@@ -94,7 +135,7 @@ export function shouldWaitForAdaptiveLesson(
       pendingAdaptiveLessonId === lessonId &&
       !activeAdaptiveLesson &&
       !isFirstCourseLesson(lessons, lesson) &&
-      (!lesson.type || textLessonTypes.includes(lesson.type)),
+      isTextLearningLesson(lesson),
   );
 }
 

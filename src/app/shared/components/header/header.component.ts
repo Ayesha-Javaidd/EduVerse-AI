@@ -59,11 +59,13 @@ export class HeaderComponent implements OnInit {
       const name = this.currentUser.fullName;
       this.displayProfile = {
         name: name,
-        initials: this.getInitials(name)
+        initials: this.getInitials(name),
+        avatar: this.currentUser.profileImageURL,
       };
     } else {
       this.displayProfile = { name: 'User Profile', initials: 'UP' };
     }
+    console.log('HeaderComponent: setupProfile:', this.displayProfile);
   }
 
   private getInitials(name: string): string {
