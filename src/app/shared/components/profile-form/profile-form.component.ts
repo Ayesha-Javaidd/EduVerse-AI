@@ -31,6 +31,8 @@ import { StudentProfileService } from '../../services/student-profile-service';
 import { AdminProfileService } from '../../services/admin-profile.service';
 import { TeacherProfileService } from '../../services/teacher-profile.service';
 
+type ProfileResponse = StudentProfile | AdminProfile | TeacherResponse;
+
 @Component({
   selector: 'app-profile-form',
   standalone: true,
@@ -80,7 +82,7 @@ export class ProfileFormComponent implements OnInit {
   private loadProfile(): void {
     this.isLoading = true;
 
-    let service$: Observable<StudentProfile | AdminProfile | TeacherResponse>;
+    let service$: Observable<ProfileResponse>;
 
     switch (this.role) {
       case 'student':
@@ -107,10 +109,18 @@ export class ProfileFormComponent implements OnInit {
         });
 
         this.profilePreview = profile.profileImageURL ?? null;
+        this.syncCurrentUserProfile(profile);
       },
       error: () => {
         this.toastService.error('Failed to load profile');
       },
+    });
+  }
+
+  private syncCurrentUserProfile(profile: Pick<ProfileResponse, 'fullName' | 'profileImageURL'>): void {
+    this.authService.updateCurrentUser({
+      fullName: profile.fullName ?? undefined,
+      profileImageURL: profile.profileImageURL ?? undefined,
     });
   }
 
@@ -153,7 +163,11 @@ export class ProfileFormComponent implements OnInit {
         .updateMyProfile(payload)
         .pipe(finalize(() => (this.isLoading = false)))
         .subscribe({
-          next: () => this.toastService.success('Profile updated successfully'),
+          next: (profile) => {
+            this.profilePreview = profile.profileImageURL ?? this.profilePreview;
+            this.syncCurrentUserProfile(profile);
+            this.toastService.success('Profile updated successfully');
+          },
           error: () => this.toastService.error('Update failed'),
         });
     }
@@ -170,7 +184,11 @@ export class ProfileFormComponent implements OnInit {
         .updateMyProfile(payload)
         .pipe(finalize(() => (this.isLoading = false)))
         .subscribe({
-          next: () => this.toastService.success('Profile updated successfully'),
+          next: (profile) => {
+            this.profilePreview = profile.profileImageURL ?? this.profilePreview;
+            this.syncCurrentUserProfile(profile);
+            this.toastService.success('Profile updated successfully');
+          },
           error: () => this.toastService.error('Update failed'),
         });
     }
@@ -187,7 +205,11 @@ export class ProfileFormComponent implements OnInit {
         .updateMyProfile(payload)
         .pipe(finalize(() => (this.isLoading = false)))
         .subscribe({
-          next: () => this.toastService.success('Profile updated successfully'),
+          next: (profile) => {
+            this.profilePreview = profile.profileImageURL ?? this.profilePreview;
+            this.syncCurrentUserProfile(profile);
+            this.toastService.success('Profile updated successfully');
+          },
           error: () => this.toastService.error('Update failed'),
         });
     }

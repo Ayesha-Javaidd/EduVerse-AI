@@ -6,6 +6,28 @@
     </div>
 
     <form (ngSubmit)="onSave()" [formGroup]="form" class="space-y-5">
+        <div>
+            <label class="block text-[14px] font-medium text-[#181F39] mb-3">Tenant Logo</label>
+            <div class="flex items-center space-x-4">
+                <img
+                    [src]="logoPreview || 'assets/images/profile.png'"
+                    alt="Tenant Logo"
+                    class="h-16 w-16 rounded-full border object-cover"
+                />
+                <label
+                    class="cursor-pointer bg-[#23A997] text-white px-5 py-2.5 rounded-xl shadow-md shadow-[#23A997]/20 hover:bg-[#1f9686] text-[14px] font-medium transition-all"
+                >
+                    <i class="fas fa-upload mr-2"></i> Upload
+                    <input
+                        type="file"
+                        accept="image/*"
+                        (change)="onFileChange($event)"
+                        class="hidden"
+                    />
+                </label>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="space-y-1.5">
                 <label class="text-sm font-semibold text-[#181F39]">Tenant Name</label>

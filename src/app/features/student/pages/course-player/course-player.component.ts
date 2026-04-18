@@ -24,6 +24,7 @@ import {
     lessonsMatch,
     selectMatchingAdaptiveLesson,
     shouldGenerateBaseLesson,
+    shouldUseAdaptiveLessonContent,
     shouldWaitForAdaptiveLesson,
     toEmbedVideoUrl,
     upsertAdaptiveLesson,
@@ -110,9 +111,14 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     aiGeneratedLessons: AdaptiveLesson[] = [];
     studentQuizzes: Quiz[] = [];
     activeAdaptiveLesson: AdaptiveLesson | null = null;
+    private aiLessonsLoaded: boolean = false;
     private generatingBaseLessonForId: string | null = null;
+    private generatingAdaptiveLessonForId: string | null = null;
     private pendingAdaptiveLessonId: string | null = null;
     private adaptiveLessonPollToken: number = 0;
+    aiGenerationError: string | null = null;
+    aiQuizError: string | null = null;
+    private isAiLessonsLoading: boolean = false;
 
     constructor(
         private route: ActivatedRoute,
@@ -224,16 +230,31 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     }
 
     loadAiGeneratedLessons() {
+        if (this.isAiLessonsLoading) return;
+        this.isAiLessonsLoading = true;
+        this.aiGenerationError = null;
+
         this.adaptiveService.getStudentLessons(this.courseId).subscribe({
             next: (lessons: AdaptiveLesson[]) => {
                 this.aiGeneratedLessons = lessons;
+                this.aiLessonsLoaded = true;
+                this.isAiLessonsLoading = false;
                 this.syncActiveAdaptiveLesson();
                 if (this.activeAdaptiveLesson && this.pendingAdaptiveLessonId === this.getLessonId(this.activeLesson)) {
+                    this.generatingAdaptiveLessonForId = null;
                     this.pendingAdaptiveLessonId = null;
                     this.isWaitingForAdaptiveLesson = false;
                 }
+                // Now that we know which AI lessons already exist, safely decide
+                // if Lesson 1 base content needs to be generated.
+                this.ensureBaseLessonContent();
             },
-            error: (err) => console.error('Error loading AI lessons', err)
+            error: (err) => { 
+                console.error('Error loading AI lessons', err); 
+                this.aiLessonsLoaded = true; 
+                this.isAiLessonsLoading = false;
+                this.ensureBaseLessonContent(); 
+            }
         });
     }
 
@@ -246,7 +267,6 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                     const generatedQuiz = this.findGeneratedQuizForLesson(currentLessonId);
                     if (generatedQuiz && !this.activeQuiz) {
                         this.applyQuiz(generatedQuiz);
-                        this.toastService.success('Your lesson quiz is ready.');
                     }
                 }
                 if (showQuizForLessonId) {
@@ -258,7 +278,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                         window.setTimeout(() => this.loadStudentQuizzes(showQuizForLessonId, attempt + 1), 2500);
                     } else {
                         this.loadingQuiz = false;
-                        this.toastService.warning('Quiz generation is taking longer than expected. Please refresh in a few moments.');
+                        this.aiQuizError = 'AI limit reached. Cannot generate quiz for now.';
+                        this.toastService.error('AI limit reached. Cannot generate quiz for now.');
                     }
                 }
             },
@@ -268,6 +289,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                     window.setTimeout(() => this.loadStudentQuizzes(showQuizForLessonId, attempt + 1), 2500);
                 } else {
                     this.loadingQuiz = false;
+                    this.aiQuizError = 'AI limit reached. Cannot generate quiz for now.';
+                    this.toastService.error('AI limit reached. Cannot generate quiz for now.');
                 }
             }
         });
@@ -283,8 +306,13 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.loadingQuiz = true;
         this.loadNotesForCurrentLesson();
         this.syncActiveAdaptiveLesson();
-        this.ensureBaseLessonContent();
-        this.ensureAdaptiveLessonReady();
+        // Only generate Lesson 1 base content AFTER the AI-lessons fetch finishes
+        // (aiLessonsLoaded). This prevents triggering generation before we know
+        // whether the base lesson already exists from a prior session.
+        // If not yet loaded, loadAiGeneratedLessons() will call this itself.
+        if (this.aiLessonsLoaded) {
+            this.ensureBaseLessonContent();
+        }
 
         // Handle Video URL
         if (lesson.type === 'video' && lesson.content) {
@@ -304,6 +332,10 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
             this.isSidebarOpen = false;
             this.persistPlayerPreferences();
         }
+
+        // Reset error state
+        this.aiGenerationError = null;
+        this.aiQuizError = null;
     }
 
     loadQuiz(quizId: string) {
@@ -315,6 +347,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
             error: (err) => {
                 console.error('Error loading quiz:', err);
                 this.loadingQuiz = false;
+                this.aiQuizError = 'AI limit reached. Cannot generate quiz for now.';
+                this.toastService.error('AI limit reached. Cannot generate quiz for now.');
             }
         });
     }
@@ -367,12 +401,19 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                 this.quizSubmitted = true;
                 this.submittingQuiz = false;
                 this.loadingQuiz = false;
+
+                // After quiz submission, the backend generates the next lesson
+                // in the background based on the quiz score. Start polling for it.
                 const nextLesson = this.getNextLearningLesson(this.activeLesson);
-                this.pendingAdaptiveLessonId = nextLesson ? this.getLessonId(nextLesson) : null;
+                if (nextLesson && this.shouldUseAdaptiveLessonContent(nextLesson)) {
+                    this.pendingAdaptiveLessonId = this.getLessonId(nextLesson);
+                    this.isWaitingForAdaptiveLesson = true;
+                    // 3s delay so backend has time to start generating before first poll.
+                    window.setTimeout(() => this.ensureAdaptiveLessonReady(0), 3000);
+                }
 
                 if (
                     this.activeLesson?.type === 'quiz' &&
-                    this.quizScore >= 70 &&
                     !this.isLessonCompleted(this.getLessonId(this.activeLesson))
                 ) {
                     this.markComplete();
@@ -380,7 +421,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                     this.scheduleAdaptiveRefresh();
                 }
 
-                this.toastService.success(`Quiz submitted successfully. Score: ${this.quizScore}%`);
+                this.toastService.success(`Quiz submitted! Score: ${this.quizScore}%. Preparing your personalized next lesson...`);
             },
             error: (err) => {
                 console.error('Error submitting quiz:', err);
@@ -449,7 +490,12 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     }
 
     findGeneratedQuizForLesson(lessonId: string): Quiz | null {
-        return findGeneratedQuizForLesson(lessonId, this.studentQuizzes, this.courseId);
+        const lessonTitle =
+            this.allLessons.find((lesson) => this.getLessonId(lesson) === lessonId)?.title ||
+            this.activeLesson?.title ||
+            null;
+
+        return findGeneratedQuizForLesson(lessonId, lessonTitle, this.studentQuizzes, this.courseId);
     }
 
     applyQuiz(quiz: Quiz) {
@@ -482,6 +528,18 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
     shouldGenerateBaseLesson(lesson: CoursePlayerLesson | null): boolean {
         return shouldGenerateBaseLesson(this.allLessons, lesson);
+    }
+
+    shouldUseAdaptiveLessonContent(lesson: CoursePlayerLesson | null): boolean {
+        return shouldUseAdaptiveLessonContent(this.allLessons, lesson);
+    }
+
+    shouldShowAdaptiveLessonPlaceholder(): boolean {
+        return Boolean(
+            this.activeLesson &&
+            this.shouldUseAdaptiveLessonContent(this.activeLesson) &&
+            !this.activeAdaptiveLesson
+        );
     }
 
     upsertAiGeneratedLesson(generatedLesson: AdaptiveLesson) {
@@ -517,15 +575,27 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                 this.syncActiveAdaptiveLesson();
                 this.generatingBaseLessonForId = null;
                 this.isGeneratingAiLesson = false;
+                this.aiGenerationError = null;
             },
             error: (err) => {
                 console.error('Error generating base lesson:', err);
                 this.generatingBaseLessonForId = null;
                 this.isGeneratingAiLesson = false;
-                this.toastService.warning('Showing the teacher lesson content for now. AI lesson generation can be retried shortly.');
+                
+                if (err?.status === 429) {
+                    this.aiGenerationError = 'Try again later, our servers are busy.';
+                    this.toastService.error('AI limit reached. Please try again later.');
+                } else {
+                    this.toastService.warning('AI lesson generation failed. Please try again later.');
+                }
             }
         });
     }
+
+    // REMOVED: ensureAdaptiveLessonContent() was calling POST /adaptive/generate-lesson
+    // from the frontend on every lesson navigation, wasting API quota and causing duplicates.
+    // Adaptive lessons for Lesson 2+ are ONLY generated by the backend after quiz submission.
+    // The frontend's job is only to poll for what the backend already produced.
 
     shouldWaitForAdaptiveLesson(lesson: CoursePlayerLesson | null): boolean {
         return shouldWaitForAdaptiveLesson(
@@ -536,67 +606,86 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         );
     }
 
+    /**
+     * Poll the backend for the next lesson's AI content.
+     * Called once after quiz submission (with a 3s delay to give backend time).
+     * Retries every 5s for up to 24 attempts (~2 minutes total).
+     * Cancels automatically if the student navigates away (pollToken mismatch).
+     */
     ensureAdaptiveLessonReady(attempt: number = 0, pollToken?: number) {
-        if (!this.activeLesson || !this.shouldWaitForAdaptiveLesson(this.activeLesson)) {
+        // Guard: only poll when we're waiting for a specific pending lesson.
+        if (!this.pendingAdaptiveLessonId) {
             this.isWaitingForAdaptiveLesson = false;
             return;
         }
 
-        const lessonId = this.getLessonId(this.activeLesson);
+        const targetLessonId = this.pendingAdaptiveLessonId;
 
         if (pollToken === undefined) {
             this.adaptiveLessonPollToken += 1;
             pollToken = this.adaptiveLessonPollToken;
         }
 
-        this.isWaitingForAdaptiveLesson = true;
-
         this.adaptiveService.getStudentLessons(this.courseId).subscribe({
             next: (lessons: AdaptiveLesson[]) => {
-                if (pollToken !== this.adaptiveLessonPollToken) {
-                    return;
-                }
+                // Stale poll — a new poll cycle was started, ignore this result.
+                if (pollToken !== this.adaptiveLessonPollToken) return;
 
                 this.aiGeneratedLessons = lessons;
                 this.syncActiveAdaptiveLesson();
 
-                if (this.activeAdaptiveLesson && this.getLessonId(this.activeLesson) === lessonId) {
+                // Check if the specific pending lesson now has content.
+                const arrived = lessons.find(
+                    (l) => (l.lessonId === targetLessonId || l.sourceTopic === this.getNextLearningLesson(this.activeLesson)?.title)
+                        && l.generationType !== 'base'
+                        && Boolean((l.content || '').trim())
+                );
+
+                if (arrived) {
                     this.pendingAdaptiveLessonId = null;
                     this.isWaitingForAdaptiveLesson = false;
+                    this.toastService.success('Your personalized lesson is ready! Click Next to continue.');
                     return;
                 }
 
-                if (attempt < 12 && this.pendingAdaptiveLessonId === lessonId && this.getLessonId(this.activeLesson) === lessonId) {
-                    window.setTimeout(() => this.ensureAdaptiveLessonReady(attempt + 1, pollToken), 2500);
+                // Keep retrying up to 24 attempts (~2 minutes).
+                if (attempt < 24 && this.pendingAdaptiveLessonId === targetLessonId) {
+                    window.setTimeout(() => this.ensureAdaptiveLessonReady(attempt + 1, pollToken), 5000);
                     return;
                 }
 
+                // Timed out — stop spinner but keep Next locked until lesson arrives.
                 this.isWaitingForAdaptiveLesson = false;
-                if (this.pendingAdaptiveLessonId === lessonId) {
-                    this.toastService.warning('Personalized lesson is taking longer than expected. Please refresh in a few moments.');
+                if (this.pendingAdaptiveLessonId === targetLessonId) {
+                    this.toastService.warning('Personalized lesson is taking longer than expected. Please wait a moment then refresh.');
                 }
             },
             error: (err) => {
-                console.error('Error waiting for adaptive lesson', err);
+                console.error('Error polling for adaptive lesson', err);
+                if (pollToken !== this.adaptiveLessonPollToken) return;
 
-                if (pollToken !== this.adaptiveLessonPollToken) {
+                if (err?.status === 429) {
+                    this.aiGenerationError = 'Try again later, our servers are busy.';
+                    this.isWaitingForAdaptiveLesson = false;
+                    this.pendingAdaptiveLessonId = null;
+                    this.toastService.error('AI limit reached. Please try again later.');
                     return;
                 }
 
-                if (attempt < 12 && this.pendingAdaptiveLessonId === lessonId && this.getLessonId(this.activeLesson) === lessonId) {
-                    window.setTimeout(() => this.ensureAdaptiveLessonReady(attempt + 1, pollToken), 2500);
+                if (attempt < 24 && this.pendingAdaptiveLessonId === targetLessonId) {
+                    window.setTimeout(() => this.ensureAdaptiveLessonReady(attempt + 1, pollToken), 5000);
                     return;
                 }
-
                 this.isWaitingForAdaptiveLesson = false;
             }
         });
     }
 
     scheduleAdaptiveRefresh() {
-        window.setTimeout(() => this.loadAiGeneratedLessons(), 3000);
-        window.setTimeout(() => this.loadAiGeneratedLessons(), 18000);
+        // Refresh quiz list so newly generated quizzes appear immediately.
         window.setTimeout(() => this.loadStudentQuizzes(), 3000);
+        // Refresh generated lessons list (for sidebar display).
+        window.setTimeout(() => this.loadAiGeneratedLessons(), 5000);
     }
 
     getDisplayedLessonTitle(): string {
@@ -697,14 +786,26 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                 });
                 this.isSendingChat = false;
             },
-            error: (err: unknown) => {
+            error: (err: any) => {
                 console.error('AI Tutor error:', err);
+                let errorMessage = 'Sorry, I encountered an error. Please try again later.';
+                
+                if (err?.status === 429) {
+                    errorMessage = 'Try again later, our servers are busy.';
+                } else if (err?.status === 503 || err?.status === 504) {
+                    errorMessage = 'Try again later, our servers are busy.';
+                }
+
                 this.chatMessages.push({
                     sender: 'AI',
-                    text: 'Sorry, I encountered an error. Please try again later.',
+                    text: errorMessage,
                     time: new Date()
                 });
                 this.isSendingChat = false;
+                
+                if (err?.status === 429) {
+                    this.toastService.warning('AI limit reached.');
+                }
             }
         });
     }
@@ -734,7 +835,28 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     }
 
     isNextLessonLocked(): boolean {
-        return this.loadingQuiz || this.submittingQuiz || Boolean(this.activeQuiz && !(this.quizSubmitted && this.quizScore >= 70));
+        const activeLessonId = this.getActiveLessonId();
+        const isCurrentLessonCompleted = activeLessonId ? this.isLessonCompleted(activeLessonId) : false;
+
+        // Core rule: lesson must be complete AND quiz must be submitted.
+        if (!isCurrentLessonCompleted || this.loadingQuiz || this.submittingQuiz) {
+            return true;
+        }
+        if (this.activeQuiz && !this.quizSubmitted) {
+            return true;
+        }
+
+        // Additionally: block navigation if the NEXT lesson's AI content
+        // hasn't been generated yet. This enforces the adaptive flow:
+        // quiz result → AI generates next lesson → student can proceed.
+        if (this.pendingAdaptiveLessonId) {
+            const nextLesson = this.getNextLearningLesson(this.activeLesson);
+            if (nextLesson && this.getLessonId(nextLesson) === this.pendingAdaptiveLessonId) {
+                return true; // Still generating, keep Next locked.
+            }
+        }
+
+        return false;
     }
 
     hasPreviousLesson(): boolean {

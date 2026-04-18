@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { ENDPOINTS } from '../../../core/constants/api.constants';
 import { AuthService } from '../../auth/services/auth.service';
 import { AdaptiveLesson } from '../pages/course-player/course-player.models';
+import { CourseProgress } from './student-progress.service';
 
 export interface AdaptiveClassification {
     confidence?: number;
@@ -37,8 +38,11 @@ export class AdaptiveLearningService {
 
     generateAiLesson(
         courseId: string,
+        lessonId: string,
         quizId: string | null,
         topic: string,
+        lessonDescription: string,
+        studentProgress: CourseProgress | null,
         weakAreas?: string[],
         scorePercentage?: number,
     ): Observable<AdaptiveLesson> {
@@ -49,8 +53,19 @@ export class AdaptiveLearningService {
             url,
             { 
                 courseId, 
+                lessonId,
                 quizId, 
                 topic,
+                lessonDescription,
+                sourceContent: lessonDescription,
+                studentProgress: studentProgress
+                    ? {
+                        progressPercentage: studentProgress.progressPercentage,
+                        completedLessons: studentProgress.completedLessons,
+                        isCompleted: studentProgress.isCompleted,
+                        lastAccessedAt: studentProgress.lastAccessedAt,
+                    }
+                    : null,
                 scorePercentage: scorePercentage !== undefined ? scorePercentage : 100,
                 weakAreas: (weakAreas || []).join(', ')
             }

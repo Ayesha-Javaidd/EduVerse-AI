@@ -293,31 +293,52 @@
         <section
           *ngIf="activeLesson.type !== 'video' || activeAdaptiveLesson || activeQuiz"
           class="rounded-[28px] border border-[#dbe4ea] bg-white px-6 py-6 shadow-sm lg:px-8 lg:py-8">
-          <div
-            *ngIf="isWaitingForAdaptiveLesson && activeLesson.type !== 'quiz'"
-            class="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-[#dbe4ea] bg-[#f8f9fc] px-6 py-16 text-center">
-            <i class="fa-solid fa-spinner animate-spin text-4xl text-[#23A997]"></i>
-            <p class="mt-4 font-semibold text-[#181F39]">Preparing your personalized lesson</p>
-            <p class="mt-2 text-sm text-slate-500">The adaptive version of this lesson is still being generated.</p>
-          </div>
-
-          <div *ngIf="!isWaitingForAdaptiveLesson && activeLesson.type !== 'quiz'" class="prose prose-slate max-w-none">
-            <div *ngIf="activeAdaptiveLesson" class="ai-content-wrapper">
-              <markdown [data]="activeAdaptiveLesson.content" class="text-base leading-relaxed text-slate-600"></markdown>
-            </div>
-            <div *ngIf="!activeAdaptiveLesson && !activeLesson.type" class="ai-content-wrapper">
-              <markdown [data]="activeLesson.content" class="text-base leading-relaxed text-slate-600"></markdown>
-            </div>
+          <!-- Lesson content: hidden while a quiz is active and not yet submitted -->
+          <ng-container *ngIf="!activeQuiz || quizSubmitted">
+            <!-- Error State: Shown when AI generation hits a quota or fails -->
             <div
-              *ngIf="!activeAdaptiveLesson && activeLesson.type"
-              class="text-base leading-relaxed text-slate-600"
-              [innerHTML]="activeLesson.content || 'No content provided for this lesson.'"></div>
-          </div>
+              *ngIf="aiGenerationError && !activeAdaptiveLesson && activeLesson.type !== 'quiz'"
+              class="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-[#dbe4ea] bg-[#f8f9fc] px-6 py-16 text-center">
+              <i class="fa-solid fa-server text-4xl text-slate-400 mb-4"></i>
+              <p class="text-lg font-semibold text-[#181F39]">{{ aiGenerationError }}</p>
+            </div>
 
-          <div *ngIf="activeQuiz" class="quiz-container">
+            <!-- Missing AI Content State: Shown when AI content is expected but missing -->
+            <div
+              *ngIf="!aiGenerationError && !activeAdaptiveLesson && !isGeneratingAiLesson && !isWaitingForAdaptiveLesson && activeLesson.type !== 'quiz' && activeLesson.type !== 'video'"
+              class="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-[#dbe4ea] bg-[#f8f9fc] px-6 py-16 text-center">
+              <i class="fa-solid fa-server text-4xl text-slate-400 mb-4"></i>
+              <p class="text-lg font-semibold text-[#181F39]">Try again later, our servers are busy.</p>
+            </div>
+
+            <!-- Spinner: shown while AI is generating -->
+            <div
+              *ngIf="!aiGenerationError && (isGeneratingAiLesson || isWaitingForAdaptiveLesson) && activeLesson.type !== 'quiz'"
+              class="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-[#dbe4ea] bg-[#f8f9fc] px-6 py-16 text-center">
+              <i class="fa-solid fa-spinner animate-spin text-4xl text-[#23A997]"></i>
+              <p class="mt-4 font-semibold text-[#181F39]">{{ isGeneratingAiLesson ? 'Generating your AI lesson...' : 'Preparing your personalized lesson' }}</p>
+            </div>
+
+            <!-- Content: only shown when adaptive content is available -->
+            <div *ngIf="activeAdaptiveLesson && activeLesson.type !== 'quiz'" class="prose prose-slate max-w-none">
+              <div class="ai-content-wrapper">
+                <markdown [data]="activeAdaptiveLesson.content" class="text-base leading-relaxed text-slate-600"></markdown>
+              </div>
+            </div>
+          </ng-container>
+
+          <div class="quiz-container">
             <div *ngIf="loadingQuiz" class="flex flex-col items-center justify-center py-20">
               <i class="fa-solid fa-spinner animate-spin text-4xl text-[#23A997]"></i>
               <p class="mt-4 font-medium text-slate-600">Loading your quiz...</p>
+            </div>
+
+            <!-- Quiz Error State: Shown when quiz loading or generation fails -->
+            <div
+              *ngIf="!loadingQuiz && !activeQuiz && aiQuizError"
+              class="flex flex-col items-center justify-center py-20 text-center">
+              <i class="fa-solid fa-server text-4xl text-slate-400 mb-4"></i>
+              <p class="text-lg font-semibold text-[#181F39]">{{ aiQuizError }}</p>
             </div>
 
             <div *ngIf="!loadingQuiz && activeQuiz">
@@ -382,11 +403,17 @@
                 <p class="mt-2 text-slate-500" *ngIf="quizScore < 70">Keep trying. You need 70% to pass.</p>
 
                 <div class="mt-6 flex flex-wrap justify-center gap-3">
-                  <app-button [variant]="'light'" [size]="'lg'" (buttonClick)="quizSubmitted = false">
+                  <app-button [variant]="'light'" [size]="'lg'" [disabled]="isWaitingForAdaptiveLesson" (buttonClick)="quizSubmitted = false">
                     Retry Quiz
                   </app-button>
-                  <app-button *ngIf="quizScore >= 70" [variant]="'primary'" [size]="'lg'" (buttonClick)="nextLesson()">
-                    Continue to Next Lesson
+                  <app-button
+                    [variant]="'primary'"
+                    [size]="'lg'"
+                    [disabled]="isNextLessonLocked() || !hasNextLesson()"
+                    (buttonClick)="nextLesson()">
+                    <i *ngIf="isWaitingForAdaptiveLesson" class="fa-solid fa-spinner animate-spin mr-2"></i>
+                    <i *ngIf="!isWaitingForAdaptiveLesson" class="fa-solid fa-arrow-right mr-2"></i>
+                    {{ isWaitingForAdaptiveLesson ? 'Preparing your next lesson...' : 'Continue to Next Lesson' }}
                   </app-button>
                 </div>
               </div>
@@ -419,8 +446,12 @@
                 (click)="nextLesson()"
                 [disabled]="!hasNextLesson() || isNextLessonLocked()"
                 class="inline-flex items-center gap-2 rounded-full bg-[#181F39] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0f172a] disabled:cursor-not-allowed disabled:opacity-40">
-                Next
-                <i class="fa-solid fa-chevron-right"></i>
+                <i *ngIf="isWaitingForAdaptiveLesson" class="fa-solid fa-spinner animate-spin"></i>
+                <span *ngIf="isWaitingForAdaptiveLesson">Preparing...</span>
+                <ng-container *ngIf="!isWaitingForAdaptiveLesson">
+                  Next
+                  <i class="fa-solid fa-chevron-right"></i>
+                </ng-container>
               </button>
             </div>
           </div>

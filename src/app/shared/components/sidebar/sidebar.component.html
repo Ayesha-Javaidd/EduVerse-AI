@@ -20,15 +20,36 @@
   <!-- Logo Area -->
   <div class="pt-8 pb-8 flex items-center" [ngClass]="{'pl-7 pr-6 justify-between': isOpen || isMobile, 'justify-center px-0': !isOpen && !isMobile}">
     <div class="flex items-center" [class.hidden]="!isMobile && !isOpen">
-      <div class="bg-[#23A997] text-white h-[32px] w-[32px] min-w-[32px] rounded-[10px] flex items-center justify-center mr-3">
-        <i class="fa-solid fa-book-open text-[15px]"></i>
-      </div>
-      <span class="text-[22px] font-bold text-white tracking-tight leading-none">Edu<span class="text-[#23A997]">Verse</span></span>
+      <ng-container *ngIf="tenantBranding?.tenantLogoUrl; else defaultExpandedBrand">
+        <img
+          [src]="tenantBranding?.tenantLogoUrl"
+          [alt]="displayBrandName"
+          class="h-[40px] w-[40px] min-w-[40px] rounded-[12px] object-cover bg-white border border-white/10 mr-3"
+        />
+        <span class="max-w-[140px] truncate text-[20px] font-bold text-white tracking-tight leading-none">
+          {{ displayBrandName }}
+        </span>
+      </ng-container>
+      <ng-template #defaultExpandedBrand>
+        <div class="bg-[#23A997] text-white h-[32px] w-[32px] min-w-[32px] rounded-[10px] flex items-center justify-center mr-3">
+          <i class="fa-solid fa-book-open text-[15px]"></i>
+        </div>
+        <span class="text-[22px] font-bold text-white tracking-tight leading-none">Edu<span class="text-[#23A997]">Verse</span></span>
+      </ng-template>
     </div>
 
     <!-- Collapsed: just show logo icon -->
-    <div *ngIf="!isMobile && !isOpen" class="bg-[#23A997] text-white h-[36px] w-[36px] min-w-[36px] rounded-[10px] flex items-center justify-center cursor-pointer" (click)="toggleDesktopSidebar()">
-      <i class="fa-solid fa-book-open text-[17px]"></i>
+    <div *ngIf="!isMobile && !isOpen" class="bg-[#23A997] text-white h-[36px] w-[36px] min-w-[36px] rounded-[10px] flex items-center justify-center cursor-pointer overflow-hidden" (click)="toggleDesktopSidebar()">
+      <ng-container *ngIf="tenantBranding?.tenantLogoUrl; else defaultCollapsedBrand">
+        <img
+          [src]="tenantBranding?.tenantLogoUrl"
+          [alt]="displayBrandName"
+          class="h-full w-full object-cover bg-white"
+        />
+      </ng-container>
+      <ng-template #defaultCollapsedBrand>
+        <i class="fa-solid fa-book-open text-[17px]"></i>
+      </ng-template>
     </div>
 
     <!-- Desktop hamburger (Added right margin for spacing from logo) -->

@@ -40,6 +40,33 @@
           iconBgClass="bg-amber-100" bgColor="bg-white" iconColorClass="text-amber-600">
         </app-stat-card>
       </section>
+      
+      <!-- NEW: Recommended for You section -->
+      <section *ngIf="!loading && recommendedCourses.length > 0" class="flex flex-col gap-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+              <i class="fa-solid fa-star"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold tracking-tight text-[#181F39]">{{ recommendedSectionTitle }}</h3>
+              <p class="text-sm text-slate-500">{{ recommendedSectionSubtitle }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <app-course-card 
+            *ngFor="let course of recommendedCourses" 
+            [course]="course"
+            [variant]="'explore'"
+            (courseClick)="onCourseClick($event)"
+            (enrollClick)="onEnrollClick($event)">
+          </app-course-card>
+        </div>
+        
+        <div class="h-px w-full bg-[#dbe4ea]"></div>
+      </section>
 
       <section>
         <app-filters [searchPlaceholder]="filterConfig.searchPlaceholder" [dropdowns]="filterConfig.dropdowns"
