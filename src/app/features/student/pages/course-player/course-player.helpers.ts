@@ -181,7 +181,7 @@ export function selectMatchingAdaptiveLesson(
   }
 
   return (
-    matchingLessons.find((lesson) => lesson.generationType !== 'base') ||
+    matchingLessons.find((lesson) => lesson.generationType === 'base') ||
     matchingLessons[0] ||
     null
   );

@@ -456,9 +456,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         );
     }
 
-    get personalizedLessons(): AdaptiveLesson[] {
-        return this.aiGeneratedLessons.filter((lesson) => lesson?.generationType !== 'base');
-    }
+
 
     get totalLessons(): number {
         return this.allLessons.length;
@@ -481,9 +479,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         return this.course?.modules?.[this.activeModuleIndex]?.title || 'Current module';
     }
 
-    get hasPersonalizedLessons(): boolean {
-        return this.personalizedLessons.length > 0;
-    }
+
 
     getNextLearningLesson(afterLesson: CoursePlayerLesson | null): CoursePlayerLesson | null {
         return getNextLearningLesson(this.allLessons, afterLesson);
@@ -504,19 +500,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.loadingQuiz = false;
     }
 
-    openPersonalizedLesson(aiLesson: AdaptiveLesson) {
-        const matchingLesson =
-            this.allLessons.find((lesson) => this.getLessonId(lesson) === aiLesson.lessonId) ||
-            this.allLessons.find((lesson) => lesson.title === aiLesson.sourceTopic);
 
-        if (!matchingLesson) {
-            this.toastService.warning('This personalized lesson is not linked to a course lesson yet.');
-            return;
-        }
-
-        this.selectLesson(matchingLesson, matchingLesson.moduleIndex ?? 0);
-        this.activeAdaptiveLesson = aiLesson;
-    }
 
     isFirstCourseLesson(lesson: CoursePlayerLesson | null): boolean {
         return isFirstCourseLesson(this.allLessons, lesson);
