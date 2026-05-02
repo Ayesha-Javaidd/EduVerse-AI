@@ -50,12 +50,19 @@ export function findGeneratedQuizForLesson(
   studentQuizzes: Quiz[],
   courseId: string,
 ): Quiz | null {
+  // Exclude corrupted records (0 questions) — these are saved artefacts from
+  // failed Ollama generations and should never be shown to the student.
+  const validQuizzes = studentQuizzes.filter(
+    (q) => q.courseId === courseId && Array.isArray(q.questions) && q.questions.length > 0
+  );
+
   const normalizedLessonTitle = normalizeQuizTopic(lessonTitle);
 
   return (
-    studentQuizzes.find((quiz) => quiz.lessonId === lessonId && quiz.courseId === courseId) ||
-    studentQuizzes.find((quiz) => {
-      if (quiz.courseId !== courseId || quiz.lessonId) {
+    validQuizzes.find((quiz) => quiz.lessonId === lessonId) ||
+    validQuizzes.find((quiz) => {
+      if (quiz.lessonId) {
+        // Has a lessonId but it didn't match above — skip topic fallback.
         return false;
       }
 
@@ -158,6 +165,19 @@ export function getNextLearningLesson(
   return null;
 }
 
+/** Content values that indicate a failed/incomplete AI generation. */
+const BAD_CONTENT_VALUES = new Set(['', 'content unavailable.', 'content unavailable']);
+
+/** Returns true when an adaptive lesson has real, displayable content. */
+export function hasValidContent(lesson: AdaptiveLesson | null | undefined): boolean {
+  if (!lesson) return false;
+  const content = (lesson.content || '').trim();
+  if (BAD_CONTENT_VALUES.has(content.toLowerCase())) return false;
+  // Reject raw JSON dumps (Layer 4 rescue failures) — content should be markdown, not JSON
+  if (content.startsWith('{')) return false;
+  return true;
+}
+
 export function selectMatchingAdaptiveLesson(
   activeLesson: CoursePlayerLesson | null,
   aiGeneratedLessons: AdaptiveLesson[],
@@ -168,11 +188,16 @@ export function selectMatchingAdaptiveLesson(
   }
 
   const lessonId = getLessonId(activeLesson);
+  // Filter out lessons with fallback/empty content so that a previous failed
+  // generation does NOT block a fresh one from being triggered.
   const matchingLessons = aiGeneratedLessons.filter(
-    (lesson) => lesson.lessonId === lessonId || lesson.sourceTopic === activeLesson.title,
+    (lesson) =>
+      (lesson.lessonId === lessonId || lesson.sourceTopic === activeLesson.title) &&
+      hasValidContent(lesson),
   );
 
   if (isFirstCourseLesson(allLessons, activeLesson)) {
+    // Lesson 1: always show 'base' content (teacher description → AI expanded)
     return (
       matchingLessons.find((lesson) => lesson.generationType === 'base') ||
       matchingLessons[0] ||
@@ -180,8 +205,9 @@ export function selectMatchingAdaptiveLesson(
     );
   }
 
+  // Lesson 2+: prefer 'adaptive' content generated after quiz submission
   return (
-    matchingLessons.find((lesson) => lesson.generationType === 'base') ||
+    matchingLessons.find((lesson) => lesson.generationType === 'adaptive') ||
     matchingLessons[0] ||
     null
   );
@@ -202,4 +228,24 @@ export function upsertAdaptiveLesson(
         ),
     ),
   ];
+}
+
+export function normalizeMarkdownContent(content: string | null | undefined): string {
+  const normalized = String(content || '').replace(/\r\n/g, '\n').trim();
+  if (!normalized.startsWith('```')) {
+    return normalized;
+  }
+
+  const fencedBlockMatch = normalized.match(
+    /^```(?:[a-zA-Z0-9_-]+)?\s*\n([\s\S]*)\n```(?:\s*([\s\S]*))?$/i,
+  );
+
+  if (!fencedBlockMatch) {
+    return normalized;
+  }
+
+  const markdownBody = fencedBlockMatch[1]?.trim() || '';
+  const trailingText = fencedBlockMatch[2]?.trim() || '';
+
+  return [markdownBody, trailingText].filter(Boolean).join('\n\n');
 }

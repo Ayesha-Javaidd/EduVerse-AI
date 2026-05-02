@@ -2,8 +2,7 @@
   <header class="border-b border-[#dbe4ea] bg-white/95 backdrop-blur-sm">
     <div class="flex items-center justify-between gap-4 px-4 py-4 lg:px-6">
       <div class="flex min-w-0 items-center gap-3">
-        <button
-          (click)="goBack()"
+        <button (click)="goBack()"
           class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#dbe4ea] bg-white text-slate-600 transition hover:border-[#23A997]/40 hover:text-[#181F39]">
           <i class="fa-solid fa-arrow-left"></i>
         </button>
@@ -16,21 +15,20 @@
             {{ course?.title || 'Course Player' }}
           </h1>
           <p class="mt-1 hidden text-sm text-slate-500 sm:block">
-            {{ activeModuleTitle }}<span *ngIf="currentLessonNumber"> • Lesson {{ currentLessonNumber }} of {{ totalLessons }}</span>
+            {{ activeModuleTitle }}<span *ngIf="currentLessonNumber"> • Lesson {{ currentLessonNumber }} of {{
+              totalLessons }}</span>
           </p>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
-        <button
-          (click)="toggleSidebar()"
+        <button (click)="toggleSidebar()"
           class="hidden xl:inline-flex h-11 items-center gap-2 rounded-2xl border border-[#dbe4ea] bg-white px-4 text-sm font-semibold text-slate-600 transition hover:border-[#23A997]/40 hover:text-[#181F39]">
           <i class="fa-solid" [ngClass]="isSidebarOpen ? 'fa-panel-left' : 'fa-bars'"></i>
           {{ isSidebarOpen ? 'Hide curriculum' : 'Show curriculum' }}
         </button>
 
-        <button
-          (click)="toggleAiAssistant()"
+        <button (click)="toggleAiAssistant()"
           class="hidden xl:inline-flex h-11 items-center gap-2 rounded-2xl border border-[#dbe4ea] bg-white px-4 text-sm font-semibold text-slate-600 transition hover:border-[#23A997]/40 hover:text-[#181F39]">
           <i class="fa-solid" [ngClass]="isAiAssistantOpen ? 'fa-panel-right' : 'fa-robot'"></i>
           {{ isAiAssistantOpen ? 'Hide AI' : 'Show AI' }}
@@ -38,27 +36,24 @@
 
         <div class="hidden min-w-[170px] rounded-[18px] border border-[#dbe4ea] bg-[#f8f9fc] px-3.5 py-2 lg:block">
           <div class="flex items-center justify-between text-xs font-medium">
-            <span class="text-slate-500">Progress</span>
-            <span class="font-semibold text-[#181F39]">{{ progressWidth }}%</span>
+            <span class="text-slate-500">Avg Quiz Score</span>
+            <span class="font-semibold text-[#181F39]">{{ avgQuizScore }}%</span>
           </div>
           <div class="mt-2 h-2 rounded-full bg-slate-200">
-            <div
-              class="h-2 rounded-full bg-[#23A997] transition-all duration-500"
-              [style.width.%]="progressWidth"></div>
+            <div class="h-2 rounded-full bg-[#23A997] transition-all duration-500" [style.width.%]="avgQuizScore">
+            </div>
           </div>
           <p class="mt-1 text-xs text-slate-500">
             {{ completedLessonCount }} of {{ totalLessons }} lessons completed
           </p>
         </div>
 
-        <button
-          (click)="toggleSidebar()"
+        <button (click)="toggleSidebar()"
           class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#dbe4ea] bg-white text-slate-600 transition hover:border-[#23A997]/40 hover:text-[#181F39] xl:hidden">
           <i class="fa-solid" [ngClass]="isSidebarOpen ? 'fa-xmark' : 'fa-bars'"></i>
         </button>
 
-        <button
-          (click)="toggleAiAssistant()"
+        <button (click)="toggleAiAssistant()"
           class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#dbe4ea] bg-white text-slate-600 transition hover:border-[#23A997]/40 hover:text-[#181F39] xl:hidden">
           <i class="fa-solid" [ngClass]="isAiAssistantOpen ? 'fa-robot text-[#23A997]' : 'fa-robot'"></i>
         </button>
@@ -68,13 +63,11 @@
     <div class="border-t border-[#eef2f6] px-4 py-3 lg:hidden">
       <div class="rounded-[18px] border border-[#dbe4ea] bg-[#f8f9fc] px-3.5 py-2">
         <div class="flex items-center justify-between text-xs font-medium">
-          <span class="text-slate-500">Progress</span>
-          <span class="font-semibold text-[#181F39]">{{ progressWidth }}%</span>
+          <span class="text-slate-500">Avg Quiz Score</span>
+          <span class="font-semibold text-[#181F39]">{{ avgQuizScore }}%</span>
         </div>
         <div class="mt-2 h-2 rounded-full bg-slate-200">
-          <div
-            class="h-2 rounded-full bg-[#23A997] transition-all duration-500"
-            [style.width.%]="progressWidth"></div>
+          <div class="h-2 rounded-full bg-[#23A997] transition-all duration-500" [style.width.%]="avgQuizScore"></div>
         </div>
         <p class="mt-1 text-xs text-slate-500">
           {{ completedLessonCount }} of {{ totalLessons }} lessons completed
@@ -84,15 +77,11 @@
   </header>
 
   <div class="flex min-h-0 flex-1 overflow-hidden">
-    <div
-      *ngIf="isCompactViewport && isSidebarOpen"
-      (click)="toggleSidebar()"
+    <div *ngIf="isCompactViewport && isSidebarOpen" (click)="toggleSidebar()"
       class="fixed inset-0 z-30 bg-slate-900/40 backdrop-blur-sm xl:hidden">
     </div>
 
-    <aside
-      class="overflow-y-auto bg-white transition-all duration-300"
-      [ngClass]="{
+    <aside class="overflow-y-auto bg-white transition-all duration-300" [ngClass]="{
         'fixed inset-y-0 left-0 z-40 w-[18rem] max-w-[85vw] border-r border-[#dbe4ea] shadow-2xl': isCompactViewport,
         'flex-shrink-0 border-r border-[#dbe4ea]': !isCompactViewport,
         'translate-x-0': isCompactViewport && isSidebarOpen,
@@ -110,8 +99,7 @@
             <span class="rounded-full bg-[#ecf9f6] px-3 py-1 text-xs font-semibold text-[#1b8c7d]">
               {{ completedLessonCount }}/{{ totalLessons }}
             </span>
-            <button
-              (click)="toggleSidebar()"
+            <button (click)="toggleSidebar()"
               class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#dbe4ea] bg-white text-slate-500 transition hover:border-[#23A997]/40 hover:text-[#181F39]">
               <i class="fa-solid" [ngClass]="isCompactViewport ? 'fa-xmark' : 'fa-chevron-left'"></i>
             </button>
@@ -120,11 +108,12 @@
 
         <div class="mt-5 rounded-[22px] border border-[#dbe4ea] bg-[#f8f9fc] px-4 py-4">
           <div class="flex items-center justify-between text-sm">
-            <span class="font-medium text-slate-500">Course progress</span>
-            <span class="font-semibold text-[#181F39]">{{ progressWidth }}%</span>
+            <span class="font-medium text-slate-500">Avg Quiz Score</span>
+            <span class="font-semibold text-[#181F39]">{{ avgQuizScore }}%</span>
           </div>
           <div class="mt-3 h-2 rounded-full bg-slate-200">
-            <div class="h-2 rounded-full bg-[#23A997] transition-all duration-500" [style.width.%]="progressWidth"></div>
+            <div class="h-2 rounded-full bg-[#23A997] transition-all duration-500" [style.width.%]="avgQuizScore">
+            </div>
           </div>
         </div>
 
@@ -136,40 +125,28 @@
             </div>
 
             <div class="space-y-1.5">
-              <button
-                *ngFor="let lesson of module.lessons"
-                (click)="selectLesson(lesson, mIdx)"
-                class="flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition"
-                [ngClass]="
+              <button *ngFor="let lesson of module.lessons" (click)="selectLesson(lesson, mIdx)"
+                class="flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition" [ngClass]="
                   lessonsMatch(activeLesson, lesson)
                     ? 'border-[#b9e8df] bg-[#ecf9f6]'
                     : 'border-transparent bg-white hover:border-[#dbe4ea] hover:bg-[#f8f9fc]'
                 ">
                 <div class="relative mt-0.5 shrink-0">
-                  <div
-                    class="flex h-9 w-9 items-center justify-center rounded-xl border text-sm"
-                    [ngClass]="
+                  <div class="flex h-9 w-9 items-center justify-center rounded-xl border text-sm" [ngClass]="
                       lessonsMatch(activeLesson, lesson)
                         ? 'border-[#b9e8df] bg-white text-[#23A997]'
                         : 'border-[#e5edf2] bg-[#f8f9fc] text-slate-500'
                     ">
-                    <i *ngIf="lesson.type === 'video'" class="fa-solid fa-play"></i>
-                    <i *ngIf="lesson.type === 'quiz'" class="fa-solid fa-lightbulb"></i>
-                    <i
-                      *ngIf="lesson.type === 'document' || lesson.type === 'reading' || lesson.type === 'file'"
-                      class="fa-solid fa-file-lines"></i>
-                    <i *ngIf="!lesson.type" class="fa-solid fa-book-open"></i>
+                    <i *ngIf="lesson.type !== 'quiz'" class="fa-solid fa-file-lines"></i>
                   </div>
-                  <div
-                    *ngIf="isLessonCompleted(getLessonId(lesson))"
+                  <div *ngIf="isLessonCompleted(getLessonId(lesson))"
                     class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#23A997] text-[8px] text-white">
                     <i class="fa-solid fa-check"></i>
                   </div>
                 </div>
 
                 <div class="min-w-0 flex-1">
-                  <p
-                    class="truncate text-sm font-semibold"
+                  <p class="truncate text-sm font-semibold"
                     [ngClass]="lessonsMatch(activeLesson, lesson) ? 'text-[#181F39]' : 'text-slate-700'">
                     {{ lesson.title }}
                   </p>
@@ -185,9 +162,7 @@
     </aside>
 
     <main class="relative min-w-0 flex-1 overflow-y-auto">
-      <button
-        *ngIf="!isSidebarOpen && !isCompactViewport"
-        (click)="toggleSidebar()"
+      <button *ngIf="!isSidebarOpen && !isCompactViewport" (click)="toggleSidebar()"
         class="absolute left-4 top-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#dbe4ea] bg-white text-slate-600 shadow-sm transition hover:border-[#23A997]/40 hover:text-[#181F39]">
         <i class="fa-solid fa-bars"></i>
       </button>
@@ -210,54 +185,42 @@
                 <h2 class="min-w-0 truncate text-xl font-bold tracking-tight text-[#181F39] lg:text-2xl">
                   {{ getDisplayedLessonTitle() }}
                 </h2>
-                <span class="rounded-full border border-[#dbe4ea] bg-[#f8f9fc] px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                <span
+                  class="rounded-full border border-[#dbe4ea] bg-[#f8f9fc] px-2.5 py-1 text-[11px] font-semibold text-slate-600">
                   Lesson {{ currentLessonNumber }} / {{ totalLessons }}
                 </span>
               </div>
             </div>
 
             <div class="flex flex-wrap gap-2">
-              <span *ngIf="activeLesson?.duration" class="rounded-full border border-[#dbe4ea] bg-[#f8f9fc] px-3 py-1 text-xs font-semibold text-slate-600">
+              <span *ngIf="activeLesson?.duration"
+                class="rounded-full border border-[#dbe4ea] bg-[#f8f9fc] px-3 py-1 text-xs font-semibold text-slate-600">
                 {{ activeLesson.duration }}
               </span>
-              <span class="rounded-full border border-[#dbe4ea] bg-[#f8f9fc] px-3 py-1 text-xs font-semibold capitalize text-slate-600">
+              <span
+                class="rounded-full border border-[#dbe4ea] bg-[#f8f9fc] px-3 py-1 text-xs font-semibold capitalize text-slate-600">
                 {{ activeAdaptiveLesson ? 'AI lesson' : (activeLesson.type || 'lesson') }}
               </span>
-              <span class="rounded-full border border-[#b9e8df] bg-[#ecf9f6] px-3 py-1 text-xs font-semibold text-[#1b8c7d]">
+              <span
+                class="rounded-full border border-[#b9e8df] bg-[#ecf9f6] px-3 py-1 text-xs font-semibold text-[#1b8c7d]">
                 {{ progressWidth }}% progress
               </span>
             </div>
           </div>
         </section>
 
-        <div
-          *ngIf="isGeneratingAiLesson"
-          class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4 backdrop-blur-sm">
-          <div class="max-w-sm rounded-[28px] border border-[#dbe4ea] bg-white px-8 py-8 text-center shadow-2xl">
-            <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#ecf9f6] text-[#23A997]">
-              <i class="fa-solid fa-wand-magic-sparkles text-2xl animate-pulse"></i>
-            </div>
-            <h3 class="mt-5 text-xl font-bold text-[#181F39]">Preparing your lesson</h3>
-            <p class="mt-2 text-sm leading-6 text-slate-500">
-              Our AI is expanding this lesson into a fuller student-ready experience.
-            </p>
-          </div>
-        </div>
 
-        <div
-          *ngIf="!activeAdaptiveLesson && activeLesson.type === 'video'"
+        <div *ngIf="!activeAdaptiveLesson && activeLesson.type === 'video'"
           class="overflow-hidden rounded-[28px] border border-[#dbe4ea] bg-white shadow-sm">
           <div class="aspect-video bg-slate-950" *ngIf="videoUrl; else missingVideoState">
-            <iframe
-              [src]="videoUrl"
-              class="h-full w-full"
-              frameborder="0"
+            <iframe [src]="videoUrl" class="h-full w-full" frameborder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowfullscreen>
             </iframe>
           </div>
           <ng-template #missingVideoState>
-            <div class="flex min-h-[260px] flex-col items-center justify-center bg-slate-950 px-6 py-10 text-center text-slate-400 lg:min-h-[300px]">
+            <div
+              class="flex min-h-[260px] flex-col items-center justify-center bg-slate-950 px-6 py-10 text-center text-slate-400 lg:min-h-[300px]">
               <i class="fa-solid fa-video-slash text-4xl"></i>
               <p class="mt-4 text-sm font-medium text-slate-200">Video link not available</p>
               <p class="mt-2 text-xs text-slate-400">{{ activeLesson.content }}</p>
@@ -265,93 +228,132 @@
           </ng-template>
         </div>
 
-        <section
-          *ngIf="activeLesson.type !== 'video' || activeAdaptiveLesson || activeQuiz"
+        <section *ngIf="activeLesson.type !== 'video' || activeAdaptiveLesson || activeQuiz"
           class="rounded-[28px] border border-[#dbe4ea] bg-white px-6 py-6 shadow-sm lg:px-8 lg:py-8">
           <!-- Lesson content: hidden while a quiz is active and not yet submitted -->
-          <ng-container *ngIf="!activeQuiz || quizSubmitted">
+          <ng-container *ngIf="!activeQuiz || quizSubmitted || isRevisitingCompletedLesson">
             <!-- Error State: Shown when AI generation hits a quota or fails -->
-            <div
-              *ngIf="aiGenerationError && !activeAdaptiveLesson && activeLesson.type !== 'quiz'"
-              class="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-[#dbe4ea] bg-[#f8f9fc] px-6 py-16 text-center">
-              <i class="fa-solid fa-server text-4xl text-slate-400 mb-4"></i>
-              <p class="text-lg font-semibold text-[#181F39]">{{ aiGenerationError }}</p>
+            <div *ngIf="aiGenerationError && !activeAdaptiveLesson && activeLesson.type !== 'quiz'"
+              class="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-red-200 bg-red-50 px-6 py-16 text-center">
+              <i class="fa-solid fa-triangle-exclamation text-4xl text-red-400 mb-4"></i>
+              <p class="text-lg font-semibold text-red-700">{{ aiGenerationError }}</p>
+              <button (click)="retryAdaptiveLesson()" [disabled]="isWaitingForAdaptiveLesson || isGeneratingAiLesson"
+                class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#23A997] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(35,169,151,0.3)] transition hover:bg-[#1f9686] disabled:opacity-50">
+                <i class="fa-solid fa-rotate-right"></i>Retry Generation
+              </button>
             </div>
 
-            <!-- Missing AI Content State: Shown when AI content is expected but missing -->
-            <div
-              *ngIf="!aiGenerationError && !activeAdaptiveLesson && !isGeneratingAiLesson && !isWaitingForAdaptiveLesson && activeLesson.type !== 'quiz' && activeLesson.type !== 'video'"
-              class="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-[#dbe4ea] bg-[#f8f9fc] px-6 py-16 text-center">
-              <i class="fa-solid fa-server text-4xl text-slate-400 mb-4"></i>
-              <p class="text-lg font-semibold text-[#181F39]">Try again later, our servers are busy.</p>
+            <!-- Timed-out State: generation still in progress, Next locked, retry available -->
+            <div *ngIf="adaptiveLessonTimedOut && !activeAdaptiveLesson && !isWaitingForAdaptiveLesson && !isGeneratingAiLesson && !aiGenerationError && activeLesson.type !== 'quiz' && activeLesson.type !== 'video'"
+              class="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-amber-200 bg-amber-50 px-6 py-16 text-center">
+              <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
+                <i class="fa-solid fa-hourglass-half text-2xl text-amber-500"></i>
+              </div>
+              <h4 class="mt-4 text-lg font-bold text-amber-800">Your personalized lesson is still being prepared</h4>
+              <p class="mt-2 max-w-xs text-sm leading-6 text-amber-700">
+                The AI is working on it — this can take a few minutes. Click "Retry Generation" to kick it off again.
+                The Next lesson will unlock automatically when your content arrives.
+              </p>
+              <button (click)="retryAdaptiveLesson()"
+                class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-amber-500 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(245,158,11,0.3)] transition hover:bg-amber-600">
+                <i class="fa-solid fa-rotate-right"></i>Retry Generation
+              </button>
             </div>
 
-            <!-- Spinner: shown while AI is generating -->
+            <!-- Fallback: shown for base-lesson failures only (no content, no error, not timed out) -->
+            <div *ngIf="!aiGenerationError && !adaptiveLessonTimedOut && !activeAdaptiveLesson && !isGeneratingAiLesson && !isWaitingForAdaptiveLesson && shouldGenerateBaseLesson(activeLesson)"
+              class="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-[#dbe4ea] bg-[#f8f9fc] px-6 py-16 text-center">
+              <i class="fa-solid fa-wand-magic-sparkles text-4xl text-slate-400 mb-4"></i>
+              <p class="text-lg font-semibold text-[#181F39]">Content generation failed. Please retry.</p>
+              <button (click)="retryAdaptiveLesson()"
+                class="mt-5 inline-flex items-center gap-2 rounded-2xl border border-[#23A997]/30 bg-white px-6 py-2.5 text-sm font-semibold text-[#23A997] transition hover:bg-[#ecf9f6]">
+                <i class="fa-solid fa-rotate-right"></i>Retry Generation
+              </button>
+            </div>
+
+            <!-- Spinner: shown while AI is generating or waiting for adaptive lesson -->
             <div
-              *ngIf="!aiGenerationError && (isGeneratingAiLesson || isWaitingForAdaptiveLesson) && activeLesson.type !== 'quiz'"
+              *ngIf="!aiGenerationError && !adaptiveLessonTimedOut && (isGeneratingAiLesson || isWaitingForAdaptiveLesson) && activeLesson.type !== 'quiz'"
               class="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-[#dbe4ea] bg-[#f8f9fc] px-6 py-16 text-center">
               <i class="fa-solid fa-spinner animate-spin text-4xl text-[#23A997]"></i>
-              <p class="mt-4 font-semibold text-[#181F39]">{{ isGeneratingAiLesson ? 'Generating your AI lesson...' : 'Preparing your personalized lesson' }}</p>
+              <p class="mt-4 font-semibold text-[#181F39]">
+                {{ isGeneratingAiLesson ? 'Generating your AI lesson — this may take a few minutes...' :
+                'Preparing your personalized lesson\u2026 this may take a few minutes' }}
+              </p>
+              <p class="mt-2 text-sm text-slate-400">AI generation can take 2–4 minutes. Please wait or come back shortly.</p>
             </div>
 
             <!-- Content: only shown when adaptive content is available -->
             <div *ngIf="activeAdaptiveLesson && activeLesson.type !== 'quiz'" class="prose prose-slate max-w-none">
               <div class="ai-content-wrapper">
-                <markdown [data]="activeAdaptiveLesson.content" class="text-base leading-relaxed text-slate-600"></markdown>
+                <markdown [data]="renderedAdaptiveLessonContent" class="text-base leading-relaxed text-slate-600">
+                </markdown>
               </div>
             </div>
           </ng-container>
 
           <div class="quiz-container">
-            <div *ngIf="loadingQuiz" class="flex flex-col items-center justify-center py-20">
+            <div *ngIf="loadingQuiz && !isPollingForQuiz" class="flex flex-col items-center justify-center py-20">
               <i class="fa-solid fa-spinner animate-spin text-4xl text-[#23A997]"></i>
               <p class="mt-4 font-medium text-slate-600">Loading your quiz...</p>
             </div>
 
+            <!-- Quiz being generated: shown when lesson is complete but quiz not ready yet (including after page refresh) -->
+            <div *ngIf="isPollingForQuiz && !activeQuiz && !aiQuizError"
+              class="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-[#b9e8df] bg-[#ecf9f6] px-6 py-16 text-center">
+              <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-sm">
+                <i class="fa-solid fa-wand-magic-sparkles text-2xl text-[#23A997] animate-pulse"></i>
+              </div>
+              <h4 class="mt-5 text-lg font-bold text-[#181F39]">Preparing your quiz...</h4>
+              <p class="mt-2 max-w-xs text-sm leading-6 text-slate-500">
+                Our AI is crafting a personalized quiz for this lesson. This usually takes under a minute.
+              </p>
+              <div class="mt-4 flex items-center gap-1.5">
+                <span class="h-2 w-2 animate-bounce rounded-full bg-[#23A997]"></span>
+                <span class="h-2 w-2 animate-bounce rounded-full bg-[#23A997] [animation-delay:0.15s]"></span>
+                <span class="h-2 w-2 animate-bounce rounded-full bg-[#23A997] [animation-delay:0.3s]"></span>
+              </div>
+            </div>
+
             <!-- Quiz Error State: Shown when quiz loading or generation fails -->
-            <div
-              *ngIf="!loadingQuiz && !activeQuiz && aiQuizError"
+            <div *ngIf="!loadingQuiz && !activeQuiz && aiQuizError"
               class="flex flex-col items-center justify-center py-20 text-center">
               <i class="fa-solid fa-server text-4xl text-slate-400 mb-4"></i>
               <p class="text-lg font-semibold text-[#181F39]">{{ aiQuizError }}</p>
             </div>
 
-            <div *ngIf="!loadingQuiz && activeQuiz">
+            <div *ngIf="!loadingQuiz && activeQuiz && !quizSubmitted">
               <div class="rounded-[24px] border border-[#dbe4ea] bg-[#f8f9fc] px-5 py-5">
                 <h3 class="text-xl font-bold text-[#181F39]">Quiz #{{ activeQuiz.quizNumber || 'AI' }}</h3>
                 <p class="mt-2 text-sm leading-6 text-slate-500">
                   {{ activeQuiz.description || activeQuiz.topic || 'Test your knowledge on the current topic.' }}
                 </p>
                 <div class="mt-4 flex flex-wrap gap-2">
-                  <span class="rounded-full border border-[#dbe4ea] bg-white px-3 py-1 text-xs font-semibold text-slate-500">
+                  <span
+                    class="rounded-full border border-[#dbe4ea] bg-white px-3 py-1 text-xs font-semibold text-slate-500">
                     {{ activeQuiz.questions.length }} Questions
                   </span>
-                  <span class="rounded-full border border-[#dbe4ea] bg-white px-3 py-1 text-xs font-semibold text-slate-500">
+                  <span
+                    class="rounded-full border border-[#dbe4ea] bg-white px-3 py-1 text-xs font-semibold text-slate-500">
                     Pass score: 70%
                   </span>
                 </div>
               </div>
 
               <div *ngIf="!quizSubmitted" class="mt-8 space-y-8">
-                <div *ngFor="let q of activeQuiz.questions; let i = index" class="rounded-[24px] border border-[#dbe4ea] bg-white px-5 py-5">
+                <div *ngFor="let q of activeQuiz.questions; let i = index"
+                  class="rounded-[24px] border border-[#dbe4ea] bg-white px-5 py-5">
                   <p class="flex items-start gap-3 text-lg font-bold text-[#181F39]">
                     <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ecf9f6] text-sm text-[#23A997]">{{ i + 1 }}</span>
                     {{ q.question }}
                   </p>
                   <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
-                    <button
-                      *ngFor="let opt of q.options"
-                      (click)="quizAnswers[i] = opt"
+                    <button *ngFor="let opt of q.options" (click)="quizAnswers[i] = opt"
                       class="rounded-2xl border px-4 py-4 text-left transition"
-                      [ngClass]="
-                        quizAnswers[i] === opt
-                          ? 'border-[#23A997] bg-[#ecf9f6]'
-                          : 'border-[#dbe4ea] bg-white hover:border-[#b8c8d4] hover:bg-[#f8f9fc]'
-                      ">
+                      [ngClass]="quizAnswers[i] === opt ? 'border-[#23A997] bg-[#ecf9f6]' : 'border-[#dbe4ea] bg-white hover:border-[#b8c8d4] hover:bg-[#f8f9fc]'">
                       <div class="flex items-center justify-between gap-3">
                         <span class="font-medium text-slate-700">{{ opt }}</span>
-                        <div
-                          class="flex h-5 w-5 items-center justify-center rounded-full border-2"
+                        <div class="flex h-5 w-5 items-center justify-center rounded-full border-2"
                           [ngClass]="quizAnswers[i] === opt ? 'border-[#23A997]' : 'border-slate-300'">
                           <div *ngIf="quizAnswers[i] === opt" class="h-2.5 w-2.5 rounded-full bg-[#23A997]"></div>
                         </div>
@@ -359,110 +361,129 @@
                     </button>
                   </div>
                 </div>
-
-                <div class="border-t border-[#e8eef2] pt-6">
-                  <app-button [variant]="'primary'" [size]="'xl'" [fullWidth]="true" [disabled]="submittingQuiz" (buttonClick)="submitQuiz()">
-                    {{ submittingQuiz ? 'Submitting...' : 'Submit Quiz Answers' }}
-                  </app-button>
+                <div class="flex items-center justify-between pt-2">
+                  <p *ngIf="!allAnswered" class="text-sm text-amber-600">
+                    <i class="fa-solid fa-circle-info mr-1"></i>Answer all questions to submit.
+                  </p>
+                  <div class="ml-auto">
+                    <button (click)="submitQuiz()" [disabled]="!allAnswered || submittingQuiz"
+                      class="inline-flex items-center gap-2 rounded-2xl px-8 py-3 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(35,169,151,0.25)] transition disabled:cursor-not-allowed disabled:opacity-60"
+                      [ngClass]="allAnswered && !submittingQuiz ? 'bg-[#23A997] hover:bg-[#1f9686]' : 'bg-slate-300'">
+                      <i *ngIf="submittingQuiz" class="fa-solid fa-spinner animate-spin"></i>
+                      <i *ngIf="!submittingQuiz" class="fa-solid fa-paper-plane"></i>
+                      {{ submittingQuiz ? 'Submitting...' : 'Submit Quiz' }}
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div *ngIf="quizSubmitted" class="mt-8 rounded-[28px] border border-dashed border-[#b9e8df] bg-[#f8fdfc] px-6 py-10 text-center">
-                <div
-                  class="mx-auto flex h-24 w-24 items-center justify-center rounded-full text-white shadow-lg"
-                  [ngClass]="quizScore >= 70 ? 'bg-[#23A997]' : 'bg-amber-500'">
-                  <i class="fa-solid text-4xl" [class.fa-trophy]="quizScore >= 70" [class.fa-rotate-right]="quizScore < 70"></i>
-                </div>
-                <h3 class="mt-5 text-3xl font-black text-[#181F39]">You scored {{ quizScore }}%</h3>
-                <p class="mt-2 text-slate-500" *ngIf="quizScore >= 70">Congratulations! You passed the quiz.</p>
-                <p class="mt-2 text-slate-500" *ngIf="quizScore < 70">Keep trying. You need 70% to pass.</p>
-
-                <div class="mt-6 flex flex-wrap justify-center gap-3">
-                  <app-button [variant]="'light'" [size]="'lg'" [disabled]="isWaitingForAdaptiveLesson" (buttonClick)="quizSubmitted = false">
-                    Retry Quiz
-                  </app-button>
-                  <app-button
-                    [variant]="'primary'"
-                    [size]="'lg'"
-                    [disabled]="isNextLessonLocked() || !hasNextLesson()"
-                    (buttonClick)="nextLesson()">
-                    <i *ngIf="isWaitingForAdaptiveLesson" class="fa-solid fa-spinner animate-spin mr-2"></i>
-                    <i *ngIf="!isWaitingForAdaptiveLesson" class="fa-solid fa-arrow-right mr-2"></i>
-                    {{ isWaitingForAdaptiveLesson ? 'Preparing your next lesson...' : 'Continue to Next Lesson' }}
-                  </app-button>
-                </div>
-              </div>
             </div>
           </div>
         </section>
 
-        <section class="rounded-[28px] border border-[#dbe4ea] bg-white px-6 py-6 shadow-sm">
-          <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <section *ngIf="!activeQuiz || quizSubmitted || isRevisitingCompletedLesson"
+          class="rounded-[28px] border border-[#dbe4ea] bg-white px-6 py-6 shadow-sm">
+          <div class="mb-4 flex items-center justify-between">
             <div>
-              <h3 class="text-lg font-bold text-[#181F39]">Lesson actions</h3>
-              <p class="mt-1 text-sm text-slate-500">Keep your progress moving and continue through the curriculum.</p>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-3 xl:flex-nowrap">
-              <app-button [variant]="'primary'" [size]="'md'" [class]="'rounded-full px-5 py-2.5'" [disabled]="isWaitingForAdaptiveLesson" (buttonClick)="markComplete()">
-                <i class="fa-solid fa-circle-check mr-2"></i>
-                {{ isLessonCompleted(getActiveLessonId()) ? 'Completed' : 'Mark as Complete' }}
-              </app-button>
-
-              <button
-                (click)="previousLesson()"
-                [disabled]="!hasPreviousLesson()"
-                class="inline-flex items-center gap-2 rounded-full border border-[#dbe4ea] bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-[#b8c8d4] hover:text-[#181F39] disabled:cursor-not-allowed disabled:opacity-40">
-                <i class="fa-solid fa-chevron-left"></i>
-                Previous
-              </button>
-
-              <button
-                (click)="nextLesson()"
-                [disabled]="!hasNextLesson() || isNextLessonLocked()"
-                class="inline-flex items-center gap-2 rounded-full bg-[#181F39] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0f172a] disabled:cursor-not-allowed disabled:opacity-40">
-                <i *ngIf="isWaitingForAdaptiveLesson" class="fa-solid fa-spinner animate-spin"></i>
-                <span *ngIf="isWaitingForAdaptiveLesson">Preparing...</span>
-                <ng-container *ngIf="!isWaitingForAdaptiveLesson">
-                  Next
-                  <i class="fa-solid fa-chevron-right"></i>
-                </ng-container>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <section class="rounded-[28px] border border-[#dbe4ea] bg-white px-6 py-6 shadow-sm">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#23A997]">Learning Notes</p>
-              <h3 class="mt-1 text-lg font-bold text-[#181F39]">Write your notes</h3>
+              <h4 class="font-semibold text-[#181F39]">My Notes</h4>
               <p class="mt-1 text-sm text-slate-500">Keep your key points and reminders for this lesson here.</p>
             </div>
-
             <app-button [variant]="'primary'" [size]="'md'" (buttonClick)="saveNotes()" [disabled]="isSavingNotes">
               <i *ngIf="isSavingNotes" class="fa-solid fa-spinner animate-spin mr-2"></i>
               <i *ngIf="!isSavingNotes" class="fa-solid fa-floppy-disk mr-2"></i>
               {{ isSavingNotes ? 'Saving...' : 'Save Notes' }}
             </app-button>
           </div>
-
-          <textarea
-            [(ngModel)]="userNotes"
-            placeholder="Write your personal study notes here..."
-            class="mt-5 min-h-[240px] w-full rounded-[24px] border border-[#dbe4ea] bg-[#f8f9fc] px-6 py-5 text-base leading-relaxed text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-[#b9e8df] focus:bg-white focus:ring-2 focus:ring-[#23A997]/10"></textarea>
+          <textarea [(ngModel)]="userNotes" placeholder="Write your personal study notes here..."
+            class="min-h-[200px] w-full rounded-[20px] border border-[#dbe4ea] bg-[#f8f9fc] px-5 py-4 text-sm leading-relaxed text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-[#b9e8df] focus:bg-white focus:ring-2 focus:ring-[#23A997]/10"></textarea>
         </section>
+
+        <!-- Score chip + next-lesson status: visible in nav row after quiz submission -->
+        <div *ngIf="shouldShowQuizScoreChip"
+          class="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-dashed px-5 py-3.5"
+          [ngClass]="isQuizPassing ? 'border-[#b9e8df] bg-[#ecf9f6]' : 'border-amber-200 bg-amber-50'">
+          <!-- Score chip -->
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+              [ngClass]="isQuizPassing ? 'bg-[#23A997]' : 'bg-amber-400'">
+              {{ quizScore }}%
+            </div>
+            <div>
+              <p class="text-sm font-semibold" [ngClass]="isQuizPassing ? 'text-[#181F39]' : 'text-amber-800'">
+                {{ isQuizPassing ? '🎉 Quiz passed!' : '😕 Quiz score: ' + quizScore + '%' }}
+              </p>
+              <p class="text-xs" [ngClass]="isQuizPassing ? 'text-[#1b8c7d]' : 'text-amber-600'">
+                {{ isQuizPassing ? 'Great work — next lesson is being prepared.' : 'Keep studying the material.' }}
+              </p>
+            </div>
+          </div>
+          <!-- Next-lesson generation status -->
+          <div *ngIf="isWaitingForAdaptiveLesson || (adaptiveLessonTimedOut && pendingAdaptiveLessonId)"
+            class="flex items-center gap-2 text-sm font-semibold"
+            [ngClass]="adaptiveLessonTimedOut ? 'text-amber-700' : 'text-[#1b8c7d]'">
+            <i *ngIf="isWaitingForAdaptiveLesson" class="fa-solid fa-spinner animate-spin"></i>
+            <i *ngIf="adaptiveLessonTimedOut" class="fa-solid fa-hourglass-half"></i>
+            <span>{{ adaptiveLessonTimedOut ? 'Generation timed out.' : 'Preparing next lesson...' }}</span>
+            <button *ngIf="adaptiveLessonTimedOut" (click)="retryAdaptiveLesson()"
+              class="ml-1 inline-flex items-center gap-1 rounded-lg bg-amber-500 px-3 py-1 text-xs font-semibold text-white transition hover:bg-amber-600">
+              <i class="fa-solid fa-rotate-right"></i>Retry
+            </button>
+          </div>
+          <!-- Mark Complete for teacher quiz type -->
+          <button *ngIf="activeLesson?.type === 'quiz' && !isLessonCompleted(getActiveLessonId())"
+            (click)="markComplete()" [disabled]="isMarkingComplete"
+            class="inline-flex items-center gap-2 rounded-2xl bg-[#23A997] px-5 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(35,169,151,0.25)] transition hover:bg-[#1f9686] disabled:opacity-60">
+            <i *ngIf="isMarkingComplete" class="fa-solid fa-spinner animate-spin"></i>
+            <i *ngIf="!isMarkingComplete" class="fa-solid fa-check"></i>
+            {{ isMarkingComplete ? 'Saving...' : 'Mark Complete' }}
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <button *ngIf="hasPreviousLesson()" (click)="previousLesson()"
+            class="inline-flex items-center gap-2 rounded-2xl border border-[#dbe4ea] bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-[#23A997]/40 hover:text-[#181F39]">
+            <i class="fa-solid fa-arrow-left"></i>Previous
+          </button>
+          <div class="ml-auto flex items-center gap-3">
+            <!-- Mark Complete / Retry Quiz Generation -->
+            <!-- Visible until quiz has been seen at least once (quizEverSeen).
+                 After that, Retry Quiz handles re-attempts. -->
+            <button *ngIf="showMarkCompleteButton"
+              (click)="markCompleteOrRetrigger()" [disabled]="isMarkCompleteButtonDisabled"
+              class="inline-flex items-center gap-2 rounded-2xl border px-5 py-2.5 text-sm font-semibold transition disabled:opacity-50"
+              [ngClass]="isLessonCompleted(getActiveLessonId())
+                ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                : 'border-[#23A997]/30 bg-white text-[#23A997] hover:border-[#23A997] hover:bg-[#ecf9f6]'">
+              <i *ngIf="isMarkingComplete || isPollingForQuiz" class="fa-solid fa-spinner animate-spin"></i>
+              <i *ngIf="!isMarkingComplete && !isPollingForQuiz && isLessonCompleted(getActiveLessonId())" class="fa-solid fa-rotate-right"></i>
+              <i *ngIf="!isMarkingComplete && !isPollingForQuiz && !isLessonCompleted(getActiveLessonId())" class="fa-solid fa-check"></i>
+              {{ markCompleteButtonLabel }}
+            </button>
+            <span *ngIf="isLessonCompleted(getActiveLessonId()) && !showMarkCompleteButton"
+              class="inline-flex items-center gap-1.5 rounded-full bg-[#ecf9f6] px-4 py-2 text-sm font-semibold text-[#1b8c7d]">
+              <i class="fa-solid fa-check"></i>Completed
+            </span>
+            <button *ngIf="hasNextLesson()" (click)="nextLesson()" [disabled]="isNextLessonLocked()"
+              class="inline-flex items-center gap-2 rounded-2xl px-6 py-2.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(35,169,151,0.25)] transition disabled:cursor-not-allowed disabled:opacity-50"
+              [ngClass]="isNextLessonLocked() ? 'bg-slate-300' : 'bg-[#23A997] hover:bg-[#1f9686]'">
+              <span *ngIf="isNextLessonLocked() && (isWaitingForAdaptiveLesson || hasPendingAdaptiveLesson)">Preparing lesson...</span>
+              <span *ngIf="isNextLessonLocked() && adaptiveLessonTimedOut && !isWaitingForAdaptiveLesson">Generation timed out</span>
+              <span *ngIf="isNextLessonLocked() && !isWaitingForAdaptiveLesson && !hasPendingAdaptiveLesson && !adaptiveLessonTimedOut">Complete quiz first</span>
+              <span *ngIf="!isNextLessonLocked()">Next Lesson</span>
+              <i *ngIf="!isNextLessonLocked()" class="fa-solid fa-arrow-right"></i>
+              <i *ngIf="isNextLessonLocked() && (isWaitingForAdaptiveLesson || hasPendingAdaptiveLesson)" class="fa-solid fa-spinner animate-spin"></i>
+              <i *ngIf="isNextLessonLocked() && adaptiveLessonTimedOut && !isWaitingForAdaptiveLesson" class="fa-solid fa-clock"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </main>
 
-    <div
-      *ngIf="isCompactViewport && isAiAssistantOpen"
-      (click)="toggleAiAssistant()"
+    <div *ngIf="isCompactViewport && isAiAssistantOpen" (click)="toggleAiAssistant()"
       class="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm xl:hidden">
     </div>
 
-    <aside
-      *ngIf="isCompactViewport"
+    <aside *ngIf="isCompactViewport"
       class="fixed inset-x-0 bottom-0 z-50 flex max-h-[78vh] flex-col overflow-hidden rounded-t-[28px] border border-[#dbe4ea] bg-white shadow-2xl transition-transform duration-300 xl:hidden"
       [ngClass]="isAiAssistantOpen ? 'translate-y-0' : 'translate-y-full'">
       <div class="mx-auto mt-3 h-1.5 w-14 rounded-full bg-slate-200"></div>
@@ -473,8 +494,7 @@
             <h3 class="mt-1 text-lg font-bold text-[#181F39]">Study support</h3>
             <p class="mt-1 text-sm text-slate-500">Ask for help, explanations, or lesson summaries.</p>
           </div>
-          <button
-            (click)="toggleAiAssistant()"
+          <button (click)="toggleAiAssistant()"
             class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#dbe4ea] bg-white text-slate-500 transition hover:border-[#23A997]/40 hover:text-[#181F39]">
             <i class="fa-solid fa-xmark"></i>
           </button>
@@ -482,22 +502,16 @@
       </div>
 
       <div class="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
-        <div
-          *ngFor="let msg of chatMessages"
-          class="flex flex-col"
-          [class.items-end]="msg.sender === 'Student'">
-          <div
-            class="max-w-[95%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm"
-            [class.bg-[#181F39]]="msg.sender === 'AI'"
-            [class.text-white]="msg.sender === 'AI'"
-            [class.rounded-tl-none]="msg.sender === 'AI'"
-            [class.bg-[#f8f9fc]]="msg.sender === 'Student'"
-            [class.text-slate-800]="msg.sender === 'Student'"
-            [class.rounded-tr-none]="msg.sender === 'Student'">
+        <div *ngFor="let msg of chatMessages" class="flex flex-col" [class.items-end]="msg.sender === 'Student'">
+          <div class="max-w-[95%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm"
+            [class.bg-[#181F39]]="msg.sender === 'AI'" [class.text-white]="msg.sender === 'AI'"
+            [class.rounded-tl-none]="msg.sender === 'AI'" [class.bg-[#f8f9fc]]="msg.sender === 'Student'"
+            [class.text-slate-800]="msg.sender === 'Student'" [class.rounded-tr-none]="msg.sender === 'Student'">
             <markdown *ngIf="msg.sender === 'AI'" [data]="msg.text"></markdown>
             <span *ngIf="msg.sender === 'Student'">{{ msg.text }}</span>
           </div>
-          <span class="mt-1 px-1 text-[10px] uppercase tracking-[0.12em] text-slate-400">{{ msg.time | date:'shortTime' }}</span>
+          <span class="mt-1 px-1 text-[10px] uppercase tracking-[0.12em] text-slate-400">{{ msg.time | date:'shortTime'
+            }}</span>
         </div>
       </div>
 
@@ -511,17 +525,10 @@
 
       <div class="border-t border-[#e8eef2] bg-white px-4 py-4">
         <div class="relative">
-          <input
-            [(ngModel)]="chatInput"
-            (keyup.enter)="sendChatMessage()"
-            type="text"
-            [disabled]="isSendingChat"
+          <input [(ngModel)]="chatInput" (keyup.enter)="sendChatMessage()" type="text" [disabled]="isSendingChat"
             placeholder="Ask AI about this lesson..."
-            class="w-full rounded-2xl border border-[#dbe4ea] bg-[#f8f9fc] py-3 pl-4 pr-11 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#b9e8df] focus:bg-white"
-          />
-          <button
-            (click)="sendChatMessage()"
-            [disabled]="isSendingChat || !chatInput.trim()"
+            class="w-full rounded-2xl border border-[#dbe4ea] bg-[#f8f9fc] py-3 pl-4 pr-11 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#b9e8df] focus:bg-white" />
+          <button (click)="sendChatMessage()" [disabled]="isSendingChat || !chatInput.trim()"
             class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-[#23A997] disabled:opacity-30">
             <i *ngIf="!isSendingChat" class="fa-solid fa-paper-plane"></i>
             <i *ngIf="isSendingChat" class="fa-solid fa-spinner animate-spin"></i>
@@ -530,19 +537,14 @@
       </div>
     </aside>
 
-    <button
-      *ngIf="!isAiAssistantOpen && !isCompactViewport"
-      (click)="toggleAiAssistant()"
+    <button *ngIf="!isAiAssistantOpen && !isCompactViewport" (click)="toggleAiAssistant()"
       class="absolute right-4 top-4 z-20 hidden xl:inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#dbe4ea] bg-white text-slate-600 shadow-sm transition hover:border-[#23A997]/40 hover:text-[#181F39]">
       <i class="fa-solid fa-robot"></i>
     </button>
 
-    <aside
-      class="relative hidden flex-shrink-0 flex-col overflow-hidden border-l border-[#dbe4ea] bg-white xl:flex"
+    <aside class="relative hidden flex-shrink-0 flex-col overflow-hidden border-l border-[#dbe4ea] bg-white xl:flex"
       [style.width.px]="isAiAssistantOpen ? aiAssistantWidth : 0">
-      <button
-        *ngIf="isAiAssistantOpen"
-        (mousedown)="startAiAssistantResize($event)"
+      <button *ngIf="isAiAssistantOpen" (mousedown)="startAiAssistantResize($event)"
         class="absolute left-0 top-0 h-full w-2 -translate-x-1/2 cursor-col-resize bg-transparent"
         aria-label="Resize AI assistant panel">
       </button>
@@ -554,8 +556,7 @@
             <h3 class="mt-1 text-lg font-bold text-[#181F39]">Study support</h3>
             <p class="mt-1 text-sm text-slate-500">Ask for help, explanations, or lesson summaries.</p>
           </div>
-          <button
-            (click)="toggleAiAssistant()"
+          <button (click)="toggleAiAssistant()"
             class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#dbe4ea] bg-white text-slate-500 transition hover:border-[#23A997]/40 hover:text-[#181F39]">
             <i class="fa-solid fa-chevron-right"></i>
           </button>
@@ -563,22 +564,16 @@
       </div>
 
       <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4 min-h-0">
-        <div
-          *ngFor="let msg of chatMessages"
-          class="flex flex-col"
-          [class.items-end]="msg.sender === 'Student'">
-          <div
-            class="max-w-[95%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm"
-            [class.bg-[#181F39]]="msg.sender === 'AI'"
-            [class.text-white]="msg.sender === 'AI'"
-            [class.rounded-tl-none]="msg.sender === 'AI'"
-            [class.bg-[#f8f9fc]]="msg.sender === 'Student'"
-            [class.text-slate-800]="msg.sender === 'Student'"
-            [class.rounded-tr-none]="msg.sender === 'Student'">
+        <div *ngFor="let msg of chatMessages" class="flex flex-col" [class.items-end]="msg.sender === 'Student'">
+          <div class="max-w-[95%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm"
+            [class.bg-[#181F39]]="msg.sender === 'AI'" [class.text-white]="msg.sender === 'AI'"
+            [class.rounded-tl-none]="msg.sender === 'AI'" [class.bg-[#f8f9fc]]="msg.sender === 'Student'"
+            [class.text-slate-800]="msg.sender === 'Student'" [class.rounded-tr-none]="msg.sender === 'Student'">
             <markdown *ngIf="msg.sender === 'AI'" [data]="msg.text"></markdown>
             <span *ngIf="msg.sender === 'Student'">{{ msg.text }}</span>
           </div>
-          <span class="mt-1 px-1 text-[10px] uppercase tracking-[0.12em] text-slate-400">{{ msg.time | date:'shortTime' }}</span>
+          <span class="mt-1 px-1 text-[10px] uppercase tracking-[0.12em] text-slate-400">{{ msg.time | date:'shortTime'
+            }}</span>
         </div>
       </div>
 
@@ -592,17 +587,10 @@
 
       <div class="border-t border-[#e8eef2] bg-white px-4 py-4">
         <div class="relative">
-          <input
-            [(ngModel)]="chatInput"
-            (keyup.enter)="sendChatMessage()"
-            type="text"
-            [disabled]="isSendingChat"
+          <input [(ngModel)]="chatInput" (keyup.enter)="sendChatMessage()" type="text" [disabled]="isSendingChat"
             placeholder="Ask AI about this lesson..."
-            class="w-full rounded-2xl border border-[#dbe4ea] bg-[#f8f9fc] py-3 pl-4 pr-11 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#b9e8df] focus:bg-white"
-          />
-          <button
-            (click)="sendChatMessage()"
-            [disabled]="isSendingChat || !chatInput.trim()"
+            class="w-full rounded-2xl border border-[#dbe4ea] bg-[#f8f9fc] py-3 pl-4 pr-11 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#b9e8df] focus:bg-white" />
+          <button (click)="sendChatMessage()" [disabled]="isSendingChat || !chatInput.trim()"
             class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-[#23A997] disabled:opacity-30">
             <i *ngIf="!isSendingChat" class="fa-solid fa-paper-plane"></i>
             <i *ngIf="isSendingChat" class="fa-solid fa-spinner animate-spin"></i>

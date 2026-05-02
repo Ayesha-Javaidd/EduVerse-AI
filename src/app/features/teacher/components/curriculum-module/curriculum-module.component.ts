@@ -20,6 +20,7 @@ export class CurriculumModuleComponent {
   @Output() addLesson = new EventEmitter<void>();
   @Output() editLesson = new EventEmitter<Lesson>();
   @Output() deleteLesson = new EventEmitter<string>();
+  @Output() aiDesignLesson = new EventEmitter<Lesson>();
   @Output() lessonReorder = new EventEmitter<Lesson[]>();
 
   // Drag state
@@ -53,6 +54,10 @@ export class CurriculumModuleComponent {
 
   onDeleteLesson(lessonId: string): void {
     this.deleteLesson.emit(lessonId);
+  }
+
+  onAiDesignLesson(lesson: Lesson): void {
+    this.aiDesignLesson.emit(lesson);
   }
 
   // Drag & Drop for lessons

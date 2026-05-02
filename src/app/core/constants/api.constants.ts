@@ -48,6 +48,7 @@ export const ENDPOINTS = {
     BASE: `${API_BASE_URL}/adaptive`,
     GENERATE_LESSON: `${API_BASE_URL}/adaptive/generate-lesson`,
     GENERATE_BASE_LESSON: `${API_BASE_URL}/adaptive/generate-base-lesson`,
+    GENERATE: `${API_BASE_URL}/adaptive/generate`,   // RAG + full validation pipeline
     CLASSIFICATION: (studentId: string) => `${API_BASE_URL}/adaptive/student/${studentId}/classification`,
     GENERATED_LESSONS: (studentId: string) => `${API_BASE_URL}/adaptive/student/${studentId}/generated-lessons`,
     GENERATE_QUIZ: `${API_BASE_URL}/adaptive/generate-quiz`,
@@ -56,5 +57,24 @@ export const ENDPOINTS = {
     BASE: `${API_BASE_URL}/ai-tutor`,
     CHAT: `${API_BASE_URL}/ai-tutor/chat`,
     SESSION: (courseId: string) => `${API_BASE_URL}/ai-tutor/session/${courseId}`,
+  },
+  // ── RAG Reference Uploads (Teacher) ──────────────────────────────────────────
+  REFERENCE: {
+    UPLOAD: `${API_BASE_URL}/reference/upload`,
+    UPLOAD_STATUS: (uploadId: string) => `${API_BASE_URL}/reference/upload-status/${uploadId}`,
+    LIST_UPLOADS: `${API_BASE_URL}/reference/uploads`,
+    DELETE_UPLOAD: (uploadId: string) => `${API_BASE_URL}/reference/uploads/${uploadId}`,
+    GENERATE_DESCRIPTION: `${API_BASE_URL}/reference/generate-description`,
+    GENERATE_COURSE_LESSONS: `${API_BASE_URL}/reference/generate-course-lessons`,
+  },
+  // ── Model Manager (Super Admin) ───────────────────────────────────────────────
+  ADMIN_MODELS: {
+    LEADERBOARD: `${API_BASE_URL}/admin/models/leaderboard`,
+    BENCHMARK: `${API_BASE_URL}/admin/models/benchmark`,
+    SET_ACTIVE: `${API_BASE_URL}/admin/models/set-active`,
+    HEALTH: `${API_BASE_URL}/admin/models/health`,
+    STATS: (modelName: string) => `${API_BASE_URL}/admin/models/${modelName}/stats`,
+    VALIDATIONS: `${API_BASE_URL}/admin/validations`,
+    NOTIFICATIONS: `${API_BASE_URL}/admin/models/notifications`,
   },
 } as const;

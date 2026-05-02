@@ -22,20 +22,248 @@
     background: #cbd5e1;
 }
 
-.prose p {
-    margin-bottom: 1.5rem;
+/* ── AI Lesson Content Wrapper ─────────────────────────────────────────────── */
+.ai-content-wrapper {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
-.prose strong {
-    color: #0f172a;
+:host ::ng-deep .ai-content-wrapper markdown {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    color: #374151;
+    line-height: 1.8;
+    font-size: 1rem;
+}
+
+/* ── Headings ── */
+:host ::ng-deep .ai-content-wrapper h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #181F39;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+    border-bottom: 2px solid #ecf9f6;
+    padding-bottom: 0.75rem;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+:host ::ng-deep .ai-content-wrapper h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #181F39;
+    margin-top: 2.25rem;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    padding-left: 0.85rem;
+    border-left: 4px solid #23A997;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+:host ::ng-deep .ai-content-wrapper h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1f2d4a;
+    margin-top: 1.75rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+:host ::ng-deep .ai-content-wrapper h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #23A997;
+    margin-top: 1.25rem;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* ── Paragraphs ── */
+:host ::ng-deep .ai-content-wrapper p {
+    margin-top: 0;
+    margin-bottom: 1.1rem;
+    color: #4b5563;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* ── Bold & Italic ── */
+:host ::ng-deep .ai-content-wrapper strong {
+    font-weight: 700;
+    color: #111827;
+}
+
+:host ::ng-deep .ai-content-wrapper em {
+    font-style: italic;
+    color: #374151;
+}
+
+/* ── Unordered Lists ── */
+:host ::ng-deep .ai-content-wrapper ul {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 1.1rem;
+}
+
+:host ::ng-deep .ai-content-wrapper ul li {
+    position: relative;
+    padding-left: 1.2rem;
+    margin-bottom: 0.55rem;
+    color: #4b5563;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.75;
+}
+
+:host ::ng-deep .ai-content-wrapper ul li::before {
+    content: '';
+    position: absolute;
+    left: 0.1rem;
+    top: 0.6em;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #23A997;
+}
+
+/* ── Ordered Lists ── */
+:host ::ng-deep .ai-content-wrapper ol {
+    list-style: decimal;
+    padding-left: 1.5rem;
+    margin-bottom: 1.1rem;
+}
+
+:host ::ng-deep .ai-content-wrapper ol li {
+    margin-bottom: 0.55rem;
+    color: #4b5563;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.75;
+    padding-left: 0.25rem;
+}
+
+:host ::ng-deep .ai-content-wrapper ol li::marker {
+    color: #23A997;
     font-weight: 700;
 }
 
-.prose h1,
-.prose h2,
-.prose h3,
-.prose h4 {
-    color: #181f39;
+/* ── Blockquotes / Callouts ── */
+:host ::ng-deep .ai-content-wrapper blockquote {
+    border-left: 4px solid #23A997;
+    background: linear-gradient(135deg, #ecf9f6 0%, #f0fdf9 100%);
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+    border-radius: 0 1rem 1rem 0;
+    color: #1b8c7d;
+    font-style: normal;
+    font-weight: 500;
+}
+
+:host ::ng-deep .ai-content-wrapper blockquote p {
+    margin: 0;
+    color: #1b8c7d;
+}
+
+/* ── Inline Code ── */
+:host ::ng-deep .ai-content-wrapper code {
+    font-family: 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+    font-size: 0.875em;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.4rem;
+    padding: 0.15em 0.45em;
+    color: #0f766e;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* ── Code Blocks ── */
+:host ::ng-deep .ai-content-wrapper pre {
+    background: #0f172a;
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+    max-width: 100%;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    border: 1px solid #1e293b;
+}
+
+:host ::ng-deep .ai-content-wrapper pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #e2e8f0;
+    font-size: 0.875rem;
+    line-height: 1.7;
+}
+
+/* ── Tables ── */
+:host ::ng-deep .ai-content-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+:host ::ng-deep .ai-content-wrapper th {
+    background: #ecf9f6;
+    color: #1b8c7d;
+    font-weight: 700;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+:host ::ng-deep .ai-content-wrapper td {
+    padding: 0.7rem 1rem;
+    color: #4b5563;
+    border-top: 1px solid #f1f5f9;
+}
+
+:host ::ng-deep .ai-content-wrapper tr:nth-child(even) td {
+    background: #f8fafc;
+}
+
+/* ── Horizontal Rules ── */
+:host ::ng-deep .ai-content-wrapper hr {
+    border: none;
+    border-top: 2px dashed #e2e8f0;
+    margin: 2rem 0;
+}
+
+/* ── Links ── */
+:host ::ng-deep .ai-content-wrapper a {
+    color: #23A997;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font-weight: 500;
+}
+
+:host ::ng-deep .ai-content-wrapper a:hover {
+    color: #1b8c7d;
 }
 
 iframe {
@@ -63,7 +291,7 @@ aside {
     }
 }
 
-main>div {
+main > div {
     animation: fadeIn 0.4s ease-out forwards;
 }
 
