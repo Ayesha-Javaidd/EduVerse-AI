@@ -125,8 +125,11 @@
             </div>
 
             <div class="space-y-1.5">
-              <button *ngFor="let lesson of module.lessons" (click)="selectLesson(lesson, mIdx)"
-                class="flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition" [ngClass]="
+              <button *ngFor="let lesson of module.lessons" 
+                (click)="selectLesson(lesson, mIdx)"
+                [disabled]="isSidebarLessonLocked(lesson)"
+                class="flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-50" 
+                [ngClass]="
                   lessonsMatch(activeLesson, lesson)
                     ? 'border-[#b9e8df] bg-[#ecf9f6]'
                     : 'border-transparent bg-white hover:border-[#dbe4ea] hover:bg-[#f8f9fc]'
@@ -137,7 +140,8 @@
                         ? 'border-[#b9e8df] bg-white text-[#23A997]'
                         : 'border-[#e5edf2] bg-[#f8f9fc] text-slate-500'
                     ">
-                    <i *ngIf="lesson.type !== 'quiz'" class="fa-solid fa-file-lines"></i>
+                    <i *ngIf="isSidebarLessonLocked(lesson)" class="fa-solid fa-lock text-xs"></i>
+                    <i *ngIf="!isSidebarLessonLocked(lesson) && lesson.type !== 'quiz'" class="fa-solid fa-file-lines"></i>
                   </div>
                   <div *ngIf="isLessonCompleted(getLessonId(lesson))"
                     class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#23A997] text-[8px] text-white">
@@ -315,11 +319,18 @@
               </div>
             </div>
 
-            <!-- Quiz Error State: Shown when quiz loading or generation fails -->
-            <div *ngIf="!loadingQuiz && !activeQuiz && aiQuizError"
+            <!-- Quiz Error State: Shown when quiz loading or generation fails and quiz is not yet submitted -->
+            <div *ngIf="!loadingQuiz && !activeQuiz && aiQuizError && !quizSubmitted"
               class="flex flex-col items-center justify-center py-20 text-center">
               <i class="fa-solid fa-server text-4xl text-slate-400 mb-4"></i>
               <p class="text-lg font-semibold text-[#181F39]">{{ aiQuizError }}</p>
+              <p class="mt-2 text-sm text-slate-500">Quiz generation failed. Please retry to continue.</p>
+              <button (click)="retriggerQuizForLesson()" [disabled]="isMarkingComplete || isPollingForQuiz"
+                class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#23A997] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(35,169,151,0.3)] transition hover:bg-[#1f9686] disabled:opacity-50">
+                <i *ngIf="isMarkingComplete || isPollingForQuiz" class="fa-solid fa-spinner animate-spin"></i>
+                <i *ngIf="!isMarkingComplete && !isPollingForQuiz" class="fa-solid fa-rotate-right"></i>
+                {{ isMarkingComplete || isPollingForQuiz ? 'Retrying...' : 'Retry Quiz Generation' }}
+              </button>
             </div>
 
             <div *ngIf="!loadingQuiz && activeQuiz && !quizSubmitted">
@@ -466,13 +477,26 @@
             <button *ngIf="hasNextLesson()" (click)="nextLesson()" [disabled]="isNextLessonLocked()"
               class="inline-flex items-center gap-2 rounded-2xl px-6 py-2.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(35,169,151,0.25)] transition disabled:cursor-not-allowed disabled:opacity-50"
               [ngClass]="isNextLessonLocked() ? 'bg-slate-300' : 'bg-[#23A997] hover:bg-[#1f9686]'">
-              <span *ngIf="isNextLessonLocked() && (isWaitingForAdaptiveLesson || hasPendingAdaptiveLesson)">Preparing lesson...</span>
-              <span *ngIf="isNextLessonLocked() && adaptiveLessonTimedOut && !isWaitingForAdaptiveLesson">Generation timed out</span>
-              <span *ngIf="isNextLessonLocked() && !isWaitingForAdaptiveLesson && !hasPendingAdaptiveLesson && !adaptiveLessonTimedOut">Complete quiz first</span>
-              <span *ngIf="!isNextLessonLocked()">Next Lesson</span>
-              <i *ngIf="!isNextLessonLocked()" class="fa-solid fa-arrow-right"></i>
-              <i *ngIf="isNextLessonLocked() && (isWaitingForAdaptiveLesson || hasPendingAdaptiveLesson)" class="fa-solid fa-spinner animate-spin"></i>
-              <i *ngIf="isNextLessonLocked() && adaptiveLessonTimedOut && !isWaitingForAdaptiveLesson" class="fa-solid fa-clock"></i>
+              <!-- Waiting for adaptive lesson or content still rendering -->
+              <ng-container *ngIf="isNextLessonLocked() && (isWaitingForAdaptiveLesson || hasPendingAdaptiveLesson || (activeAdaptiveLesson && !renderedAdaptiveLessonContent?.trim()))">
+                <i class="fa-solid fa-spinner animate-spin"></i>
+                <span>Preparing lesson...</span>
+              </ng-container>
+              <!-- Generation timed out -->
+              <ng-container *ngIf="isNextLessonLocked() && adaptiveLessonTimedOut && !isWaitingForAdaptiveLesson && !(activeAdaptiveLesson && !renderedAdaptiveLessonContent?.trim())">
+                <i class="fa-solid fa-clock"></i>
+                <span>Generation timed out</span>
+              </ng-container>
+              <!-- Quiz not yet submitted -->
+              <ng-container *ngIf="isNextLessonLocked() && !isWaitingForAdaptiveLesson && !hasPendingAdaptiveLesson && !adaptiveLessonTimedOut && !(activeAdaptiveLesson && !renderedAdaptiveLessonContent?.trim())">
+                <i class="fa-solid fa-lock"></i>
+                <span>Complete quiz first</span>
+              </ng-container>
+              <!-- Unlocked -->
+              <ng-container *ngIf="!isNextLessonLocked()">
+                <span>Next Lesson</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </ng-container>
             </button>
           </div>
         </div>

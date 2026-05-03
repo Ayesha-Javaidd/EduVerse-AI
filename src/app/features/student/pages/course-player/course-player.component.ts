@@ -114,6 +114,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     isWaitingForAdaptiveLesson: boolean = false;
     aiGeneratedLessons: AdaptiveLesson[] = [];
     studentQuizzes: Quiz[] = [];
+    studentSubmissions: Map<string, number> = new Map();
     activeAdaptiveLesson: AdaptiveLesson | null = null;
     renderedAdaptiveLessonContent: string = '';
     private aiLessonsLoaded: boolean = false;
@@ -247,11 +248,16 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
             next: (progress) => {
                 this.progress = progress;
                 if (!this.activeLesson) {
-                    const nextLesson =
-                        this.allLessons.find((lesson) => !this.isLessonCompleted(this.getLessonId(lesson))) ||
-                        this.allLessons[0];
-                    if (nextLesson) {
-                        this.selectLesson(nextLesson, nextLesson.moduleIndex ?? 0);
+                    const savedLessonId = localStorage.getItem(`eduverse_last_lesson_${this.courseId}`);
+                    let targetLesson = this.allLessons[0];
+                    if (savedLessonId) {
+                        targetLesson = this.allLessons.find(l => this.getLessonId(l) === savedLessonId) || this.allLessons[0];
+                    } else {
+                        targetLesson = this.allLessons.find((lesson) => !this.isLessonCompleted(this.getLessonId(lesson))) || this.allLessons[0];
+                    }
+                    
+                    if (targetLesson) {
+                        this.selectLesson(targetLesson, targetLesson.moduleIndex ?? 0);
                     }
                 }
                 this.loading = false;
@@ -328,8 +334,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                         this.applyQuiz(generatedQuiz);
                         this.isPollingForQuiz = false;
                         this.toastService.success('Your lesson quiz is ready.');
-                    } else if (attempt < 48) {
-                        // Ollama can take up to 4 minutes — poll every 5s for up to 48 attempts (~4 min)
+                    } else if (attempt < 72) {
+                        // Ollama can take up to 6 minutes — poll every 5s for up to 72 attempts
                         window.setTimeout(() => this.loadStudentQuizzes(showQuizForLessonId, attempt + 1), 5000);
                     } else {
                         this.loadingQuiz = false;
@@ -341,7 +347,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
             },
             error: (err) => {
                 console.error('Error loading student quizzes', err);
-                if (showQuizForLessonId && attempt < 48) {
+                if (showQuizForLessonId && attempt < 72) {
                     window.setTimeout(() => this.loadStudentQuizzes(showQuizForLessonId, attempt + 1), 5000);
                 } else {
                     this.loadingQuiz = false;
@@ -462,6 +468,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                         bestSubmissions.set(sub.quizId, Math.max(existing, sub.percentage));
                     }
                 });
+                this.studentSubmissions = bestSubmissions;
 
                 const scores = Array.from(bestSubmissions.values());
                 if (!scores.length) {
@@ -471,6 +478,13 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
                 const avg = scores.reduce((sum, s) => sum + s, 0) / scores.length;
                 this.avgQuizScore = Math.round(avg);
+
+                // Reactively update the current quiz state now that we have submissions.
+                // This ensures revisiting a passed lesson correctly skips the quiz
+                // even if this HTTP request finished after applyQuiz ran.
+                if (this.isRevisitingCompletedLesson && this.activeQuiz && this.studentSubmissions.has(this.activeQuiz.id)) {
+                    this.quizSubmitted = true;
+                }
             },
             error: (err) => {
                 console.error('Failed to compute avg quiz score', err);
@@ -497,6 +511,11 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.cancelPendingRefreshTimers();
 
         this.activeLesson = lesson;
+        const lessonId = this.getLessonId(lesson);
+        if (lessonId) {
+            localStorage.setItem(`eduverse_last_lesson_${this.courseId}`, lessonId);
+        }
+        
         this.activeModuleIndex = moduleIndex;
         this.quizSubmitted = false;
         this.activeQuiz = null;
@@ -504,6 +523,9 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.loadingQuiz = true;
         this.isPollingForQuiz = false;
         this.quizEverSeen = false;   // Reset per lesson — quiz must appear fresh.
+        // Clear stale adaptive content immediately so the old lesson's text
+        // never flickers before the new lesson's content arrives.
+        this.renderedAdaptiveLessonContent = '';
 
         // Capture whether this lesson is already completed BEFORE any mark-complete
         // calls fire. This lets the template show lesson content on revisits
@@ -628,16 +650,19 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                 this.updateAvgQuizScoreWith(this.quizScore);
 
                 // Always trigger next adaptive lesson generation on EVERY submission
-                // (first attempt and retries alike). Reset poll state each time so a
-                // fresh request goes to the backend with the latest score.
+                // (first attempt and retries alike).
                 const nextLesson = this.getNextLearningLesson(this.activeLesson);
                 if (nextLesson && this.shouldUseAdaptiveLessonContent(nextLesson)) {
-                    // Bump poll token to cancel any in-flight poll from a previous attempt.
-                    this.adaptiveLessonPollToken += 1;
                     this.pendingAdaptiveLessonId = this.getLessonId(nextLesson);
                     this.isWaitingForAdaptiveLesson = true;
-                    // 3s delay so backend has time to start generating before first poll.
-                    window.setTimeout(() => this.ensureAdaptiveLessonReady(0), 3000);
+                    
+                    // Explicitly tell the backend to start generating the next lesson
+                    // using the newly achieved quiz score, then begin polling.
+                    this.triggerAdaptiveLessonGeneration(this.pendingAdaptiveLessonId!, () => {
+                        this.adaptiveLessonPollToken += 1;
+                        const token = this.adaptiveLessonPollToken;
+                        window.setTimeout(() => this.ensureAdaptiveLessonReady(0, token), 3000);
+                    });
                 }
 
                 if (
@@ -687,8 +712,13 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
 
 
-    /** Reset quiz state so the student can attempt the quiz again. */
+    /**
+     * Reset quiz state so the student can re-attempt the quiz.
+     * Only valid for TEACHER-AUTHORED quizzes (lesson.type === 'quiz').
+     * For AI-generated quizzes the retry path is retriggerQuizForLesson().
+     */
     retryQuiz() {
+        if (this.activeLesson?.type !== 'quiz') return;  // Guard: never reset AI quiz submissions.
         this.quizSubmitted = false;
         this.quizAnswers = new Array(this.activeQuiz?.questions?.length ?? 0).fill('');
         this.quizScore = 0;
@@ -755,6 +785,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         if (!quiz.questions || quiz.questions.length === 0) {
             console.warn('applyQuiz: skipping quiz with 0 questions', quiz.id);
             this.loadingQuiz = false;
+            this.isPollingForQuiz = false;
             this.aiQuizError = 'Quiz generation encountered an issue. Please click "Retry Quiz Generation" to try again.';
             return;
         }
@@ -763,9 +794,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.loadingQuiz = false;
         this.quizEverSeen = true;  // Quiz has appeared — disable "Mark Complete" from now on.
 
-        // If revisiting a completed lesson, the quiz is already done.
-        // This ensures the questions don't re-appear below the lesson text.
-        if (this.isRevisitingCompletedLesson) {
+        // Only mark it as submitted if they actually passed it previously.
+        if (this.isRevisitingCompletedLesson && this.studentSubmissions.has(quiz.id)) {
             this.quizSubmitted = true;
         }
     }
@@ -1375,6 +1405,26 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         }
     }
 
+    isSidebarLessonLocked(lesson: CoursePlayerLesson): boolean {
+        const targetIndex = this.allLessons.findIndex(l => this.lessonsMatch(l, lesson));
+        if (targetIndex <= 0) return false;
+
+        const prevLesson = this.allLessons[targetIndex - 1];
+        const prevLessonId = this.getLessonId(prevLesson);
+        if (!prevLessonId) return true;
+
+        if (!this.isLessonCompleted(prevLessonId)) return true;
+
+        if (prevLesson.type === 'quiz') return false;
+
+        const prevQuiz = this.findGeneratedQuizForLesson(prevLessonId);
+        if (!prevQuiz || !this.studentSubmissions.has(prevQuiz.id)) {
+            return true;
+        }
+
+        return false;
+    }
+
     previousLesson() {
         const currentIndex = this.allLessons.findIndex(l => this.lessonsMatch(l, this.activeLesson));
         if (currentIndex > 0) {
@@ -1397,7 +1447,10 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         if (!isCurrentLessonCompleted || this.loadingQuiz || this.submittingQuiz || this.isPollingForQuiz) {
             return true;
         }
-        if (this.activeQuiz && !this.quizSubmitted) {
+        // Every lesson requires its corresponding quiz to be submitted before moving forward.
+        // If the AI quiz failed to generate (activeQuiz is null), they still cannot proceed
+        // until they use the "Retry Quiz Generation" button and submit it.
+        if (!this.quizSubmitted) {
             return true;
         }
 
@@ -1418,7 +1471,12 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                     && l.generationType !== 'base' && hasValidContent(l)
             );
 
-            if (nextLessonReady) return false;  // Content ready — allow navigation.
+            if (nextLessonReady) {
+                // Content arrived — but also verify the rendered text is non-empty.
+                // This prevents the button unlocking while markdown is still being parsed.
+                if (!this.renderedAdaptiveLessonContent?.trim()) return true;
+                return false;  // Content ready and rendered — allow navigation.
+            }
 
             // Still actively polling.
             if (this.pendingAdaptiveLessonId === nextId) return true;
@@ -1436,23 +1494,17 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
     /**
      * Determines whether the quiz score chip should be shown at the bottom.
-     * Hides the quiz section once the next adaptive lesson is ready to "only retain lesson".
+     *
+     * Rule: once the quiz is submitted, keep the score chip visible for the
+     * rest of this lesson visit so students always see their result.
+     * The quiz FORM itself disappears via `!quizSubmitted` in the template —
+     * the chip is a separate, persistent summary that does NOT affect the lesson.
      */
     get shouldShowQuizScoreChip(): boolean {
+        // Never show if no quiz was submitted this session.
         if (!this.quizSubmitted || !this.activeQuiz) return false;
-        
-        // Always show for standalone teacher quizzes
-        if (this.activeLesson?.type === 'quiz') return true;
-
-        // For adaptive lessons: show the score chip ONLY while we are actively
-        // waiting for the next lesson to generate. Once generated, hide it to
-        // keep the screen clean with just the lesson content.
-        if (this.activeLesson && this.shouldUseAdaptiveLessonContent(this.activeLesson)) {
-            return this.isWaitingForAdaptiveLesson || this.adaptiveLessonTimedOut;
-        }
-
-        // For regular courses, hide it on revisit for a cleaner look.
-        return !this.isRevisitingCompletedLesson;
+        // Always show once submitted — student navigating away resets quizSubmitted.
+        return true;
     }
 
     hasPreviousLesson(): boolean {

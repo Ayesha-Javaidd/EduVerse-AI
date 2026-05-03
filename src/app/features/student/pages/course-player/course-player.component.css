@@ -26,7 +26,8 @@
 .ai-content-wrapper {
     min-width: 0;
     max-width: 100%;
-    overflow: hidden;
+    /* overflow must stay visible so long lessons are never clipped */
+    overflow: visible;
 }
 
 :host ::ng-deep .ai-content-wrapper markdown {

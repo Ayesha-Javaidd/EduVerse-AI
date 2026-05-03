@@ -16,7 +16,6 @@ import {
   GeneratedLesson,
 } from '../../components/reference-upload/reference-upload.component';
 import {
-  LessonDescriptionComponent,
   LessonDescriptionOutput,
 } from '../../components/lesson-description/lesson-description.component';
 
@@ -68,7 +67,6 @@ type TabType = 'content' | 'settings' | 'students' | 'references';
     AddLessonModalComponent,
     BulkUploadModalComponent,
     ReferenceUploadComponent,
-    LessonDescriptionComponent,
   ],
   templateUrl: './course-builder.component.html',
   styleUrl: './course-builder.component.css',

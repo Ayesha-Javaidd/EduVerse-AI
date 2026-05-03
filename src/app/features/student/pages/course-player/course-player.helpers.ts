@@ -232,20 +232,21 @@ export function upsertAdaptiveLesson(
 
 export function normalizeMarkdownContent(content: string | null | undefined): string {
   const normalized = String(content || '').replace(/\r\n/g, '\n').trim();
-  if (!normalized.startsWith('```')) {
-    return normalized;
+
+  // If the content is wrapped in a single fenced code block (```markdown ... ```)
+  // strip the fence so the raw markdown is handed to the renderer directly.
+  if (normalized.startsWith('```')) {
+    const fencedBlockMatch = normalized.match(
+      /^```(?:[a-zA-Z0-9_-]+)?\s*\n([\s\S]*?)\n?```(?:\s*([\s\S]*))?$/i,
+    );
+
+    if (fencedBlockMatch) {
+      const markdownBody = fencedBlockMatch[1]?.trim() || '';
+      const trailingText = fencedBlockMatch[2]?.trim() || '';
+      return [markdownBody, trailingText].filter(Boolean).join('\n\n');
+    }
   }
 
-  const fencedBlockMatch = normalized.match(
-    /^```(?:[a-zA-Z0-9_-]+)?\s*\n([\s\S]*)\n```(?:\s*([\s\S]*))?$/i,
-  );
-
-  if (!fencedBlockMatch) {
-    return normalized;
-  }
-
-  const markdownBody = fencedBlockMatch[1]?.trim() || '';
-  const trailingText = fencedBlockMatch[2]?.trim() || '';
-
-  return [markdownBody, trailingText].filter(Boolean).join('\n\n');
+  // Return content as-is — let the markdown renderer handle it.
+  return normalized;
 }
