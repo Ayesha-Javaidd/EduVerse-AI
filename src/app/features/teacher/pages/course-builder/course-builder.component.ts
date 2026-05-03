@@ -11,13 +11,6 @@ import { CurriculumModuleComponent } from '../../components/curriculum-module/cu
 import { AddModuleModalComponent } from '../../components/add-module-modal/add-module-modal.component';
 import { AddLessonModalComponent } from '../../components/add-lesson-modal/add-lesson-modal.component';
 import { BulkUploadModalComponent } from '../../components/bulk-upload-modal/bulk-upload-modal.component';
-import {
-  ReferenceUploadComponent,
-  GeneratedLesson,
-} from '../../components/reference-upload/reference-upload.component';
-import {
-  LessonDescriptionOutput,
-} from '../../components/lesson-description/lesson-description.component';
 
 // Services
 import { CourseBuilderService } from '../../services/course-builder.service';
@@ -52,7 +45,7 @@ import {
   upsertModule,
 } from './course-builder.helpers';
 
-type TabType = 'content' | 'settings' | 'students' | 'references';
+type TabType = 'content' | 'settings' | 'students';
 
 @Component({
   selector: 'app-course-builder',
@@ -66,7 +59,6 @@ type TabType = 'content' | 'settings' | 'students' | 'references';
     AddModuleModalComponent,
     AddLessonModalComponent,
     BulkUploadModalComponent,
-    ReferenceUploadComponent,
   ],
   templateUrl: './course-builder.component.html',
   styleUrl: './course-builder.component.css',
@@ -104,8 +96,6 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
   editingModule: Module | null = null;
   editingLesson: Lesson | null = null;
   selectedModuleId: string | null = null;
-  selectedLessonIdForAI = '';
-  selectedLessonTopicForAI = '';
 
   // Student Management
   enrolledStudents: EnrolledStudent[] = [];
@@ -202,7 +192,6 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
         next: (course) => {
           this.course = course;
           this.syncMetadataOptions();
-          this.ensureLessonSelectedForAI();
           this.isLoading = false;
         },
         error: (err) => {
@@ -318,7 +307,6 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
       lessonData,
       this.editingLesson
     );
-    this.ensureLessonSelectedForAI();
     this.toastService.success(
       this.editingLesson ? 'Lesson updated successfully' : 'Lesson added successfully'
     );
@@ -326,50 +314,6 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     this.course.totalLessons = calculateTotalLessons(this.course.modules);
     this.closeAddLessonModal();
     this.saveCourse();
-  }
-
-  onLessonSelectedForAI(lesson: Lesson): void {
-    this.setSelectedLessonForAI(lesson);
-    this.activeTab = 'references';
-    this.toastService.info(`AI designer ready for "${lesson.title}".`);
-  }
-
-  onAiLessonSelectionChange(lessonId: string): void {
-    const target = this.findLessonForAi(lessonId);
-    if (!target) {
-      this.selectedLessonIdForAI = '';
-      this.selectedLessonTopicForAI = '';
-      return;
-    }
-
-    this.setSelectedLessonForAI(target.lesson);
-  }
-
-  onDescriptionApplied(data: LessonDescriptionOutput): void {
-    if (!this.course) {
-      return;
-    }
-
-    const target = this.findLessonForAi(data.lessonId);
-    if (!target) {
-      this.toastService.error('Selected lesson could not be found.');
-      return;
-    }
-
-    const draftLesson: Lesson = {
-      ...target.lesson,
-      title: data.title || target.lesson.title,
-      content: this.buildLessonContentFromAiDescription(data),
-      duration:
-        data.estimatedDurationMinutes > 0
-          ? `${data.estimatedDurationMinutes} mins`
-          : target.lesson.duration,
-    };
-
-    this.setSelectedLessonForAI(draftLesson);
-    this.activeTab = 'content';
-    this.openAddLessonModal(target.module.id, draftLesson);
-    this.toastService.info('AI lesson draft loaded into the editor. Review and click Update Lesson to save.');
   }
 
   async onDeleteLesson(moduleId: string, lessonId: string): Promise<void> {
@@ -382,13 +326,7 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     const confirmed = await this.confirmDialog.confirmDelete(lesson?.title);
 
     if (confirmed) {
-      const wasSelectedForAI = this.selectedLessonIdForAI === lessonId;
       this.course.modules = removeLesson(this.course.modules, moduleId, lessonId);
-      if (wasSelectedForAI) {
-        this.selectedLessonIdForAI = '';
-        this.selectedLessonTopicForAI = '';
-      }
-      this.ensureLessonSelectedForAI();
 
       this.course.totalLessons = calculateTotalLessons(this.course.modules);
       this.toastService.success('Lesson deleted successfully');
@@ -550,131 +488,6 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     this.saveCourse();
   }
 
-  private buildLessonContentFromAiDescription(data: LessonDescriptionOutput): string {
-    const sections: string[] = [];
-
-    if (data.overview) {
-      sections.push(`## Overview\n${data.overview}`);
-    }
-
-    if (data.objectives.length) {
-      sections.push(
-        `## Learning Objectives\n${data.objectives.map((objective) => `- ${objective}`).join('\n')}`,
-      );
-    }
-
-    if (data.keyConcepts.length) {
-      sections.push(
-        `## Key Concepts\n${data.keyConcepts.map((concept) => `- ${concept}`).join('\n')}`,
-      );
-    }
-
-    if (data.prerequisiteTopics.length) {
-      sections.push(
-        `## Prerequisite Topics\n${data.prerequisiteTopics.map((topic) => `- ${topic}`).join('\n')}`,
-      );
-    }
-
-    if (data.difficultyLevel) {
-      sections.push(`## Difficulty\n${data.difficultyLevel}`);
-    }
-
-    return sections.join('\n\n').trim();
-  }
-
-  private setSelectedLessonForAI(lesson: Lesson): void {
-    this.selectedLessonIdForAI = lesson._id || lesson.id;
-    this.selectedLessonTopicForAI = lesson.title || '';
-  }
-
-  private findLessonForAi(lessonId: string): { module: Module; lesson: Lesson } | null {
-    if (!this.course || !lessonId) {
-      return null;
-    }
-
-    for (const module of this.course.modules) {
-      const lesson = module.lessons.find((item) => (item._id || item.id) === lessonId);
-      if (lesson) {
-        return { module, lesson };
-      }
-    }
-
-    return null;
-  }
-
-  private ensureLessonSelectedForAI(): void {
-    if (!this.course) {
-      return;
-    }
-
-    if (this.selectedLessonIdForAI) {
-      const existingSelection = this.findLessonForAi(this.selectedLessonIdForAI);
-      if (existingSelection) {
-        this.setSelectedLessonForAI(existingSelection.lesson);
-        return;
-      }
-    }
-
-    for (const module of this.course.modules) {
-      if (module.lessons.length > 0) {
-        this.setSelectedLessonForAI(module.lessons[0]);
-        return;
-      }
-    }
-
-    this.selectedLessonIdForAI = '';
-    this.selectedLessonTopicForAI = '';
-  }
-
-  // ========================
-  // AI COURSE GENERATION
-  // ========================
-
-  /**
-   * Called when reference-upload component emits lessons generated by AI.
-   * Auto-fills the course modules section and saves to MongoDB.
-   */
-  onCourseLessonsGenerated(lessons: GeneratedLesson[]): void {
-    if (!this.course || !lessons?.length) return;
-
-    this.course.modules = lessons.map((lesson, index) => ({
-      id:         `ai_module_${index + 1}`,
-      title:      lesson.title,
-      order:      index + 1,
-      isExpanded: true,
-      lessons: [
-        {
-          id:                `ai_lesson_${index + 1}`,
-          title:             lesson.title,
-          type:              'reading',
-          description:       lesson.summary,
-          content:           lesson.summary,
-          objectives:        lesson.objectives,
-          keyConcepts:       lesson.key_concepts,
-          duration:          `${lesson.estimated_duration_minutes || 30}:00`,
-          estimatedDuration: lesson.estimated_duration_minutes || 30,
-          order:             1,
-          isAiGenerated:     true,
-        } as any,
-      ],
-    }));
-
-    this.course.totalLessons = lessons.length;
-    this.toastService.success(
-      `AI generated ${lessons.length} lesson${lessons.length !== 1 ? 's' : ''} — review and save!`
-    );
-
-    // Auto-save generated lessons to MongoDB
-    this.saveCourse();
-
-    // Switch to content tab and scroll to modules section
-    this.activeTab = 'content';
-    setTimeout(() => {
-      document.getElementById('course-modules-section')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 300);
-  }
-
   // ========================
   // PUBLISH / SAVE
   // ========================
@@ -790,26 +603,9 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
    */
   onTabChange(tab: TabType): void {
     this.activeTab = tab;
-    if (tab === 'references') {
-      this.ensureLessonSelectedForAI();
-    }
     if (tab === 'students' && this.enrolledStudents.length === 0) {
       this.loadEnrolledStudents();
     }
-  }
-
-  get aiLessonOptions(): Array<{ id: string; title: string; moduleTitle: string }> {
-    if (!this.course) {
-      return [];
-    }
-
-    return this.course.modules.flatMap((module) =>
-      module.lessons.map((lesson) => ({
-        id: lesson._id || lesson.id,
-        title: lesson.title,
-        moduleTitle: module.title,
-      })),
-    );
   }
 
   loadEnrolledStudents(): void {

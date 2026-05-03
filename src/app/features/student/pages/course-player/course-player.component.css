@@ -267,6 +267,13 @@
     color: #1b8c7d;
 }
 
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+    color: #181f39;
+}
+
 iframe {
     width: 100%;
     height: 100%;

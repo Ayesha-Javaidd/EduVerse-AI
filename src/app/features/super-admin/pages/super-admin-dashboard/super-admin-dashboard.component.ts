@@ -4,7 +4,6 @@ import { StatCardComponent } from '../../../../shared/components/stat-card/stat-
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { SuperAdminDashboardService, ActivityDataPoint, OrganizationRow, TenantGrowthPoint } from '../../../../shared/services/super-admin-dashboard.service';
-import { ModelControlPanelComponent } from '../../components/model-control-panel/model-control-panel.component';
 
 @Component({
   selector: 'app-superadmin-dashboard',
@@ -13,8 +12,7 @@ import { ModelControlPanelComponent } from '../../components/model-control-panel
     CommonModule,
     StatCardComponent,
     DataTableComponent,
-    HeaderComponent,
-    ModelControlPanelComponent
+    HeaderComponent
   ],
   templateUrl: './super-admin-dashboard.component.html',
   styleUrls: ['./super-admin-dashboard.component.css']
