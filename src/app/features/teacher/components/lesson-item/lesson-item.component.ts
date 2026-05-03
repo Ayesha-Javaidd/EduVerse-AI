@@ -14,19 +14,20 @@ export class LessonItemComponent {
 
   @Output() edit = new EventEmitter<void>();
   @Output() delete = new EventEmitter<void>();
+  @Output() aiDesign = new EventEmitter<void>();
 
   showMenu = false;
 
   get typeLabel(): string {
     switch (this.lesson.type) {
-      case 'video':
-        return 'Video';
       case 'document':
-        return this.isAiGenerated ? 'AI Lesson' : 'Document';
+      case 'reading':
+      case 'file':
+        return this.isAiGenerated ? 'AI Lesson' : 'Lesson';
       case 'quiz':
         return 'Quiz';
       default:
-        return 'Video';
+        return 'Lesson';
     }
   }
 
@@ -58,6 +59,12 @@ export class LessonItemComponent {
     event.stopPropagation();
     this.showMenu = false;
     this.delete.emit();
+  }
+
+  onAiDesign(event: Event): void {
+    event.stopPropagation();
+    this.showMenu = false;
+    this.aiDesign.emit();
   }
 
   closeMenu(): void {

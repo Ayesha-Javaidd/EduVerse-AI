@@ -53,7 +53,7 @@ export class TrackStudentComponent implements OnInit {
     {
       key: 'status',
       label: 'Grade',
-      options: ['A', 'B', 'C', 'D', 'F'],
+      options: ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D', 'F'],
     },
   ];
 
@@ -177,13 +177,11 @@ export class TrackStudentComponent implements OnInit {
     }
   }
 
-  // Return color based on progress value - Updated to match A, B, C, D, F tiers
+  // Return color based on progress value
   getProgressColor(progress: number): string {
-    if (progress >= 85) return 'bg-green-500';  // A: Excellent
-    if (progress >= 70) return 'bg-blue-400';   // B: Good (Cyan/Blue)
-    if (progress >= 55) return 'bg-yellow-400'; // C: Average
-    if (progress >= 40) return 'bg-orange-500'; // D: Below Average
-    return 'bg-red-500';                         // F: Fail
+    if (progress >= 80) return 'bg-green-500';
+    if (progress >= 50) return 'bg-yellow-400';
+    return 'bg-red-500';
   }
 
   // Navigate to student details page
@@ -226,9 +224,7 @@ export class TrackStudentComponent implements OnInit {
         existing.courseNames.add(row.courseName);
       }
 
-      // FIX: Only count progress for courses that actually have quizzes/marks
-      // This ensures that "Eman Shahbaz" showing 80% (B) logic remains consistent
-      if (typeof row.progress === 'number' && !Number.isNaN(row.progress) && (row.totalMarks || 0) > 0) {
+      if (typeof row.progress === 'number' && !Number.isNaN(row.progress)) {
         existing.progressTotal += row.progress;
         existing.progressCount += 1;
       }
@@ -247,11 +243,9 @@ export class TrackStudentComponent implements OnInit {
     return Array.from(grouped.values())
       .map((student) => {
         const courseNames = Array.from(student.courseNames);
-        
-        // Final fallback: if no courses have quizzes, use the raw count to avoid division by zero
-        // but typically students in this view have at least one performance record.
-        const effectiveCount = student.progressCount || 1;
-        const averageProgress = Math.round(student.progressTotal / effectiveCount);
+        const averageProgress = student.progressCount
+          ? Math.round(student.progressTotal / student.progressCount)
+          : 0;
 
         return {
           studentId: student.studentId,
@@ -288,10 +282,16 @@ export class TrackStudentComponent implements OnInit {
 
     const percentage = (marks / totalMarks) * 100;
 
+    if (percentage >= 90) return 'A+';
     if (percentage >= 85) return 'A';
+    if (percentage >= 80) return 'A-';
+    if (percentage >= 75) return 'B+';
     if (percentage >= 70) return 'B';
-    if (percentage >= 55) return 'C';
-    if (percentage >= 40) return 'D';
+    if (percentage >= 65) return 'B-';
+    if (percentage >= 61) return 'C+';
+    if (percentage >= 58) return 'C';
+    if (percentage >= 55) return 'C-';
+    if (percentage >= 50) return 'D';
     return 'F';
   }
 }

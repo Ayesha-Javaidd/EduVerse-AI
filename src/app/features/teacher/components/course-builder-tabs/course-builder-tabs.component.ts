@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-type TabType = 'content' | 'settings' | 'students';
+type TabType = 'content' | 'settings' | 'students' | 'references';
 
 interface Tab {
   id: TabType;
@@ -23,6 +23,7 @@ export class CourseBuilderTabsComponent {
     { id: 'content', label: 'Content Builder' },
     { id: 'settings', label: 'Course Settings' },
     { id: 'students', label: 'Enrolled Students' },
+    { id: 'references', label: '✨ AI Reference & Designer' },
   ];
 
   onTabClick(tab: TabType): void {
