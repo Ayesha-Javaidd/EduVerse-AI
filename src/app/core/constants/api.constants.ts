@@ -37,6 +37,7 @@ export const ENDPOINTS = {
   PAYMENTS: {
     CONFIG: `${API_BASE_URL}/payments/config`,
     CREATE_PAYMENT_INTENT: `${API_BASE_URL}/payments/create-payment-intent`,
+    CONFIRM_SESSION: (sessionId: string) => `${API_BASE_URL}/payments/confirm-session/${sessionId}`,
   },
   QUIZ_SUBMISSIONS: {
     BASE: `${API_BASE_URL}/quiz-submissions`,

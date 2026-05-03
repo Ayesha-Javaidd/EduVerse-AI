@@ -189,19 +189,28 @@ export class ModelControlPanelComponent implements OnInit {
   }
 
   runBenchmark(): void {
-    if (!confirm('Run sequential benchmark of 10 prompts? This may take 2-3 minutes.')) return;
-    
+    if (!confirm('Run sequential benchmark across all 3 models?\n\n⚠️ This takes 8-15 minutes on local hardware (phi3.5 is slow).\nThe page will update automatically when done.')) return;
+
     this.benchmarking = true;
     this.http.post(ENDPOINTS.ADMIN_MODELS.BENCHMARK, {})
       .subscribe({
-        next: () => {
+        next: (res: any) => {
           this.benchmarking = false;
           this.refreshData();
-          alert('Benchmark complete! Leaderboard updated.');
+          const modelResults = res?.results ?? res ?? {};
+          const modelCount = Object.keys(modelResults).length || 3;
+          alert(`✅ Benchmark complete! ${modelCount} models tested. Leaderboard updated.`);
         },
         error: (err) => {
           this.benchmarking = false;
-          alert(`Benchmark failed: ${err.error?.detail}`);
+          // err.error?.detail can be a string or an object; handle both
+          const detail = err.error?.detail;
+          const msg = typeof detail === 'string'
+            ? detail
+            : typeof detail === 'object' && detail !== null
+              ? JSON.stringify(detail)
+              : err.message || `HTTP ${err.status}`;
+          alert(`Benchmark failed: ${msg}`);
         }
       });
   }
