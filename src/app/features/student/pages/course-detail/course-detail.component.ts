@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+
 import { CourseService, BackendCourse } from '../../../../core/services/course.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { StudentProgressService } from '../../services/student-progress.service';
@@ -8,6 +9,7 @@ import { HeaderComponent } from '../../../../shared/components/header/header.com
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { StripeEmbeddedModalComponent } from '../../../../shared/components/stripe-embedded-modal/stripe-embedded-modal.component';
 import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
+import { ENDPOINTS } from '../../../../core/constants/api.constants';
 
 @Component({
   selector: 'app-course-detail',
@@ -38,23 +40,69 @@ export class CourseDetailComponent implements OnInit {
     private confirmDialogService: ConfirmDialogService
   ) { }
 
+  /** Prevents double-load when Stripe redirects back with ?checkout_success=1 */
+  private _paymentHandled: boolean = false;
+  /** Show the success modal after Stripe payment enrollment is confirmed */
+  private _showSuccessAfterPayment: boolean = false;
+
   ngOnInit() {
+    // Handle Stripe return FIRST before loading course normally
+    const querySnapshot = this.route.snapshot.queryParamMap;
+    if (querySnapshot.get('checkout_success') === '1') {
+      this._paymentHandled = true;
+      this.showPaymentModal = false;
+      this.clientSecret = '';
+      const sessionId = querySnapshot.get('session_id');
+      // Also set courseId from params snapshot so confirmPaymentSession can reload
+      this.courseId = this.route.snapshot.paramMap.get('id') || '';
+      if (sessionId && this.courseId) {
+        this.confirmPaymentSession(sessionId);
+      } else if (this.courseId) {
+        this.loadCourse();
+      }
+    }
+
     this.route.paramMap.subscribe(params => {
       this.courseId = params.get('id') || '';
-      if (this.courseId) {
+      if (this.courseId && !this._paymentHandled) {
         this.loadCourse();
       }
     });
 
-    this.route.queryParamMap.subscribe((params) => {
-      if (params.get('checkout_success') === '1') {
-        this.showPaymentModal = false;
-        this.clientSecret = '';
+    // Scroll to top when navigation occurs
+    window.scrollTo(0, 0);
+  }
+
+  /**
+   * Called after Stripe redirects back with ?checkout_success=1&session_id=...
+   * Verifies the payment with backend and triggers enrollment, then reloads.
+   */
+  confirmPaymentSession(sessionId: string) {
+    this.enrolling = true;
+    this.courseService.confirmCheckoutSession(sessionId).subscribe({
+      next: (res) => {
+        this.enrolling = false;
+        if (res.enrolled || res.status === 'success') {
+          this._showSuccessAfterPayment = true;
+          // Clean the URL then reload
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { checkout_success: null, session_id: null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true,
+          });
+          this.loadCourse();
+        } else {
+          this.loadCourse();
+        }
+      },
+      error: (err) => {
+        this.enrolling = false;
+        console.error('[CourseDetail] Failed to confirm payment session:', err);
+        // Even on error, reload to reflect latest enrollment state
         this.loadCourse();
       }
     });
-    // Scroll to top when navigation occurs
-    window.scrollTo(0, 0);
   }
 
   loadCourse() {
@@ -120,11 +168,15 @@ export class CourseDetailComponent implements OnInit {
         this.isEnrolled = courses.some(c => c._id === this.courseId || c.id === this.courseId);
         if (this.isEnrolled) {
           this.loadProgress(this.course?.tenantId);
-          if (this.route.snapshot.queryParamMap.get('checkout_success') === '1') {
+          // Show success modal if this is a fresh payment return OR a direct checkout_success
+          const isPaymentReturn = this._showSuccessAfterPayment ||
+            this.route.snapshot.queryParamMap.get('checkout_success') === '1';
+          if (isPaymentReturn) {
+            this._showSuccessAfterPayment = false;
             this.showSuccessModal = true;
             this.router.navigate([], {
               relativeTo: this.route,
-              queryParams: { checkout_success: null },
+              queryParams: { checkout_success: null, session_id: null },
               queryParamsHandling: 'merge',
               replaceUrl: true,
             });

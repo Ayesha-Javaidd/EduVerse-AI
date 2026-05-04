@@ -73,6 +73,7 @@
       >
         <app-lesson-item
           [lesson]="lesson"
+          (aiDesign)="onAiDesignLesson(lesson)"
           (edit)="onEditLesson(lesson)"
           (delete)="onDeleteLesson(lesson.id)"
         ></app-lesson-item>

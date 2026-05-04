@@ -20,9 +20,11 @@ import {
     getLessonId,
     getNextLearningLesson,
     getTeacherLessonSource,
+    hasValidContent,
     isFirstCourseLesson,
     lessonsMatch,
     selectMatchingAdaptiveLesson,
+    normalizeMarkdownContent,
     shouldGenerateBaseLesson,
     shouldUseAdaptiveLessonContent,
     shouldWaitForAdaptiveLesson,
@@ -62,6 +64,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     quizSubmitted: boolean = false;
     loadingQuiz: boolean = false;
     submittingQuiz: boolean = false;
+    /** Average score across all quiz submissions for this course (used for progress bar). */
+    avgQuizScore: number = 0;
 
     // Sidebar visibility
     isSidebarOpen: boolean = true;
@@ -110,15 +114,36 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     isWaitingForAdaptiveLesson: boolean = false;
     aiGeneratedLessons: AdaptiveLesson[] = [];
     studentQuizzes: Quiz[] = [];
+    studentSubmissions: Map<string, number> = new Map();
     activeAdaptiveLesson: AdaptiveLesson | null = null;
+    renderedAdaptiveLessonContent: string = '';
     private aiLessonsLoaded: boolean = false;
+    private quizzesLoaded: boolean = false;
     private generatingBaseLessonForId: string | null = null;
     private generatingAdaptiveLessonForId: string | null = null;
-    private pendingAdaptiveLessonId: string | null = null;
+    pendingAdaptiveLessonId: string | null = null;
     private adaptiveLessonPollToken: number = 0;
+    /** Lesson IDs that hit a 429 — skip regenerating until next full page load. */
+    private rateLimitedBaseLessonIds: Set<string> = new Set();
     aiGenerationError: string | null = null;
     aiQuizError: string | null = null;
+    validationScore: number | null = null;
+    validationVerdict: string | null = null;
     private isAiLessonsLoading: boolean = false;
+    /** Timer IDs for scheduleAdaptiveRefresh so we can cancel stale ones. */
+    private refreshQuizTimerId: ReturnType<typeof setTimeout> | null = null;
+    private refreshLessonsTimerId: ReturnType<typeof setTimeout> | null = null;
+    /** True when we are silently re-polling for a quiz that was still generating on page load. */
+    isPollingForQuiz: boolean = false;
+    /** True when adaptive-lesson polling timed out — content may still be generating. Next stays locked. */
+    adaptiveLessonTimedOut: boolean = false;
+    /**
+     * Set to true at navigation time when the student moves to a lesson that was
+     * already completed in a prior session. Allows lesson content to be shown
+     * alongside the quiz on revisits, without affecting the first-time quiz flow
+     * (where markComplete() clears this flag immediately).
+     */
+    isRevisitingCompletedLesson: boolean = false;
 
     constructor(
         private route: ActivatedRoute,
@@ -147,7 +172,13 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
+        // Bump the poll token so ALL pending window.setTimeout callbacks from
+        // ensureAdaptiveLessonReady stop scheduling new requests immediately.
+        // Without this, old callbacks continue firing after the component is
+        // destroyed (ghost polling) — visible as hundreds of GET requests.
+        this.adaptiveLessonPollToken += 1;
         this.stopAiAssistantResize();
+        this.cancelPendingRefreshTimers();
     }
 
     @HostListener('window:resize')
@@ -181,13 +212,17 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     }
 
     loadCourseAndProgress() {
+        // Reset load flags so a course navigation always re-evaluates polling needs.
+        this.quizzesLoaded = false;
         this.courseService.getCourseById(this.courseId).subscribe({
             next: (course) => {
                 this.course = course;
                 this.flattenLessons();
-                this.loadProgress(course?.tenantId);
+                this.loadProgress(course?.tenantId);  // loadStudentQuizzes is called inside this
                 this.loadAiGeneratedLessons();
-                this.loadStudentQuizzes();
+                // NOTE: loadStudentQuizzes() is intentionally NOT called here.
+                // It is called from inside loadProgress() AFTER selectLesson() runs,
+                // ensuring activeLesson + progress are always set before quiz polling logic fires.
             },
             error: (err) => {
                 console.error(err);
@@ -213,18 +248,29 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
             next: (progress) => {
                 this.progress = progress;
                 if (!this.activeLesson) {
-                    const nextLesson =
-                        this.allLessons.find((lesson) => !this.isLessonCompleted(this.getLessonId(lesson))) ||
-                        this.allLessons[0];
-                    if (nextLesson) {
-                        this.selectLesson(nextLesson, nextLesson.moduleIndex ?? 0);
+                    const savedLessonId = localStorage.getItem(`eduverse_last_lesson_${this.courseId}`);
+                    let targetLesson = this.allLessons[0];
+                    if (savedLessonId) {
+                        targetLesson = this.allLessons.find(l => this.getLessonId(l) === savedLessonId) || this.allLessons[0];
+                    } else {
+                        targetLesson = this.allLessons.find((lesson) => !this.isLessonCompleted(this.getLessonId(lesson))) || this.allLessons[0];
+                    }
+                    
+                    if (targetLesson) {
+                        this.selectLesson(targetLesson, targetLesson.moduleIndex ?? 0);
                     }
                 }
                 this.loading = false;
+                // Load quizzes NOW — progress and activeLesson are both guaranteed set.
+                // This eliminates the race condition that caused the polling check to
+                // fire before we knew which lesson is active or what is completed.
+                this.loadStudentQuizzes();
             },
             error: (err) => {
                 console.error('Error loading progress', err);
                 this.loading = false;
+                // Still load quizzes even if progress fails — show what we can.
+                this.loadStudentQuizzes();
             }
         });
     }
@@ -248,6 +294,11 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                 // Now that we know which AI lessons already exist, safely decide
                 // if Lesson 1 base content needs to be generated.
                 this.ensureBaseLessonContent();
+                // If the active lesson expects adaptive content but none arrived yet
+                // and nothing is polling (e.g. after a page refresh that cleared
+                // pendingAdaptiveLessonId), auto-restart the poll so the student
+                // isn't stuck on a blank spinner with no recovery path.
+                this.recoverOrphanedAdaptivePending();
             },
             error: (err) => { 
                 console.error('Error loading AI lessons', err); 
@@ -262,48 +313,224 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.quizService.getMyQuizzes().subscribe({
             next: (quizzes) => {
                 this.studentQuizzes = quizzes.filter((quiz) => quiz.courseId === this.courseId);
+                this.recomputeAvgQuizScore();
                 const currentLessonId = this.activeLesson ? this.getLessonId(this.activeLesson) : null;
-                if (currentLessonId && !showQuizForLessonId) {
-                    const generatedQuiz = this.findGeneratedQuizForLesson(currentLessonId);
-                    if (generatedQuiz && !this.activeQuiz) {
-                        this.applyQuiz(generatedQuiz);
+                if (!showQuizForLessonId) {
+                    if (currentLessonId) {
+                        const generatedQuiz = this.findGeneratedQuizForLesson(currentLessonId);
+                        if (generatedQuiz && !this.activeQuiz) {
+                            this.applyQuiz(generatedQuiz);
+                            return;  // Quiz found — done.
+                        }
                     }
+                    // Quiz not in list yet — start polling if the lesson is complete
+                    // (activeLesson and progress are both guaranteed set at this point
+                    //  because loadStudentQuizzes is called after loadProgress resolves).
+                    this.startQuizPollingIfExpected(currentLessonId || '');
                 }
                 if (showQuizForLessonId) {
                     const generatedQuiz = this.findGeneratedQuizForLesson(showQuizForLessonId);
                     if (generatedQuiz) {
                         this.applyQuiz(generatedQuiz);
+                        this.isPollingForQuiz = false;
                         this.toastService.success('Your lesson quiz is ready.');
-                    } else if (attempt < 10) {
-                        window.setTimeout(() => this.loadStudentQuizzes(showQuizForLessonId, attempt + 1), 2500);
+                    } else if (attempt < 72) {
+                        // Ollama can take up to 6 minutes — poll every 5s for up to 72 attempts
+                        window.setTimeout(() => this.loadStudentQuizzes(showQuizForLessonId, attempt + 1), 5000);
                     } else {
                         this.loadingQuiz = false;
-                        this.aiQuizError = 'AI limit reached. Cannot generate quiz for now.';
-                        this.toastService.error('AI limit reached. Cannot generate quiz for now.');
+                        this.isPollingForQuiz = false;
+                        this.aiQuizError = 'Quiz generation is taking longer than expected. Please refresh the page in a moment.';
+                        this.toastService.error('Quiz generation is taking longer than expected. Please refresh in a moment.');
                     }
                 }
             },
             error: (err) => {
                 console.error('Error loading student quizzes', err);
-                if (showQuizForLessonId && attempt < 10) {
-                    window.setTimeout(() => this.loadStudentQuizzes(showQuizForLessonId, attempt + 1), 2500);
+                if (showQuizForLessonId && attempt < 72) {
+                    window.setTimeout(() => this.loadStudentQuizzes(showQuizForLessonId, attempt + 1), 5000);
                 } else {
                     this.loadingQuiz = false;
-                    this.aiQuizError = 'AI limit reached. Cannot generate quiz for now.';
-                    this.toastService.error('AI limit reached. Cannot generate quiz for now.');
+                    this.isPollingForQuiz = false;
+                    const errMsg = err?.error?.detail || err?.message || 'Quiz loading failed. Please try again.';
+                    this.aiQuizError = errMsg;
+                    this.toastService.error(errMsg);
                 }
             }
         });
     }
 
+    /**
+     * Called on page load after quizzes are fetched and none match the current lesson.
+     * If the lesson is already marked complete (meaning mark-complete already fired and
+     * the backend should be generating a quiz), silently start polling — exactly like
+     * the post-markComplete flow does. This makes page-refresh mid-generation graceful.
+     *
+     * NOTE: `startQuizPollingIfExpected` is the internal path when activeLesson is already
+     * set at the time quizzes arrive. `checkAndStartQuizPolling` is the dual-trigger path
+     * called from both loadProgress and loadStudentQuizzes to handle whichever finishes last.
+     */
+    private startQuizPollingIfExpected(lessonId: string) {
+        if (
+            !lessonId ||
+            this.isPollingForQuiz ||
+            this.activeQuiz ||
+            this.aiQuizError ||
+            !this.isLessonCompleted(lessonId) ||
+            this.activeLesson?.type === 'quiz'
+        ) {
+            // Not in a state where quiz generation should be expected.
+            this.loadingQuiz = false;
+            return;
+        }
+
+        // Lesson is complete but no valid quiz found.
+        // Call mark-complete again — the backend is now idempotent:
+        // it checks if a valid quiz exists and generates one if not.
+        // This covers the page-refresh scenario where Ollama failed silently.
+        const tenantId = this.course?.tenantId;
+        this.isMarkingComplete = true;
+        this.loadingQuiz = true;
+
+        this.progressService.markLessonComplete(this.courseId, lessonId, tenantId).subscribe({
+            next: () => {
+                this.isMarkingComplete = false;
+                this.isPollingForQuiz = true;
+                this.loadStudentQuizzes(lessonId, 0);
+            },
+            error: () => {
+                // If mark-complete fails (e.g. network), fall back to polling only.
+                this.isMarkingComplete = false;
+                this.isPollingForQuiz = true;
+                this.loadStudentQuizzes(lessonId, 0);
+            }
+        });
+    }
+
+    /**
+     * Dual-trigger polling check: called from BOTH loadStudentQuizzes (initial load) AND
+     * loadProgress so that whichever async call finishes last can start polling correctly.
+     * Guarded by `quizzesLoaded` so it never fires before we have the quiz list.
+     */
+    private checkAndStartQuizPolling() {
+        // Need both lesson + progress to evaluate; quizzes are guaranteed loaded by caller.
+        if (!this.activeLesson || !this.progress || this.activeQuiz || this.isPollingForQuiz || this.aiQuizError) {
+            if (this.activeLesson && this.progress && !this.activeQuiz && !this.isPollingForQuiz) {
+                this.loadingQuiz = false;  // Nothing pending — clear the spinner.
+            }
+            return;
+        }
+
+        const lessonId = this.getLessonId(this.activeLesson);
+        if (!lessonId || this.activeLesson.type === 'quiz' || !this.isLessonCompleted(lessonId)) {
+            this.loadingQuiz = false;
+            return;
+        }
+
+        // Check if quiz already arrived in the list we just loaded.
+        const existing = this.findGeneratedQuizForLesson(lessonId);
+        if (existing) {
+            this.applyQuiz(existing);
+            return;
+        }
+
+        // Lesson complete, no quiz found — backend is still generating. Start polling.
+        this.isPollingForQuiz = true;
+        this.loadingQuiz = true;
+        this.loadStudentQuizzes(lessonId, 0);
+    }
+
+    /**
+     * Recompute the average quiz score across all submissions for this course.
+     * Uses the best (latest/highest) submission per quiz to avoid penalising retries.
+     */
+    private recomputeAvgQuizScore() {
+        const user = this.authService.getUser();
+        const studentId = user?.studentId || user?.id;
+        if (!studentId || !this.courseId) {
+            this.avgQuizScore = 0;
+            return;
+        }
+
+        this.submissionService.getSubmissionsByStudent(studentId).subscribe({
+            next: (submissions) => {
+                const courseSubmissions = submissions.filter(s => s.courseId === this.courseId);
+                if (!courseSubmissions.length) {
+                    this.avgQuizScore = 0;
+                    return;
+                }
+
+                // Get highest submission score for each quiz
+                const bestSubmissions = new Map<string, number>();
+                courseSubmissions.forEach(sub => {
+                    if (sub.percentage !== undefined && sub.percentage !== null) {
+                        const existing = bestSubmissions.get(sub.quizId) || 0;
+                        bestSubmissions.set(sub.quizId, Math.max(existing, sub.percentage));
+                    }
+                });
+                this.studentSubmissions = bestSubmissions;
+
+                const scores = Array.from(bestSubmissions.values());
+                if (!scores.length) {
+                    this.avgQuizScore = 0;
+                    return;
+                }
+
+                const avg = scores.reduce((sum, s) => sum + s, 0) / scores.length;
+                this.avgQuizScore = Math.round(avg);
+
+                // Reactively update the current quiz state now that we have submissions.
+                // This ensures revisiting a passed lesson correctly skips the quiz
+                // even if this HTTP request finished after applyQuiz ran.
+                if (this.isRevisitingCompletedLesson && this.activeQuiz && this.studentSubmissions.has(this.activeQuiz.id)) {
+                    this.quizSubmitted = true;
+                }
+            },
+            error: (err) => {
+                console.error('Failed to compute avg quiz score', err);
+                this.avgQuizScore = 0;
+            }
+        });
+    }
+
+    private getAdaptiveStudentLevel(): 'slow' | 'average' | 'fast' {
+        if (this.avgQuizScore >= 80) {
+            return 'fast';
+        }
+        if (this.avgQuizScore > 0 && this.avgQuizScore < 50) {
+            return 'slow';
+        }
+        return 'average';
+    }
+
     selectLesson(lesson: CoursePlayerLesson, moduleIndex: number) {
         this.persistCurrentLessonDraft();
+
+        // Cancel any pending refresh timers from the previous lesson so we
+        // don't fire stale backend calls after navigating away.
+        this.cancelPendingRefreshTimers();
+
         this.activeLesson = lesson;
+        const lessonId = this.getLessonId(lesson);
+        if (lessonId) {
+            localStorage.setItem(`eduverse_last_lesson_${this.courseId}`, lessonId);
+        }
+        
         this.activeModuleIndex = moduleIndex;
         this.quizSubmitted = false;
         this.activeQuiz = null;
         this.quizAnswers = [];
         this.loadingQuiz = true;
+        this.isPollingForQuiz = false;
+        this.quizEverSeen = false;   // Reset per lesson — quiz must appear fresh.
+        // Clear stale adaptive content immediately so the old lesson's text
+        // never flickers before the new lesson's content arrives.
+        this.renderedAdaptiveLessonContent = '';
+
+        // Capture whether this lesson is already completed BEFORE any mark-complete
+        // calls fire. This lets the template show lesson content on revisits
+        // without accidentally showing it during a fresh first-time quiz session.
+        this.isRevisitingCompletedLesson = this.isLessonCompleted(this.getLessonId(lesson));
         this.loadNotesForCurrentLesson();
         this.syncActiveAdaptiveLesson();
         // Only generate Lesson 1 base content AFTER the AI-lessons fetch finishes
@@ -336,38 +563,55 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         // Reset error state
         this.aiGenerationError = null;
         this.aiQuizError = null;
+        this.adaptiveLessonTimedOut = false;
+        // After all state resets, recover missing adaptive content for this lesson.
+        // Must fire AFTER adaptiveLessonTimedOut=false so the guard inside passes.
+        if (this.aiLessonsLoaded) {
+            this.recoverOrphanedAdaptivePending();
+        }
     }
 
     loadQuiz(quizId: string) {
         this.loadingQuiz = true;
         this.quizService.getQuizById(quizId).subscribe({
             next: (quiz) => {
+                // Guard: if the stored quiz has no questions it is a failed generation artefact.
+                // Do NOT call applyQuiz() — that would set quizEverSeen=true and show the
+                // "Completed" badge even though the student has never actually taken a quiz.
+                if (!quiz.questions || quiz.questions.length === 0) {
+                    console.warn('loadQuiz: received quiz with 0 questions — discarding', quizId);
+                    this.loadingQuiz = false;
+                    this.aiQuizError = 'Quiz generation is still in progress. Please try again in a moment.';
+                    return;
+                }
                 this.applyQuiz(quiz);
             },
             error: (err) => {
                 console.error('Error loading quiz:', err);
                 this.loadingQuiz = false;
-                this.aiQuizError = 'AI limit reached. Cannot generate quiz for now.';
-                this.toastService.error('AI limit reached. Cannot generate quiz for now.');
+                const errMsg = err?.error?.detail || err?.message || 'Could not load quiz. Please try again.';
+                this.aiQuizError = errMsg;
+                this.toastService.error(errMsg);
             }
         });
     }
 
     loadQuizForLesson(lesson: CoursePlayerLesson) {
         const lessonId = this.getLessonId(lesson);
-        let quizId = null;
 
         if (lesson.type === 'quiz' && lesson.content) {
-            quizId = lesson.content;
-        } else {
-            const generatedQuiz = this.findGeneratedQuizForLesson(lessonId);
-            if (generatedQuiz) {
-                quizId = generatedQuiz.id;
-            }
+            // Teacher-authored quiz — the lesson.content field holds the quiz's ObjectId
+            // in the `quizzes` collection. Fetch it via the standard endpoint.
+            this.loadQuiz(lesson.content);
+            return;
         }
 
-        if (quizId) {
-            this.loadQuiz(quizId);
+        // AI-generated quiz — already loaded into studentQuizzes via getMyQuizzes()
+        // which reads from ai_quiz_sessions_collection. Apply directly; DO NOT call
+        // loadQuiz() because /quizzes/{id} queries the wrong (quizzes) collection → 404.
+        const generatedQuiz = this.findGeneratedQuizForLesson(lessonId);
+        if (generatedQuiz) {
+            this.applyQuiz(generatedQuiz);
         } else {
             this.loadingQuiz = false;
         }
@@ -402,14 +646,23 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                 this.submittingQuiz = false;
                 this.loadingQuiz = false;
 
-                // After quiz submission, the backend generates the next lesson
-                // in the background based on the quiz score. Start polling for it.
+                // Update running quiz-score average immediately with this submission.
+                this.updateAvgQuizScoreWith(this.quizScore);
+
+                // Always trigger next adaptive lesson generation on EVERY submission
+                // (first attempt and retries alike).
                 const nextLesson = this.getNextLearningLesson(this.activeLesson);
                 if (nextLesson && this.shouldUseAdaptiveLessonContent(nextLesson)) {
                     this.pendingAdaptiveLessonId = this.getLessonId(nextLesson);
                     this.isWaitingForAdaptiveLesson = true;
-                    // 3s delay so backend has time to start generating before first poll.
-                    window.setTimeout(() => this.ensureAdaptiveLessonReady(0), 3000);
+                    
+                    // Explicitly tell the backend to start generating the next lesson
+                    // using the newly achieved quiz score, then begin polling.
+                    this.triggerAdaptiveLessonGeneration(this.pendingAdaptiveLessonId!, () => {
+                        this.adaptiveLessonPollToken += 1;
+                        const token = this.adaptiveLessonPollToken;
+                        window.setTimeout(() => this.ensureAdaptiveLessonReady(0, token), 3000);
+                    });
                 }
 
                 if (
@@ -454,9 +707,39 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
             this.aiGeneratedLessons,
             this.allLessons
         );
+        this.renderedAdaptiveLessonContent = normalizeMarkdownContent(this.activeAdaptiveLesson?.content);
     }
 
 
+
+    /**
+     * Reset quiz state so the student can re-attempt the quiz.
+     * Only valid for TEACHER-AUTHORED quizzes (lesson.type === 'quiz').
+     * For AI-generated quizzes the retry path is retriggerQuizForLesson().
+     */
+    retryQuiz() {
+        if (this.activeLesson?.type !== 'quiz') return;  // Guard: never reset AI quiz submissions.
+        this.quizSubmitted = false;
+        this.quizAnswers = new Array(this.activeQuiz?.questions?.length ?? 0).fill('');
+        this.quizScore = 0;
+    }
+
+    /** True when every question has a selected answer. */
+    get allAnswered(): boolean {
+        if (!this.activeQuiz) return false;
+        return this.quizAnswers.length === this.activeQuiz.questions.length &&
+            this.quizAnswers.every(a => !!a);
+    }
+
+    /** True when the latest submitted quiz score is a pass (>= 70%). */
+    get isQuizPassing(): boolean {
+        return this.quizScore >= 70;
+    }
+
+    /** True when a backend adaptive-lesson generation is in progress for the next lesson. */
+    get hasPendingAdaptiveLesson(): boolean {
+        return !!this.pendingAdaptiveLessonId;
+    }
 
     get totalLessons(): number {
         return this.allLessons.length;
@@ -472,7 +755,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     }
 
     get progressWidth(): number {
-        return this.progress?.progressPercentage || 0;
+        return this.avgQuizScore;
     }
 
     get activeModuleTitle(): string {
@@ -495,9 +778,26 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     }
 
     applyQuiz(quiz: Quiz) {
+        // Guard: never apply a 0-question quiz.
+        // Such records are DB artefacts from failed Ollama generations.
+        // Applying them would set quizEverSeen=true and show the
+        // "Completed" badge even though no real quiz was presented.
+        if (!quiz.questions || quiz.questions.length === 0) {
+            console.warn('applyQuiz: skipping quiz with 0 questions', quiz.id);
+            this.loadingQuiz = false;
+            this.isPollingForQuiz = false;
+            this.aiQuizError = 'Quiz generation encountered an issue. Please click "Retry Quiz Generation" to try again.';
+            return;
+        }
         this.activeQuiz = quiz;
         this.quizAnswers = new Array(quiz.questions.length).fill('');
         this.loadingQuiz = false;
+        this.quizEverSeen = true;  // Quiz has appeared — disable "Mark Complete" from now on.
+
+        // Only mark it as submitted if they actually passed it previously.
+        if (this.isRevisitingCompletedLesson && this.studentSubmissions.has(quiz.id)) {
+            this.quizSubmitted = true;
+        }
     }
 
 
@@ -536,7 +836,12 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         }
 
         const lessonId = this.getLessonId(this.activeLesson);
-        if (!lessonId || this.activeAdaptiveLesson || this.generatingBaseLessonForId === lessonId) {
+        if (
+            !lessonId ||
+            this.activeAdaptiveLesson ||
+            this.generatingBaseLessonForId === lessonId ||
+            this.rateLimitedBaseLessonIds.has(lessonId)  // 🔒 skip 429'd lessons
+        ) {
             return;
         }
 
@@ -548,13 +853,20 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.generatingBaseLessonForId = lessonId;
         this.isGeneratingAiLesson = true;
 
+        const topic = this.activeLesson.title || 'Lesson 1';
+
+        // Use generate-base-lesson endpoint so the content is SAVED to the DB
+        // with generationType='base'. This means on a page refresh the backend
+        // returns the cached lesson and we never call Ollama again.
         this.adaptiveService.generateBaseLesson(
             this.courseId,
             lessonId,
-            this.activeLesson.title || 'Lesson 1',
+            topic,
             sourceContent
         ).subscribe({
-            next: (generatedLesson) => {
+            next: (generatedLesson: AdaptiveLesson) => {
+                // The backend returns the full AdaptiveLesson object
+                // (same shape as getStudentLessons), so we can upsert directly.
                 this.upsertAiGeneratedLesson(generatedLesson);
                 this.syncActiveAdaptiveLesson();
                 this.generatingBaseLessonForId = null;
@@ -565,13 +877,19 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                 console.error('Error generating base lesson:', err);
                 this.generatingBaseLessonForId = null;
                 this.isGeneratingAiLesson = false;
-                
-                if (err?.status === 429) {
-                    this.aiGenerationError = 'Try again later, our servers are busy.';
-                    this.toastService.error('AI limit reached. Please try again later.');
+
+                if (err?.status === 429 || err?.status === 503) {
+                    // 🔒 Mark rate-limited — don't retry until next full page load.
+                    this.rateLimitedBaseLessonIds.add(lessonId);
+                    this.aiGenerationError = err?.error?.detail || 'AI is busy generating content. Please try again in a moment.';
+                } else if (err?.message === 'Base lesson generation already in progress for this lesson.') {
+                    // Deduplicated — ignore silently, a concurrent call is in-flight.
+                    return;
                 } else {
-                    this.toastService.warning('AI lesson generation failed. Please try again later.');
+                    // Any other error — always surface retry UI, never show vague toast.
+                    this.aiGenerationError = err?.error?.detail || err?.message || 'Content generation failed. Please retry.';
                 }
+                this.toastService.error(this.aiGenerationError!);
             }
         });
     }
@@ -580,6 +898,36 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     // from the frontend on every lesson navigation, wasting API quota and causing duplicates.
     // Adaptive lessons for Lesson 2+ are ONLY generated by the backend after quiz submission.
     // The frontend's job is only to poll for what the backend already produced.
+
+    /**
+     * Called after AI lessons load (or on lesson navigation). If the active lesson
+     * expects adaptive content but none exists yet AND no poll is currently running
+     * (e.g. after a page refresh that cleared pendingAdaptiveLessonId), immediately
+     * POST to generate-lesson (idempotent — returns existing if already done) then
+     * poll. Simply polling without triggering generation finds nothing forever.
+     */
+    private recoverOrphanedAdaptivePending() {
+        if (
+            !this.activeLesson ||
+            this.pendingAdaptiveLessonId ||
+            this.isWaitingForAdaptiveLesson ||
+            this.adaptiveLessonTimedOut ||
+            this.activeAdaptiveLesson ||
+            !this.shouldUseAdaptiveLessonContent(this.activeLesson)
+        ) {
+            return;
+        }
+        const lessonId = this.getLessonId(this.activeLesson);
+        if (!lessonId) return;
+        this.pendingAdaptiveLessonId = lessonId;
+        this.isWaitingForAdaptiveLesson = true;
+        // Trigger generation immediately (backend is idempotent), then poll.
+        this.triggerAdaptiveLessonGeneration(lessonId, () => {
+            this.adaptiveLessonPollToken += 1;
+            const token = this.adaptiveLessonPollToken;
+            window.setTimeout(() => this.ensureAdaptiveLessonReady(0, token), 3000);
+        });
+    }
 
     shouldWaitForAdaptiveLesson(lesson: CoursePlayerLesson | null): boolean {
         return shouldWaitForAdaptiveLesson(
@@ -592,12 +940,11 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
     /**
      * Poll the backend for the next lesson's AI content.
-     * Called once after quiz submission (with a 3s delay to give backend time).
-     * Retries every 5s for up to 24 attempts (~2 minutes total).
-     * Cancels automatically if the student navigates away (pollToken mismatch).
+     * Retries every 5s for up to 36 attempts (~3 min).
+     * On timeout: sets adaptiveLessonTimedOut=true and KEEPS pendingAdaptiveLessonId
+     * so Next stays locked. Student uses retryAdaptiveLesson() to re-poll.
      */
     ensureAdaptiveLessonReady(attempt: number = 0, pollToken?: number) {
-        // Guard: only poll when we're waiting for a specific pending lesson.
         if (!this.pendingAdaptiveLessonId) {
             this.isWaitingForAdaptiveLesson = false;
             return;
@@ -612,64 +959,188 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
         this.adaptiveService.getStudentLessons(this.courseId).subscribe({
             next: (lessons: AdaptiveLesson[]) => {
-                // Stale poll — a new poll cycle was started, ignore this result.
                 if (pollToken !== this.adaptiveLessonPollToken) return;
 
                 this.aiGeneratedLessons = lessons;
                 this.syncActiveAdaptiveLesson();
 
-                // Check if the specific pending lesson now has content.
                 const arrived = lessons.find(
-                    (l) => (l.lessonId === targetLessonId || l.sourceTopic === this.getNextLearningLesson(this.activeLesson)?.title)
+                    (l) =>
+                        (l.lessonId === targetLessonId || l.sourceTopic === this.getNextLearningLesson(this.activeLesson)?.title)
                         && l.generationType !== 'base'
-                        && Boolean((l.content || '').trim())
+                        && hasValidContent(l)
                 );
 
                 if (arrived) {
                     this.pendingAdaptiveLessonId = null;
                     this.isWaitingForAdaptiveLesson = false;
+                    this.adaptiveLessonTimedOut = false;
+                    this.syncActiveAdaptiveLesson();
                     this.toastService.success('Your personalized lesson is ready! Click Next to continue.');
                     return;
                 }
 
-                // Keep retrying up to 24 attempts (~2 minutes).
-                if (attempt < 24 && this.pendingAdaptiveLessonId === targetLessonId) {
+                // Ollama can take up to 6 minutes on slow hardware — poll every 5s for 72 attempts (6 min).
+                if (attempt < 72 && this.pendingAdaptiveLessonId === targetLessonId) {
                     window.setTimeout(() => this.ensureAdaptiveLessonReady(attempt + 1, pollToken), 5000);
                     return;
                 }
 
-                // Timed out — stop spinner but keep Next locked until lesson arrives.
+                // Timed out — show retry UI but KEEP Next locked until content arrives.
                 this.isWaitingForAdaptiveLesson = false;
                 if (this.pendingAdaptiveLessonId === targetLessonId) {
-                    this.toastService.warning('Personalized lesson is taking longer than expected. Please wait a moment then refresh.');
+                    this.adaptiveLessonTimedOut = true;  // keeps Next locked, shows retry UI
+                    this.toastService.warning('AI lesson is still being prepared. Use "Retry Generation" to try again.');
                 }
             },
             error: (err) => {
                 console.error('Error polling for adaptive lesson', err);
                 if (pollToken !== this.adaptiveLessonPollToken) return;
 
-                if (err?.status === 429) {
-                    this.aiGenerationError = 'Try again later, our servers are busy.';
+                if (err?.status === 429 || err?.status === 503) {
+                    this.aiGenerationError = err?.error?.detail || 'Ollama is busy. Use "Retry Generation" to try again.';
                     this.isWaitingForAdaptiveLesson = false;
-                    this.pendingAdaptiveLessonId = null;
-                    this.toastService.error('AI limit reached. Please try again later.');
+                    this.adaptiveLessonTimedOut = true;  // keep Next locked, show retry
+                    this.toastService.error(this.aiGenerationError!);
                     return;
                 }
 
-                if (attempt < 24 && this.pendingAdaptiveLessonId === targetLessonId) {
+                if (attempt < 72 && this.pendingAdaptiveLessonId === targetLessonId) {
                     window.setTimeout(() => this.ensureAdaptiveLessonReady(attempt + 1, pollToken), 5000);
                     return;
                 }
+                // Final fallback — show retry UI, keep Next locked.
                 this.isWaitingForAdaptiveLesson = false;
+                this.adaptiveLessonTimedOut = true;
             }
         });
     }
 
+    /**
+     * Re-triggers adaptive lesson generation + polling when it timed out or errored.
+     * - Lesson 1 (base): resets the guard so ensureBaseLessonContent can POST again to Ollama.
+     * - Lesson 2+ (adaptive): calls the generate-lesson endpoint again with the latest quiz score,
+     *   then polls. Simply re-polling is not enough when Ollama failed silently on the backend.
+     */
+    retryAdaptiveLesson() {
+        if (this.isWaitingForAdaptiveLesson || this.isGeneratingAiLesson) return;
+
+        this.adaptiveLessonTimedOut = false;
+        this.aiGenerationError = null;
+
+        if (this.shouldGenerateBaseLesson(this.activeLesson)) {
+            // Lesson 1 base content retry — reset guard and re-trigger generation.
+            this.generatingBaseLessonForId = null;
+            // Also reset rate-limit flag so the retry can proceed.
+            const lessonId = this.getLessonId(this.activeLesson);
+            if (lessonId) this.rateLimitedBaseLessonIds.delete(lessonId);
+            this.ensureBaseLessonContent();
+            return;
+        }
+
+        // Lesson 2+ adaptive content — re-trigger backend generation, then poll.
+        // Use pendingAdaptiveLessonId (the NEXT lesson) when already set;
+        // fall back to activeLesson only when no pending target exists.
+        const targetLessonId = this.pendingAdaptiveLessonId || this.getLessonId(this.activeLesson);
+        if (!targetLessonId) return;
+
+        if (!this.pendingAdaptiveLessonId) {
+            this.pendingAdaptiveLessonId = targetLessonId;
+        }
+        this.isWaitingForAdaptiveLesson = true;
+
+        // Re-trigger generation on the backend (in case the previous Ollama call
+        // failed silently). The backend is idempotent — if the lesson already
+        // exists and is valid it returns it immediately without re-generating.
+        this.triggerAdaptiveLessonReady(targetLessonId, () => {
+            // On success or if generation is already in-progress, start polling.
+            this.adaptiveLessonPollToken += 1;
+            const token = this.adaptiveLessonPollToken;
+            window.setTimeout(() => this.ensureAdaptiveLessonReady(0, token), 3000);
+        });
+    }
+
+    /**
+     * POSTs to the generate-lesson endpoint to ask the backend to (re)generate
+     * adaptive content for lessonId. On success or network error, calls onTriggered
+     * so polling can start regardless.
+     *
+     * NOTE: triggerAdaptiveLessonReady is the renamed entry point used by
+     * retryAdaptiveLesson to ensure the correct (next) lesson ID is used.
+     */
+    private triggerAdaptiveLessonReady(lessonId: string, onTriggered: () => void) {
+        this.triggerAdaptiveLessonGeneration(lessonId, onTriggered);
+    }
+
+    private triggerAdaptiveLessonGeneration(lessonId: string, onTriggered: () => void) {
+        const lesson = this.allLessons.find(l => this.getLessonId(l) === lessonId);
+        if (!lesson) { onTriggered(); return; }
+
+        // Fall back to the lesson title when no teacher description is set.
+        // This ensures the POST to generate-lesson always fires — never skip
+        // generation just because the lesson description field is empty.
+        const sourceContent = this.getTeacherLessonSource(lesson) || lesson.title || 'General lesson review';
+
+        const quizForLesson = this.findGeneratedQuizForLesson(this.getLessonId(this.activeLesson!));
+        const quizId = quizForLesson?.id || null;
+
+        this.adaptiveService.generateAiLesson(
+            this.courseId,
+            lessonId,
+            quizId,
+            lesson.title || 'Lesson',
+            sourceContent,
+            this.progress,
+            [],
+            this.quizScore
+        ).subscribe({
+            next: (generatedLesson: AdaptiveLesson) => {
+                // If lesson arrived synchronously (cached), upsert and sync immediately.
+                this.upsertAiGeneratedLesson(generatedLesson);
+                this.syncActiveAdaptiveLesson();
+                if (this.activeAdaptiveLesson) {
+                    this.pendingAdaptiveLessonId = null;
+                    this.isWaitingForAdaptiveLesson = false;
+                    this.adaptiveLessonTimedOut = false;
+                    this.toastService.success('Your personalized lesson is ready! Click Next to continue.');
+                    return;
+                }
+                onTriggered();
+            },
+            error: () => {
+                // Even if this call errors, start polling — Ollama may still be running.
+                onTriggered();
+            }
+        });
+    }
+
+    private cancelPendingRefreshTimers() {
+        if (this.refreshQuizTimerId !== null) {
+            clearTimeout(this.refreshQuizTimerId);
+            this.refreshQuizTimerId = null;
+        }
+        if (this.refreshLessonsTimerId !== null) {
+            clearTimeout(this.refreshLessonsTimerId);
+            this.refreshLessonsTimerId = null;
+        }
+    }
+
     scheduleAdaptiveRefresh() {
+        // Cancel any previously scheduled refresh to avoid stacking timers.
+        this.cancelPendingRefreshTimers();
+
         // Refresh quiz list so newly generated quizzes appear immediately.
-        window.setTimeout(() => this.loadStudentQuizzes(), 3000);
-        // Refresh generated lessons list (for sidebar display).
-        window.setTimeout(() => this.loadAiGeneratedLessons(), 5000);
+        this.refreshQuizTimerId = setTimeout(() => {
+            this.refreshQuizTimerId = null;
+            this.loadStudentQuizzes();
+        }, 3000);
+
+        // NOTE: We intentionally do NOT call loadAiGeneratedLessons() here.
+        // That method calls ensureBaseLessonContent() which can fire an
+        // additional Gemini API call.  The adaptive lesson list is already
+        // refreshed by ensureAdaptiveLessonReady() polling after quiz
+        // submission, so this extra refresh was purely redundant and was
+        // a major source of wasted API quota.
     }
 
     getDisplayedLessonTitle(): string {
@@ -684,28 +1155,157 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         return this.progress?.completedLessons.includes(lessonId) || false;
     }
 
+    /** Track whether a mark-complete request is currently in-flight. */
+    isMarkingComplete: boolean = false;
+    /**
+     * True once the quiz has appeared on screen for this lesson.
+     * Until this is true, "Mark Complete" stays visible so the student can
+     * re-trigger quiz generation if the first attempt fails.
+     */
+    quizEverSeen: boolean = false;
+
     markComplete() {
         if (!this.activeLesson) return;
         const lessonId = this.getLessonId(this.activeLesson);
         const tenantId = this.course?.tenantId;
-        
+
         if (!lessonId) return;
+
+        // Prevent double-click (in-flight guard only — NOT a completed guard).
+        // The backend handles idempotency: if the lesson is already completed
+        // but no valid quiz exists, it will generate one. So we allow this call
+        // even when the lesson is already marked complete.
+        if (this.isMarkingComplete) return;
+
+        this.isMarkingComplete = true;
 
         this.progressService.markLessonComplete(this.courseId, lessonId, tenantId).subscribe({
             next: (updatedProgress) => {
                 this.progress = updatedProgress;
+                this.isMarkingComplete = false;
+
+                // Lesson is now being completed fresh in this session —
+                // clear the revisit flag so the quiz takes full focus.
+                this.isRevisitingCompletedLesson = false;
 
                 if (this.activeLesson?.type !== 'quiz') {
                     this.toastService.info('Preparing your lesson quiz...');
                     this.loadingQuiz = true;
+                    this.isPollingForQuiz = true;
                     this.quizSubmitted = false;
                     this.loadStudentQuizzes(lessonId);
                 }
 
                 this.scheduleAdaptiveRefresh();
             },
-            error: (err) => console.error('Error marking completion', err)
+            error: (err) => {
+                console.error('Error marking completion', err);
+                this.isMarkingComplete = false;
+            }
         });
+    }
+
+    /**
+     * Called when a student clicks "Mark Complete" after the lesson is already complete
+     * but the quiz never appeared (e.g. it failed to generate on the first attempt).
+     *
+     * Calls mark-complete on the backend AGAIN — the backend will detect that
+     * no valid quiz exists for this lesson and trigger a fresh Ollama generation.
+     * Once the backend responds, polling starts to wait for the new quiz.
+     */
+    retriggerQuizForLesson() {
+        if (!this.activeLesson || this.isPollingForQuiz || this.activeQuiz || this.isMarkingComplete) return;
+        const lessonId = this.getLessonId(this.activeLesson);
+        const tenantId = this.course?.tenantId;
+        if (!lessonId) return;
+
+        this.aiQuizError = null;
+        this.isMarkingComplete = true;
+        this.toastService.info('Requesting quiz generation...');
+
+        // Re-call mark-complete — backend is now idempotent: it checks if a valid
+        // quiz already exists and generates one if not, even for already-completed lessons.
+        this.progressService.markLessonComplete(this.courseId, lessonId, tenantId).subscribe({
+            next: () => {
+                this.isMarkingComplete = false;
+                this.isPollingForQuiz = true;
+                this.loadingQuiz = true;
+                this.loadStudentQuizzes(lessonId, 0);
+            },
+            error: (err) => {
+                this.isMarkingComplete = false;
+                this.aiQuizError = 'Could not contact the server. Please try again.';
+                console.error('Error retriggering quiz:', err);
+            }
+        });
+    }
+
+    /**
+     * Unified handler for the "Mark Complete" button.
+     *
+     * - Lesson NOT yet complete → call markComplete() normally (first-time flow).
+     * - Lesson IS complete but quiz never appeared → call retriggerQuizForLesson()
+     *   so the student can recover from a failed generation without being stuck.
+     *
+     * The button hides entirely once quizEverSeen = true (quiz appeared on screen).
+     */
+    markCompleteOrRetrigger() {
+        if (!this.activeLesson) return;
+        const lessonId = this.getLessonId(this.activeLesson);
+
+        if (this.isLessonCompleted(lessonId)) {
+            // Lesson already marked complete — re-trigger quiz generation.
+            this.retriggerQuizForLesson();
+        } else {
+            // First time — normal mark-complete flow.
+            this.markComplete();
+        }
+    }
+
+    /**
+     * True while the "Mark Complete / Request Quiz" button should be visible.
+     *
+     * Rules:
+     *  - Always hide for quiz-type lessons (they have their own complete button).
+     *  - Show until the quiz has been seen on screen for the first time (quizEverSeen).
+     *  - Hide once the quiz appeared — Retry handles re-attempts from that point on.
+     */
+    get showMarkCompleteButton(): boolean {
+        if (!this.activeLesson || this.activeLesson.type === 'quiz') return false;
+        return !this.quizEverSeen;
+    }
+
+    /**
+     * Label for the unified Mark Complete button based on current state.
+     */
+    get markCompleteButtonLabel(): string {
+        if (!this.activeLesson) return 'Mark Complete';
+        const lessonId = this.getLessonId(this.activeLesson);
+        if (this.isMarkingComplete) return 'Saving...';
+        if (this.isLessonCompleted(lessonId)) return 'Retry Quiz Generation';
+        return 'Mark Complete';
+    }
+
+    /**
+     * True when the unified Mark Complete button should be disabled.
+     */
+    get isMarkCompleteButtonDisabled(): boolean {
+        return this.isMarkingComplete || this.isPollingForQuiz;
+    }
+
+    /**
+     * Quick local update of avgQuizScore after a fresh submission so the
+     * progress bar reflects the new score without waiting for a full reload.
+     */
+    private updateAvgQuizScoreWith(newScore: number) {
+        // Count the number of quizzes that already have a recorded score.
+        const scoredCount = this.studentQuizzes
+            .filter((q: any) => (q.lastScore ?? q.score ?? q.percentage) !== undefined).length;
+        const total = scoredCount > 0 ? scoredCount : 1;
+        // Running average: add the new score as an additional data point.
+        this.avgQuizScore = Math.round(
+            (this.avgQuizScore * total + newScore) / (total + 1)
+        );
     }
 
     saveNotes() {
@@ -788,7 +1388,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                 this.isSendingChat = false;
                 
                 if (err?.status === 429) {
-                    this.toastService.warning('AI limit reached.');
+                    this.toastService.warning(err?.error?.detail || 'Ollama is busy. Try again shortly.');
                 }
             }
         });
@@ -803,6 +1403,26 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
             const next = this.allLessons[currentIndex + 1];
             this.selectLesson(next, next.moduleIndex ?? 0);
         }
+    }
+
+    isSidebarLessonLocked(lesson: CoursePlayerLesson): boolean {
+        const targetIndex = this.allLessons.findIndex(l => this.lessonsMatch(l, lesson));
+        if (targetIndex <= 0) return false;
+
+        const prevLesson = this.allLessons[targetIndex - 1];
+        const prevLessonId = this.getLessonId(prevLesson);
+        if (!prevLessonId) return true;
+
+        if (!this.isLessonCompleted(prevLessonId)) return true;
+
+        if (prevLesson.type === 'quiz') return false;
+
+        const prevQuiz = this.findGeneratedQuizForLesson(prevLessonId);
+        if (!prevQuiz || !this.studentSubmissions.has(prevQuiz.id)) {
+            return true;
+        }
+
+        return false;
     }
 
     previousLesson() {
@@ -823,24 +1443,68 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         const isCurrentLessonCompleted = activeLessonId ? this.isLessonCompleted(activeLessonId) : false;
 
         // Core rule: lesson must be complete AND quiz must be submitted.
-        if (!isCurrentLessonCompleted || this.loadingQuiz || this.submittingQuiz) {
+        // If we are actively polling for the quiz to be generated, keep it locked.
+        if (!isCurrentLessonCompleted || this.loadingQuiz || this.submittingQuiz || this.isPollingForQuiz) {
             return true;
         }
-        if (this.activeQuiz && !this.quizSubmitted) {
+        // Every lesson requires its corresponding quiz to be submitted before moving forward.
+        // If the AI quiz failed to generate (activeQuiz is null), they still cannot proceed
+        // until they use the "Retry Quiz Generation" button and submit it.
+        if (!this.quizSubmitted) {
             return true;
         }
 
-        // Additionally: block navigation if the NEXT lesson's AI content
-        // hasn't been generated yet. This enforces the adaptive flow:
-        // quiz result → AI generates next lesson → student can proceed.
-        if (this.pendingAdaptiveLessonId) {
-            const nextLesson = this.getNextLearningLesson(this.activeLesson);
-            if (nextLesson && this.getLessonId(nextLesson) === this.pendingAdaptiveLessonId) {
-                return true; // Still generating, keep Next locked.
+        // Block if next lesson's adaptive content is still generating or waiting.
+        // isWaitingForAdaptiveLesson covers the window between quiz submit and
+        // the first poll response, before pendingAdaptiveLessonId is resolved.
+        if (this.isWaitingForAdaptiveLesson) {
+            return true;
+        }
+
+        const nextLesson = this.getNextLearningLesson(this.activeLesson);
+        if (nextLesson && this.shouldUseAdaptiveLessonContent(nextLesson)) {
+            const nextId = this.getLessonId(nextLesson);
+
+            // Check whether valid adaptive content already exists for the next lesson.
+            const nextLessonReady = !!this.aiGeneratedLessons.find(
+                (l) => (l.lessonId === nextId || l.sourceTopic === nextLesson.title)
+                    && l.generationType !== 'base' && hasValidContent(l)
+            );
+
+            if (nextLessonReady) {
+                // Content arrived — but also verify the rendered text is non-empty.
+                // This prevents the button unlocking while markdown is still being parsed.
+                if (!this.renderedAdaptiveLessonContent?.trim()) return true;
+                return false;  // Content ready and rendered — allow navigation.
             }
+
+            // Still actively polling.
+            if (this.pendingAdaptiveLessonId === nextId) return true;
+
+            // Polling timed out — keep locked until student retries and content arrives.
+            if (this.adaptiveLessonTimedOut) return true;
+
+            // Quiz was just submitted and generation is queued but pendingAdaptiveLessonId
+            // may not be set yet — keep locked if we know content doesn't exist.
+            if (this.quizSubmitted && !nextLessonReady) return true;
         }
 
         return false;
+    }
+
+    /**
+     * Determines whether the quiz score chip should be shown at the bottom.
+     *
+     * Rule: once the quiz is submitted, keep the score chip visible for the
+     * rest of this lesson visit so students always see their result.
+     * The quiz FORM itself disappears via `!quizSubmitted` in the template —
+     * the chip is a separate, persistent summary that does NOT affect the lesson.
+     */
+    get shouldShowQuizScoreChip(): boolean {
+        // Never show if no quiz was submitted this session.
+        if (!this.quizSubmitted || !this.activeQuiz) return false;
+        // Always show once submitted — student navigating away resets quizSubmitted.
+        return true;
     }
 
     hasPreviousLesson(): boolean {

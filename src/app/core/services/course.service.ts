@@ -172,6 +172,13 @@ export class CourseService {
          return this.http.post<{clientSecret: string}>(ENDPOINTS.PAYMENTS.CREATE_PAYMENT_INTENT, { courseId });
     }
 
+    // Confirm a completed Stripe checkout session and trigger enrollment
+    confirmCheckoutSession(sessionId: string): Observable<{ status: string; courseId: string; enrolled: boolean }> {
+        return this.http.get<{ status: string; courseId: string; enrolled: boolean }>(
+            ENDPOINTS.PAYMENTS.CONFIRM_SESSION(sessionId)
+        );
+    }
+
     /**
      * Fetch recommended courses for a student
      */

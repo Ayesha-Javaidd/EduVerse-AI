@@ -172,14 +172,14 @@ export class StudentDashboardComponent implements OnInit {
           const activeCourses = enrolled.map((c: any) => {
             const p = progressMap.get(c._id);
             return {
-               id: c._id,
-               title: c.title,
-               lesson: p ? `Completed ${p.completedLessons.length} lessons` : 'Start learning',
-               progress: p ? p.progressPercentage : 0,
-               lastAccessedAt: p ? new Date(p.lastAccessedAt).getTime() : 0
+              id: c._id,
+              title: c.title,
+              lesson: p ? `Completed ${p.completedLessons.length} lessons` : 'Start learning',
+              progress: p ? p.progressPercentage : 0,
+              lastAccessedAt: p ? new Date(p.lastAccessedAt).getTime() : 0
             };
           }).filter((c: any) => c.progress < 100);
-          
+
           // Sort by last accessed descending
           activeCourses.sort((a, b) => b.lastAccessedAt - a.lastAccessedAt);
           this.continueCourses = activeCourses.slice(0, 2);
@@ -187,7 +187,7 @@ export class StudentDashboardComponent implements OnInit {
           // C. Recommendations (Marketplace missing from Enrolled)
           const enrolledIds = new Set(enrolled.map((c: any) => c._id));
           const recommended = allCourses.filter((c: any) => !enrolledIds.has(c._id));
-          
+
           this.recommendations = recommended.slice(0, 3).map((c: any) => ({
             id: c._id,
             title: c.title,
