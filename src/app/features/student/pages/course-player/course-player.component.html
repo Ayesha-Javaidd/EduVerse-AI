@@ -549,13 +549,12 @@
 
       <div class="border-t border-[#e8eef2] bg-white px-4 py-4">
         <div class="relative">
-          <input [(ngModel)]="chatInput" (keyup.enter)="sendChatMessage()" type="text" [disabled]="isSendingChat"
+          <input [(ngModel)]="chatInput" (keyup.enter)="sendChatMessage()" type="text"
             placeholder="Ask AI about this lesson..."
             class="w-full rounded-2xl border border-[#dbe4ea] bg-[#f8f9fc] py-3 pl-4 pr-11 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#b9e8df] focus:bg-white" />
-          <button (click)="sendChatMessage()" [disabled]="isSendingChat || !chatInput.trim()"
+          <button (click)="sendChatMessage()" [disabled]="!chatInput.trim()"
             class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-[#23A997] disabled:opacity-30">
-            <i *ngIf="!isSendingChat" class="fa-solid fa-paper-plane"></i>
-            <i *ngIf="isSendingChat" class="fa-solid fa-spinner animate-spin"></i>
+            <i class="fa-solid fa-paper-plane"></i>
           </button>
         </div>
       </div>
@@ -611,13 +610,12 @@
 
       <div class="border-t border-[#e8eef2] bg-white px-4 py-4">
         <div class="relative">
-          <input [(ngModel)]="chatInput" (keyup.enter)="sendChatMessage()" type="text" [disabled]="isSendingChat"
+          <input [(ngModel)]="chatInput" (keyup.enter)="sendChatMessage()" type="text"
             placeholder="Ask AI about this lesson..."
             class="w-full rounded-2xl border border-[#dbe4ea] bg-[#f8f9fc] py-3 pl-4 pr-11 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#b9e8df] focus:bg-white" />
-          <button (click)="sendChatMessage()" [disabled]="isSendingChat || !chatInput.trim()"
+          <button (click)="sendChatMessage()" [disabled]="!chatInput.trim()"
             class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-[#23A997] disabled:opacity-30">
-            <i *ngIf="!isSendingChat" class="fa-solid fa-paper-plane"></i>
-            <i *ngIf="isSendingChat" class="fa-solid fa-spinner animate-spin"></i>
+            <i class="fa-solid fa-paper-plane"></i>
           </button>
         </div>
       </div>

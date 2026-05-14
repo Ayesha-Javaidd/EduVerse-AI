@@ -108,6 +108,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         { sender: 'AI', text: 'Hello! I am your AI study assistant. How can I help you with this course today?', time: new Date() }
     ];
     isSendingChat: boolean = false;
+    private chatSubscription: any = null;
 
     // Adaptive Flow
     isGeneratingAiLesson: boolean = false;
@@ -560,6 +561,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
             this.persistPlayerPreferences();
         }
 
+        this.loadChatHistory();
+
         // Reset error state
         this.aiGenerationError = null;
         this.aiQuizError = null;
@@ -569,6 +572,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         if (this.aiLessonsLoaded) {
             this.recoverOrphanedAdaptivePending();
         }
+
+        // Reset error state
     }
 
     loadQuiz(quizId: string) {
@@ -1350,10 +1355,19 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     }
 
     sendChatMessage() {
-        if (!this.chatInput.trim() || this.isSendingChat) return;
+        if (!this.chatInput.trim()) return;
+
+        // 🛑 Auto-stop previous request if it's still running
+        if (this.isSendingChat && this.chatSubscription) {
+            this.chatSubscription.unsubscribe();
+            this.isSendingChat = false;
+            // Optionally add a system message that the previous was cancelled
+            this.chatMessages.push({ sender: 'AI', text: '_Previous request cancelled._', time: new Date() });
+        }
 
         const userMsg: ChatMessage = { sender: 'Student', text: this.chatInput, time: new Date() };
         this.chatMessages.push(userMsg);
+        this.saveChatHistory(); // Persist history immediately
 
         const message = this.chatInput;
         this.chatInput = '';
@@ -1361,7 +1375,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
         const lessonId = this.activeLesson?.id || this.activeLesson?._id;
 
-        this.aiTutorService.sendMessage(message, this.courseId, lessonId).subscribe({
+        this.chatSubscription = this.aiTutorService.sendMessage(message, this.courseId, lessonId).subscribe({
             next: (response: AiTutorMessageResponse) => {
                 this.chatMessages.push({
                     sender: 'AI',
@@ -1369,6 +1383,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                     time: new Date()
                 });
                 this.isSendingChat = false;
+                this.saveChatHistory(); // Persist the AI's answer
             },
             error: (err: any) => {
                 console.error('AI Tutor error:', err);
@@ -1386,12 +1401,48 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
                     time: new Date()
                 });
                 this.isSendingChat = false;
+                this.saveChatHistory();
                 
                 if (err?.status === 429) {
                     this.toastService.warning(err?.error?.detail || 'Ollama is busy. Try again shortly.');
                 }
             }
         });
+    }
+
+    private getChatHistoryStorageKey(): string {
+        const lessonId = this.getActiveLessonId() || 'general';
+        return `eduverse_chat_${this.courseId}_${lessonId}`;
+    }
+
+    private saveChatHistory() {
+        try {
+            const key = this.getChatHistoryStorageKey();
+            localStorage.setItem(key, JSON.stringify(this.chatMessages));
+        } catch (e) {
+            console.error('Failed to save chat history', e);
+        }
+    }
+
+    private loadChatHistory() {
+        try {
+            const key = this.getChatHistoryStorageKey();
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                this.chatMessages = JSON.parse(saved);
+                // Convert back string dates to Date objects if needed (though not strictly required for template)
+                this.chatMessages.forEach(m => m.time = new Date(m.time));
+            } else {
+                // Default welcome message if no history
+                this.chatMessages = [
+                    { sender: 'AI', text: 'Hello! I am your AI study assistant. How can I help you with this course today?', time: new Date() }
+                ];
+            }
+        } catch (e) {
+            this.chatMessages = [
+                { sender: 'AI', text: 'Hello! I am your AI study assistant. How can I help you with this course today?', time: new Date() }
+            ];
+        }
     }
 
     nextLesson() {
