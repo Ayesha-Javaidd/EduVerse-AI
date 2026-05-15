@@ -1286,16 +1286,39 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     get markCompleteButtonLabel(): string {
         if (!this.activeLesson) return 'Mark Complete';
         const lessonId = this.getLessonId(this.activeLesson);
+
         if (this.isMarkingComplete) return 'Saving...';
+        if (this.isPollingForQuiz) return 'Preparing Quiz...';
+
+        // Label for content generation state
+        if (this.isGeneratingAiLesson || this.isWaitingForAdaptiveLesson) return 'Generating...';
+
         if (this.isLessonCompleted(lessonId)) return 'Retry Quiz Generation';
         return 'Mark Complete';
     }
 
     /**
      * True when the unified Mark Complete button should be disabled.
+     * Prevents completion before the lesson content or quiz is ready.
      */
     get isMarkCompleteButtonDisabled(): boolean {
-        return this.isMarkingComplete || this.isPollingForQuiz;
+        // Core action guards
+        if (this.isMarkingComplete || this.isPollingForQuiz) return true;
+
+        // Content generation in progress (Lesson 1 base or Lesson 2+ adaptive)
+        if (this.isGeneratingAiLesson || this.isWaitingForAdaptiveLesson) return true;
+
+        // Content missing check — if the lesson requires AI content, it's disabled until that content arrives.
+        if (this.activeLesson) {
+            const needsBaseGen = this.shouldGenerateBaseLesson(this.activeLesson);
+            const needsAdaptiveGen = this.shouldUseAdaptiveLessonContent(this.activeLesson);
+
+            if ((needsBaseGen || needsAdaptiveGen) && !this.activeAdaptiveLesson) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
