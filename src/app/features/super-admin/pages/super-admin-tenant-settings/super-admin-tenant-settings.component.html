@@ -1,30 +1,44 @@
 <div class="flex flex-col h-full animate-fade-in">
-    <app-header pageTitle="Tenant Settings"></app-header>
+  <app-header pageTitle="Tenant Settings"></app-header>
 
-    <main class="max-w-6xl mx-auto p-6 space-y-6">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- left: tenant info takes 2/3 -->
-            <div class="lg:col-span-2 space-y-6">
+  <main class="max-w-6xl mx-auto p-6 space-y-6">
+    <app-loading-spinner
+      *ngIf="loading"
+      [cards]="2"
+      message="Loading tenant..."
+      subMessage="Fetching tenant details and subscription plans"
+    ></app-loading-spinner>
 
-                <!-- Tenant Info -->
-                <app-tenant-info-form [tenant]="tenant" (save)="onSaveTenant($event)"></app-tenant-info-form>
+    <div *ngIf="!loading" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- left: tenant info takes 2/3 -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Tenant Info -->
+        <app-tenant-info-form
+          [tenant]="tenant"
+          (save)="onSaveTenant($event)"
+        ></app-tenant-info-form>
 
-                <app-account-actions 
-                    [tenant]="tenant"
-                    [isActive]="tenant?.status === 'active'" 
-                    (deactivate)="onDeactivate()" 
-                    (activate)="onActivate()" 
-                    (grantGracePeriod)="onGrantGracePeriod()"
-                    (delete)="onDelete()">
-                </app-account-actions>
-            </div>
+        <app-account-actions
+          [tenant]="tenant"
+          [isActive]="tenant?.status === 'active'"
+          (deactivate)="onDeactivate()"
+          (activate)="onActivate()"
+          (grantGracePeriod)="onGrantGracePeriod()"
+          (delete)="onDelete()"
+        >
+        </app-account-actions>
+      </div>
 
-            <!-- right: subscription details -->
-            <div>
-                <app-subscription-details [tenant]="tenant" [availablePlans]="availablePlans"
-                    (assignPlan)="onAssignPlan($event)" (renew)="onRenew()">
-                </app-subscription-details>
-            </div>
-        </div>
-    </main>
+      <!-- right: subscription details -->
+      <div>
+        <app-subscription-details
+          [tenant]="tenant"
+          [availablePlans]="availablePlans"
+          (assignPlan)="onAssignPlan($event)"
+          (renew)="onRenew()"
+        >
+        </app-subscription-details>
+      </div>
+    </div>
+  </main>
 </div>
