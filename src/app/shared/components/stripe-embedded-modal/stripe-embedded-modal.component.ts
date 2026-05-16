@@ -9,7 +9,7 @@ interface EmbeddedCheckoutInstance {
 }
 
 interface StripeWithEmbeddedCheckout {
-  createEmbeddedCheckoutPage(options: { clientSecret: string }): Promise<EmbeddedCheckoutInstance>;
+  createEmbeddedCheckoutPage(options: { clientSecret: string, onComplete?: () => void }): Promise<EmbeddedCheckoutInstance>;
 }
 
 @Component({
@@ -24,6 +24,7 @@ export class StripeEmbeddedModalComponent implements OnInit, OnDestroy {
   @Input() title: string = 'Secure Checkout';
   
   @Output() cancel = new EventEmitter<void>();
+  @Output() complete = new EventEmitter<void>();
 
   @ViewChild('checkoutContainer', { static: true }) checkoutContainer!: ElementRef;
 
@@ -52,6 +53,9 @@ export class StripeEmbeddedModalComponent implements OnInit, OnDestroy {
 
             this.checkoutInstance = await (stripe as StripeWithEmbeddedCheckout).createEmbeddedCheckoutPage({
               clientSecret: this.clientSecret,
+              onComplete: () => {
+                this.complete.emit();
+              }
             });
 
             // Mount into the UI

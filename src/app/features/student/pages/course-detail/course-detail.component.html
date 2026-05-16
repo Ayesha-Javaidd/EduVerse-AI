@@ -419,10 +419,30 @@
     </div>
   </div>
 
-  <app-stripe-embedded-modal
-    *ngIf="showPaymentModal && clientSecret"
-    [title]="course?.title + ' Checkout'"
+  <app-stripe-embedded-modal 
+    *ngIf="showPaymentModal && clientSecret" 
+    title="Course Enrollment" 
     [clientSecret]="clientSecret"
-    (cancel)="showPaymentModal = false">
+    (cancel)="closePaymentModal()"
+    (complete)="onPaymentComplete()">
   </app-stripe-embedded-modal>
+
+  <!-- Global Verification Overlay -->
+  <div *ngIf="enrolling && _paymentHandled" class="fixed inset-0 z-[120] flex items-center justify-center bg-white/90 backdrop-blur-md animate-fade-in">
+    <div class="flex flex-col items-center text-center px-6">
+      <div class="relative h-20 w-20">
+        <div class="absolute inset-0 animate-ping rounded-full bg-[#23A997]/20"></div>
+        <div class="relative flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-xl">
+          <i class="fa-solid fa-shield-halved text-3xl text-[#23A997]"></i>
+        </div>
+      </div>
+      <h3 class="mt-8 text-2xl font-bold text-[#181F39]">Verifying Payment</h3>
+      <p class="mt-2 max-w-xs text-slate-500">Checking with Stripe and securing your enrollment. Please don't close this window.</p>
+      <div class="mt-8 flex gap-1">
+        <div class="h-2 w-2 animate-bounce rounded-full bg-[#23A997]"></div>
+        <div class="h-2 w-2 animate-bounce rounded-full bg-[#23A997] [animation-delay:-0.15s]"></div>
+        <div class="h-2 w-2 animate-bounce rounded-full bg-[#23A997] [animation-delay:-0.3s]"></div>
+      </div>
+    </div>
+  </div>
 </div>

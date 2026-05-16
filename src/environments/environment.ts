@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://eduverse-ai-main-backend.onrender.com',
+  apiBaseUrl: 'http://localhost:8000', // Changed from render.com to localhost for local testing
   appName: 'EduVerse',
   supportEmail: 'support@eduverse.com',
   maxSubscriptionPlans: 3,

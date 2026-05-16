@@ -41,7 +41,7 @@ export class CourseDetailComponent implements OnInit {
   ) { }
 
   /** Prevents double-load when Stripe redirects back with ?checkout_success=1 */
-  private _paymentHandled: boolean = false;
+  _paymentHandled: boolean = false;
   /** Show the success modal after Stripe payment enrollment is confirmed */
   private _showSuccessAfterPayment: boolean = false;
 
@@ -279,9 +279,20 @@ export class CourseDetailComponent implements OnInit {
     }
   }
 
-  onPaymentSuccess() {
+  closePaymentModal() {
     this.showPaymentModal = false;
     this.clientSecret = '';
+  }
+
+  onPaymentComplete() {
+    if (this.clientSecret) {
+      const sessionId = this.clientSecret.split('_secret_')[0];
+      this.closePaymentModal();
+      console.log('[CourseDetail] Payment completed. Verifying session instantly:', sessionId);
+      this.confirmPaymentSession(sessionId);
+    } else {
+      this.closePaymentModal();
+    }
   }
 
   processEnrollment() {

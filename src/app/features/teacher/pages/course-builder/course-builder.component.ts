@@ -497,6 +497,17 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
   // PRICING
   // ========================
 
+  getCurrencySymbol(): string {
+    if (!this.course || !this.course.currency) return '$';
+    switch (this.course.currency.toUpperCase()) {
+      case 'EUR': return '€';
+      case 'GBP': return '£';
+      case 'PKR': return 'Rs';
+      case 'USD':
+      default: return '$';
+    }
+  }
+
   onToggleFree(isFree: boolean): void {
     if (!this.course) return;
     this.course.isFree = isFree;

@@ -33,23 +33,9 @@ export class AdminBillingComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     this.applyInitialSuccessMessage();
     if (this.sessionId) {
-      console.log('[AdminBilling] Verifying session:', this.sessionId);
-      this.adminService.verifySubscriptionCheckout(this.sessionId).subscribe({
-        next: (res) => {
-          console.log('[AdminBilling] Verify response:', res);
-          if (res.success) {
-            this.showSuccess(res.message || 'Subscription upgraded successfully!');
-          } else {
-            this.showError(res.message || 'Failed to verify subscription.');
-          }
-          this.fetchBillingData();
-        },
-        error: (err) => {
-          console.error('[AdminBilling] Verify error:', err);
-          this.showError('Failed to verify checkout session. Please refresh.');
-          this.fetchBillingData();
-        }
-      });
+      // Session ID is already available on init (component is inside *ngIf='billing')
+      console.log('[AdminBilling] Verifying session on init:', this.sessionId);
+      this.verifySession(this.sessionId);
     } else {
       this.fetchBillingData();
     }
@@ -59,24 +45,30 @@ export class AdminBillingComponent implements OnInit, OnChanges {
     if (changes['initialSuccessMessage']) {
       this.applyInitialSuccessMessage();
     }
-    if (changes['sessionId'] && !changes['sessionId'].firstChange && this.sessionId) {
-      this.loading = true;
-      this.adminService.verifySubscriptionCheckout(this.sessionId).subscribe({
-         next: (res) => {
-           if (res.success) {
-             this.showSuccess(res.message || 'Subscription upgraded successfully!');
-           } else {
-             this.showError(res.message || 'Failed to verify subscription.');
-           }
-           this.fetchBillingData();
-         },
-         error: (err) => {
-           console.error('[AdminBilling] Verify error:', err);
-           this.showError('Failed to verify checkout session. Please refresh.');
-           this.fetchBillingData();
-         }
-      });
+    // Handles the rare case where sessionId arrives after init
+    if (changes['sessionId'] && this.sessionId && !changes['sessionId'].firstChange) {
+      this.verifySession(this.sessionId);
     }
+  }
+
+  private verifySession(sessionId: string): void {
+    this.loading = true;
+    this.adminService.verifySubscriptionCheckout(sessionId).subscribe({
+      next: (res) => {
+        console.log('[AdminBilling] Verify response:', res);
+        if (res.success) {
+          this.showSuccess(res.message || 'Subscription upgraded successfully!');
+        } else {
+          this.showError(res.message || 'Failed to verify subscription.');
+        }
+        this.fetchBillingData();
+      },
+      error: (err) => {
+        console.error('[AdminBilling] Verify error:', err);
+        this.showError('Failed to verify checkout session. Please refresh.');
+        this.fetchBillingData();
+      }
+    });
   }
 
   fetchBillingData(): void {
@@ -185,6 +177,18 @@ export class AdminBillingComponent implements OnInit, OnChanges {
     this.showPaymentModal = false;
     this.selectedPlan = null;
     this.clientSecret = '';
+  }
+
+  onPaymentComplete(): void {
+    if (this.clientSecret) {
+      // clientSecret format is usually: {SESSION_ID}_secret_{SECRET}
+      const sessionId = this.clientSecret.split('_secret_')[0];
+      this.closeModal();
+      console.log('[AdminBilling] Payment completed. Verifying session instantly:', sessionId);
+      this.verifySession(sessionId);
+    } else {
+      this.closeModal();
+    }
   }
 
   private applyInitialSuccessMessage(): void {
