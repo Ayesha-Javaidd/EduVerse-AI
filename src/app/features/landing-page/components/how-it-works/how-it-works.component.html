@@ -1,24 +1,47 @@
-<section id="workflow" class="py-24">
+<section
+  id="workflow"
+  class="py-24 bg-gradient-to-br from-[#050816] via-[#071A2E] to-[#040A14] text-white"
+>
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <p class="text-center text-sm font-semibold uppercase tracking-[0.22em] text-[#23A997]">Workflow</p>
-    <app-section-title title="From setup to active learning in four practical steps" color="dark"></app-section-title>
-    <p class="mx-auto mb-12 max-w-3xl text-center text-lg text-slate-600">
-      Get your institution up and running quickly with our streamlined onboarding and intuitive course management.
+    <p
+      class="text-center text-sm font-semibold uppercase tracking-[0.22em] text-cyan-400"
+    >
+      Workflow
+    </p>
+
+    <app-section-title
+      title="From setup to active learning in four practical steps"
+      color="light"
+    >
+    </app-section-title>
+
+    <p class="mx-auto mb-12 max-w-3xl text-center text-lg text-slate-300">
+      Get your institution up and running quickly with our streamlined
+      onboarding and intuitive course management.
     </p>
 
     <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
       <div *ngFor="let step of steps" class="fade-in">
         <app-card type="step" [hover]="false" [equalHeight]="true">
-          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#ecf9f6] text-sm font-bold text-[#23A997]">
+          <!-- STEP NUMBER -->
+          <div
+            class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-200 text-sm font-bold text-cyan-900 border border-white/10"
+          >
             {{ step.number }}
           </div>
-          <div class="mt-5 text-3xl">
+
+          <!-- ICON -->
+          <div class="mt-5 text-3xl text-white">
             {{ step.icon }}
           </div>
-          <h3 class="mt-5 text-xl font-semibold text-[#181F39]">
+
+          <!-- TITLE -->
+          <h3 class="mt-5 text-xl font-semibold text-blue-950">
             {{ step.title }}
           </h3>
-          <p class="mt-3 text-sm leading-7 text-slate-500">
+
+          <!-- DESCRIPTION -->
+          <p class="mt-3 text-sm leading-7 text-slate-400">
             {{ step.description }}
           </p>
         </app-card>

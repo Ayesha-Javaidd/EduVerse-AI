@@ -2,12 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener } from '@angular/core';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { Router } from '@angular/router';
-
 @Component({
   selector: 'app-landingpage-header',
+  standalone: true,
   imports: [CommonModule, ButtonComponent],
   templateUrl: './landingpage-header.component.html',
-  styleUrl: './landingpage-header.component.css',
+  styleUrls: ['./landingpage-header.component.css'],
 })
 export class LandingpageHeaderComponent {
   headerOpacity = 0.85;
@@ -55,7 +55,7 @@ export class LandingpageHeaderComponent {
   navigateToLogin() {
     this.router.navigate(['/login']);
   }
-  
+
   navigateToSignup() {
     this.router.navigate(['/signup/student']);
   }
