@@ -36,7 +36,7 @@
         <app-system-settings></app-system-settings>
       </div>
       <div *ngIf="activeTab === 'billing'" class="space-y-6">
-        <app-admin-billing [initialSuccessMessage]="billingFlashMessage"></app-admin-billing>
+        <app-admin-billing [initialSuccessMessage]="billingFlashMessage" [sessionId]="pendingSessionId"></app-admin-billing>
       </div>
     </div>
   </main>
