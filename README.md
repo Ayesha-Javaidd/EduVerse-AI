@@ -53,7 +53,7 @@ npm run dev
 App URL:
 
 ```text
-http://localhost:4200
+[http://localhost:4200](https://eduverse-ai-app.vercel.app/)
 ```
 
 ## Build
