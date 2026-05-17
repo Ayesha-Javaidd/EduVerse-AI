@@ -1,5 +1,5 @@
 <footer
-  class="bg-gradient-to-br from-[#050816] via-[#071A2E] to-[#040A14] border-t border-white/10 py-16 text-white"
+  class="bg-gradient-to-br from-[#f8fafc] via-white to-[#eef4f7] border-t border-[#dbe4ea] py-16 text-[#181F39]"
 >
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div class="grid gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.9fr)]">
@@ -7,17 +7,17 @@
       <div>
         <div class="flex items-center gap-3">
           <div
-            class="flex h-11 w-11 items-center justify-center rounded-[12px] bg-cyan-500/20 text-cyan-300 shadow-sm border border-white/10"
+            class="flex h-11 w-11 items-center justify-center rounded-[12px] bg-[#ecf9f6] text-[#23A997] shadow-sm border border-[#bce8e1]"
           >
             <i class="fa-solid fa-book-open text-[16px]"></i>
           </div>
 
-          <span class="text-[26px] font-bold tracking-tight text-white">
-            Edu<span class="text-cyan-400">Verse</span>
+          <span class="text-[26px] font-bold tracking-tight text-[#181F39]">
+            Edu<span class="text-[#23A997]">Verse</span>
           </span>
         </div>
 
-        <p class="mt-5 max-w-md text-sm leading-7 text-slate-400">
+        <p class="mt-5 max-w-md text-sm leading-7 text-slate-600">
           A multi-tenant learning platform with aligned admin, teacher, student,
           and super-admin experiences built into one product system.
         </p>
@@ -27,7 +27,7 @@
       <div class="grid gap-8 sm:grid-cols-3">
         <div *ngFor="let section of footerSections" class="footer-section">
           <h4
-            class="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-cyan-400"
+            class="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-[#23A997]"
           >
             {{ section.title }}
           </h4>
@@ -36,7 +36,7 @@
             <a
               *ngFor="let link of section.links"
               (click)="onLinkClick(link.action)"
-              class="block cursor-pointer text-sm text-slate-400 transition-colors duration-300 hover:text-cyan-300"
+              class="block cursor-pointer text-sm text-slate-600 transition-colors duration-300 hover:text-[#23A997]"
             >
               {{ link.label }}
             </a>
@@ -46,7 +46,7 @@
     </div>
 
     <!-- BOTTOM -->
-    <div class="mt-12 border-t border-white/10 pt-6 text-sm text-slate-500">
+    <div class="mt-12 border-t border-[#e2e8f0] pt-6 text-sm text-slate-500">
       <p>&copy; {{ currentYear }} EduVerse. All rights reserved.</p>
     </div>
   </div>

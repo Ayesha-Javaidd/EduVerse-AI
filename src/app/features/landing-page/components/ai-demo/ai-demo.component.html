@@ -1,6 +1,6 @@
 <section
   id="ai"
-  class="py-24 bg-gradient-to-br from-[#050816] via-[#071A2E] to-[#040A14] text-white"
+  class="py-24 bg-gradient-to-br from-[#f8fafc] via-white to-[#eef4f7] text-[#181F39]"
 >
   <div
     class="mx-auto grid max-w-7xl gap-12 px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,1.1fr)] lg:px-8"
@@ -8,16 +8,16 @@
     <!-- LEFT -->
     <div class="fade-in">
       <p
-        class="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-400"
+        class="text-sm font-semibold uppercase tracking-[0.22em] text-[#23A997]"
       >
         AI assistant
       </p>
 
-      <h2 class="mt-4 text-4xl font-bold tracking-tight text-white">
+      <h2 class="mt-4 text-4xl font-bold tracking-tight text-[#181F39]">
         Personalized Learning with LangChain and LLMs.
       </h2>
 
-      <p class="mt-6 text-lg leading-8 text-slate-300">
+      <p class="mt-6 text-lg leading-8 text-slate-600">
         Elevate the learning experience with context-aware AI tools. Our AI acts
         as a personalized tutor, leveraging the power of LangChain and large
         language models to provide adaptive guidance and content directly inside
@@ -27,10 +27,10 @@
       <ul class="mt-8 space-y-4">
         <li
           *ngFor="let feature of aiFeatures"
-          class="flex items-start gap-3 text-base text-slate-300"
+          class="flex items-start gap-3 text-base text-slate-600"
         >
           <span
-            class="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-cyan-300 text-xs font-bold border border-white/10"
+            class="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#ecf9f6] text-[#23A997] text-xs font-bold border border-[#bce8e1]"
           >
             ✓
           </span>
@@ -43,22 +43,22 @@
     <!-- RIGHT -->
     <div class="fade-in">
       <div
-        class="rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-xl backdrop-blur-xl"
+        class="rounded-[28px] border border-[#dbe4ea] bg-white p-5 shadow-xl"
       >
         <!-- HEADER -->
         <div
-          class="flex items-center justify-between border-b border-white/10 pb-4"
+          class="flex items-center justify-between border-b border-[#edf2f7] pb-4"
         >
           <div class="flex items-center gap-3">
             <div
-              class="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-400/20 text-cyan-300"
+              class="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#ecf9f6] text-[#23A997]"
             >
               <i class="fa-solid fa-sparkles"></i>
             </div>
 
             <div>
-              <p class="font-semibold text-white">AI Learning Assistant</p>
-              <p class="text-sm text-slate-400">
+              <p class="font-semibold text-[#181F39]">AI Learning Assistant</p>
+              <p class="text-sm text-slate-500">
                 Context-aware support inside the learning workflow.
               </p>
             </div>
@@ -67,15 +67,15 @@
 
         <!-- CHAT AREA -->
         <div
-          class="mt-5 space-y-4 rounded-[22px] bg-white/5 p-5 max-h-[350px] overflow-y-auto border border-white/10"
+          class="mt-5 space-y-4 rounded-[22px] bg-[#f8fafc] p-5 max-h-[350px] overflow-y-auto border border-[#e2e8f0]"
         >
           <div
             *ngFor="let message of messages"
             class="max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-7 shadow-sm"
             [ngClass]="{
-              'ml-auto bg-cyan-500/10 border border-cyan-400/20 text-cyan-100':
+              'ml-auto bg-[#ecf9f6] border border-[#bce8e1] text-[#1b4d46]':
                 message.type === 'user',
-              'bg-white/5 border border-white/10 text-slate-200':
+              'bg-white border border-[#e2e8f0] text-slate-600':
                 message.type === 'ai',
             }"
           >
