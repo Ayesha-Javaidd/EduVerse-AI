@@ -1,100 +1,90 @@
-# EduVerse Frontend
+# EduVerse AI: The Future of Adaptive Learning
 
-Angular 19 frontend for the EduVerse multi-tenant e-learning platform.
+**An AI-Powered Multi-Tenant Learning Management System (LMS)**
 
-## Stack
+EduVerse AI is an innovative AI powered multi tenant educational platform that uses Large Language Models and Retrieval Augmented Generation to create personalized learning experiences for students. The system dynamically adjusts educational content, quiz difficulty, and learning recommendations based on student performance and interaction.
 
-Angular 19
+---
 
-Tailwind CSS
+## Key Features
 
-RxJS
+- **Adaptive AI Lessons:** Dynamically generates lessons based on student learning pace (Slow, Average, Fast).
+- **Dynamic Quiz Generation:** Automatically creates MCQs from course content using Llama 3.2, Phi 3.5 and Qwen 2.5.
+- **AI-Tutor Chat:** A 24/7 RAG-powered (Retrieval-Augmented Generation) assistant for student queries.
+- **Gamification:** Global leaderboard and XP points to boost engagement.
+- **Premium Subscriptions:** Fully integrated with Stripe for secure multi-tenant billing.
+- **Multi-Tenant Architecture:** Scalable support for multiple organizations/schools on one platform.
 
-Chart.js / ng2-charts
+---
 
-Stripe Embedded Checkout
+## Tech Stack
 
-`ngx-markdown`
+| Layer        | Technology                                  |
+| :----------- | :------------------------------------------ |
+| **Frontend** | Angular 19, RxJS, Tailwind CSS              |
+| **Backend**  | FastAPI (Python), Uvicorn, Pydantic         |
+| **Database** | MongoDB Atlas (NoSQL), ChromaDB (Vector DB) |
+| **AI/LLM**   | Ollama (Local Llama 3.2 / Phi 3.5/Qwen 2.5) |
+| **Payments** | Stripe API                                  |
 
-## Core Product Areas
-
-- Auth: login, signup, role-based entry flows
-- Admin: dashboard, teachers, students, courses, billing, settings
-- Super Admin: tenants, subscriptions, platform settings
-- Teacher: dashboard, course management, course builder, student tracking
-- Student: dashboard, my courses, explore, course details, course player, leaderboard, settings
-- Public: landing page, pricing, documentation/help/legal pages
-
-## Configuration
-
-Frontend runtime-style build configuration is centralized here:
-
-- [src/environments/environment.ts](./src/environments/environment.ts)
-- [src/environments/environment.development.ts](./src/environments/environment.development.ts)
-- [src/app/core/constants/api.constants.ts](./src/app/core/constants/api.constants.ts)
-- [src/app/core/constants/app.constants.ts](./src/app/core/constants/app.constants.ts)
-
-If the backend URL, app branding, or shared limits change, update the environment/constants files instead of editing individual services.
-
-## Local Development
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Run the dev server:
-
-```bash
-npm run dev
-```
-
-App URL:
-
-```text
-http://localhost:4200
-```
-
-## Build
-
-```bash
-npm run build
-```
-
-Production output is generated in:
-
-```text
-dist/setting-page
-```
-
-## Test
-
-```bash
-npm test
-```
+---
 
 ## Project Structure
 
 ```text
-src/
-  app/
-    core/         shared app constants, interceptors, global services
-    features/     role-based modules and public pages
-    layouts/      admin / teacher / student / auth / super-admin shells
-    shared/       reusable UI components, shared models, shared services
-  environments/   environment-specific build config
+FYP/
+├── EduVerse-AI/                # Frontend (Angular 19)
+└── EduVerse-AI-main-backend/   # Backend (FastAPI)
 ```
 
-## UI Guidelines
+---
 
-- Prefer Tailwind utilities over component-specific CSS whenever practical.
-- Keep shared visual decisions in reusable components and shared constants.
-- Avoid hardcoding API URLs, storage keys, plan caps, or branding strings inside feature components.
-- Reuse existing shared components before introducing new one-off markup patterns.
+## Installation & Setup
 
-## Notes
+### 1. Prerequisites
 
-- `intl-tel-input` styling still uses a small amount of custom CSS because it is a third-party widget.
-- Some complex screens like the course player still keep a limited amount of custom CSS for behavior-heavy layout cases.
-- Responsive behavior has been improved in the shared layouts and key pages, but final device QA should still be done in a real browser.
+- Python 3.11+
+- Node.js v18+
+- Ollama (running locally with `llama3.2`,`phi3.5` and `qwen2.5` models pulled)
+
+### 2. Backend Setup
+
+```bash
+cd EduVerse-AI-main-backend
+python -m venv venv
+.\venv\Scripts\activate  # On Linux use: source venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+### 3. Frontend Setup
+
+```bash
+cd EduVerse-AI
+npm install
+ng serve -o
+```
+
+### 4. Stripe Webhook (Optional for testing payments)
+
+```bash
+stripe listen --forward-to localhost:8000/payments/webhook
+```
+
+---
+
+## Environment Variables
+
+Create a `.env` file in the backend directory and configure:
+
+MONGODB_URL=
+GEMINI_API_KEY=
+JWT_SECRET=
+STRIPE_SECRET_KEY=
+CHROMA_DB_PATH=
+
+## Development Notes
+
+- Developed for the Final Year Project (FYP) 2024-2026.
+- UI built with a focus on modern aesthetics and accessibility.
+- Backend uses asynchronous processing for high-concurrency LLM calls.
