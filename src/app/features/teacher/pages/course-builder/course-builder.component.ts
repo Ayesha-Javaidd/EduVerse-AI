@@ -15,9 +15,7 @@ import {
   ReferenceUploadComponent,
   GeneratedLesson,
 } from '../../components/reference-upload/reference-upload.component';
-import {
-  LessonDescriptionOutput,
-} from '../../components/lesson-description/lesson-description.component';
+import { LessonDescriptionOutput } from '../../components/lesson-description/lesson-description.component';
 
 // Services
 import { CourseBuilderService } from '../../services/course-builder.service';
@@ -122,8 +120,8 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     private teacherProfileService: TeacherProfileService,
     private courseMetadataService: CourseMetadataService,
     private toastService: ToastService,
-    private confirmDialog: ConfirmDialogService
-  ) { }
+    private confirmDialog: ConfirmDialogService,
+  ) {}
 
   ngOnInit(): void {
     this.loadCourseMetadata();
@@ -218,7 +216,10 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const metadataState = syncCourseMetadataOptions(this.courseMetadata, this.course);
+    const metadataState = syncCourseMetadataOptions(
+      this.courseMetadata,
+      this.course,
+    );
     this.course = metadataState.course;
     this.categoryOptions = metadataState.categoryOptions;
     this.levelOptions = metadataState.levelOptions;
@@ -268,10 +269,12 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     this.course.modules = upsertModule(
       this.course.modules,
       moduleData,
-      this.editingModule
+      this.editingModule,
     );
     this.toastService.success(
-      this.editingModule ? 'Module updated successfully' : 'Module added successfully'
+      this.editingModule
+        ? 'Module updated successfully'
+        : 'Module added successfully',
     );
 
     this.closeAddModuleModal();
@@ -316,11 +319,13 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
       this.course.modules,
       this.selectedModuleId,
       lessonData,
-      this.editingLesson
+      this.editingLesson,
     );
     this.ensureLessonSelectedForAI();
     this.toastService.success(
-      this.editingLesson ? 'Lesson updated successfully' : 'Lesson added successfully'
+      this.editingLesson
+        ? 'Lesson updated successfully'
+        : 'Lesson added successfully',
     );
 
     this.course.totalLessons = calculateTotalLessons(this.course.modules);
@@ -369,7 +374,9 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     this.setSelectedLessonForAI(draftLesson);
     this.activeTab = 'content';
     this.openAddLessonModal(target.module.id, draftLesson);
-    this.toastService.info('AI lesson draft loaded into the editor. Review and click Update Lesson to save.');
+    this.toastService.info(
+      'AI lesson draft loaded into the editor. Review and click Update Lesson to save.',
+    );
   }
 
   async onDeleteLesson(moduleId: string, lessonId: string): Promise<void> {
@@ -383,7 +390,11 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
 
     if (confirmed) {
       const wasSelectedForAI = this.selectedLessonIdForAI === lessonId;
-      this.course.modules = removeLesson(this.course.modules, moduleId, lessonId);
+      this.course.modules = removeLesson(
+        this.course.modules,
+        moduleId,
+        lessonId,
+      );
       if (wasSelectedForAI) {
         this.selectedLessonIdForAI = '';
         this.selectedLessonTopicForAI = '';
@@ -440,7 +451,11 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
   onModuleDrop(event: DragEvent, targetIndex: number): void {
     event.preventDefault();
 
-    if (!this.course || this.draggedModuleIndex === null || this.draggedModuleIndex === targetIndex) {
+    if (
+      !this.course ||
+      this.draggedModuleIndex === null ||
+      this.draggedModuleIndex === targetIndex
+    ) {
       this.draggedModuleIndex = null;
       return;
     }
@@ -497,14 +512,33 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
   // PRICING
   // ========================
 
-  getCurrencySymbol(): string {
-    if (!this.course || !this.course.currency) return '$';
-    switch (this.course.currency.toUpperCase()) {
-      case 'EUR': return '€';
-      case 'GBP': return '£';
-      case 'PKR': return 'Rs';
+  // getCurrencySymbol(): string {
+  //   if (!this.course || !this.course.currency) return '$';
+  //   switch (this.course.currency.toUpperCase()) {
+  //     case 'EUR':
+  //       return '€';
+  //     case 'GBP':
+  //       return '£';
+  //     case 'PKR':
+  //       return 'Rs';
+  //     case 'USD':
+  //     default:
+  //       return '$';
+  //   }
+  // }
+
+  getCurrencySymbol(currency: string | undefined): string {
+    switch (currency) {
       case 'USD':
-      default: return '$';
+        return '$';
+      case 'EUR':
+        return '€';
+      case 'GBP':
+        return '£';
+      case 'PKR':
+        return '₨';
+      default:
+        return '$';
     }
   }
 
@@ -536,7 +570,7 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
 
     const confirmed = await this.confirmDialog.confirm(
       `Make Course ${actionText}`,
-      message
+      message,
     );
 
     if (confirmed) {
@@ -561,7 +595,9 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     this.saveCourse();
   }
 
-  private buildLessonContentFromAiDescription(data: LessonDescriptionOutput): string {
+  private buildLessonContentFromAiDescription(
+    data: LessonDescriptionOutput,
+  ): string {
     const sections: string[] = [];
 
     if (data.overview) {
@@ -598,13 +634,17 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     this.selectedLessonTopicForAI = lesson.title || '';
   }
 
-  private findLessonForAi(lessonId: string): { module: Module; lesson: Lesson } | null {
+  private findLessonForAi(
+    lessonId: string,
+  ): { module: Module; lesson: Lesson } | null {
     if (!this.course || !lessonId) {
       return null;
     }
 
     for (const module of this.course.modules) {
-      const lesson = module.lessons.find((item) => (item._id || item.id) === lessonId);
+      const lesson = module.lessons.find(
+        (item) => (item._id || item.id) === lessonId,
+      );
       if (lesson) {
         return { module, lesson };
       }
@@ -619,7 +659,9 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     }
 
     if (this.selectedLessonIdForAI) {
-      const existingSelection = this.findLessonForAi(this.selectedLessonIdForAI);
+      const existingSelection = this.findLessonForAi(
+        this.selectedLessonIdForAI,
+      );
       if (existingSelection) {
         this.setSelectedLessonForAI(existingSelection.lesson);
         return;
@@ -649,30 +691,30 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     if (!this.course || !lessons?.length) return;
 
     this.course.modules = lessons.map((lesson, index) => ({
-      id:         `ai_module_${index + 1}`,
-      title:      lesson.title,
-      order:      index + 1,
+      id: `ai_module_${index + 1}`,
+      title: lesson.title,
+      order: index + 1,
       isExpanded: true,
       lessons: [
         {
-          id:                `ai_lesson_${index + 1}`,
-          title:             lesson.title,
-          type:              'reading',
-          description:       lesson.summary,
-          content:           lesson.summary,
-          objectives:        lesson.objectives,
-          keyConcepts:       lesson.key_concepts,
-          duration:          `${lesson.estimated_duration_minutes || 30}:00`,
+          id: `ai_lesson_${index + 1}`,
+          title: lesson.title,
+          type: 'reading',
+          description: lesson.summary,
+          content: lesson.summary,
+          objectives: lesson.objectives,
+          keyConcepts: lesson.key_concepts,
+          duration: `${lesson.estimated_duration_minutes || 30}:00`,
           estimatedDuration: lesson.estimated_duration_minutes || 30,
-          order:             1,
-          isAiGenerated:     true,
+          order: 1,
+          isAiGenerated: true,
         } as any,
       ],
     }));
 
     this.course.totalLessons = lessons.length;
     this.toastService.success(
-      `AI generated ${lessons.length} lesson${lessons.length !== 1 ? 's' : ''} — review and save!`
+      `AI generated ${lessons.length} lesson${lessons.length !== 1 ? 's' : ''} — review and save!`,
     );
 
     // Auto-save generated lessons to MongoDB
@@ -681,7 +723,8 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     // Switch to content tab and scroll to modules section
     this.activeTab = 'content';
     setTimeout(() => {
-      document.getElementById('course-modules-section')
+      document
+        .getElementById('course-modules-section')
         ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 300);
   }
@@ -709,7 +752,7 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
 
     const confirmed = await this.confirmDialog.confirm(
       `${actionName} Course`,
-      message
+      message,
     );
 
     if (!confirmed) return;
@@ -725,7 +768,7 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
           this.toastService.success(
             shouldPublish
               ? 'Course published successfully!'
-              : 'Course unpublished'
+              : 'Course unpublished',
           );
         },
         error: (err) => {
@@ -789,7 +832,9 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
 
     this.closeBulkUploadModal();
     this.saveCourse();
-    this.toastService.success(`Successfully imported ${modules.length} module(s)`);
+    this.toastService.success(
+      `Successfully imported ${modules.length} module(s)`,
+    );
   }
 
   // ========================
@@ -809,7 +854,11 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
     }
   }
 
-  get aiLessonOptions(): Array<{ id: string; title: string; moduleTitle: string }> {
+  get aiLessonOptions(): Array<{
+    id: string;
+    title: string;
+    moduleTitle: string;
+  }> {
     if (!this.course) {
       return [];
     }
@@ -844,7 +893,10 @@ export class CourseBuilderComponent implements OnInit, OnDestroy {
   }
 
   get filteredStudents(): EnrolledStudent[] {
-    return filterEnrolledStudents(this.enrolledStudents, this.studentSearchQuery);
+    return filterEnrolledStudents(
+      this.enrolledStudents,
+      this.studentSearchQuery,
+    );
   }
 
   formatDate(dateString: string): string {

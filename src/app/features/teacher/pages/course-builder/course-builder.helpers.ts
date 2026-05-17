@@ -65,7 +65,9 @@ export function upsertLesson(
       return {
         ...module,
         lessons: module.lessons.map((lesson) =>
-          lesson.id === editingLesson.id ? { ...lesson, ...lessonData } : lesson,
+          lesson.id === editingLesson.id
+            ? { ...lesson, ...lessonData }
+            : lesson,
         ),
       };
     }
@@ -105,7 +107,10 @@ export function removeLesson(
   });
 }
 
-export function appendBulkModules(existingModules: Module[], modulesToAppend: Module[]): Module[] {
+export function appendBulkModules(
+  existingModules: Module[],
+  modulesToAppend: Module[],
+): Module[] {
   const startOrder = existingModules.length;
   const appendedModules = modulesToAppend.map((module, index) => ({
     ...module,
@@ -115,7 +120,9 @@ export function appendBulkModules(existingModules: Module[], modulesToAppend: Mo
   return [...existingModules, ...appendedModules];
 }
 
-export function normalizeCourseTotals(course: CourseBuilderData): CourseBuilderData {
+export function normalizeCourseTotals(
+  course: CourseBuilderData,
+): CourseBuilderData {
   const modules = [...course.modules];
   const totalLessons = calculateTotalLessons(modules);
   const totalDuration = calculateTotalDuration(modules);
@@ -166,7 +173,9 @@ export function buildCourseUpdatePayload(course: CourseBuilderData) {
   };
 }
 
-export function getPublishValidationError(course: CourseBuilderData): string | null {
+export function getPublishValidationError(
+  course: CourseBuilderData,
+): string | null {
   if (course.modules.length === 0) {
     return 'Course must have at least one module to publish';
   }
@@ -229,10 +238,7 @@ export function syncCourseMetadataOptions(
       courseMetadata.categories,
       nextCourse?.category,
     ),
-    levelOptions: withCurrentOption(
-      courseMetadata.levels,
-      nextCourse?.level,
-    ),
+    levelOptions: withCurrentOption(courseMetadata.levels, nextCourse?.level),
   };
 }
 
