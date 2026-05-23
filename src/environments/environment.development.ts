@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://eduverse-ai-main-backend.onrender.com',
+  apiBaseUrl: 'http://localhost:8000',  // local backend → Ollama + ChromaDB work
   appName: 'EduVerse',
   supportEmail: 'support@eduverse.com',
   maxSubscriptionPlans: 3,

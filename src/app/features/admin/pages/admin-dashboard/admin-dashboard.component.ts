@@ -186,9 +186,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private mapCourseInstructors() {
     if (this.courses.length && this.allTeachers.length) {
       this.courses = this.courses.map(c => {
-        if (!c.instructorName && c.teacherId) {
+        if ((!c.instructorName || c.instructorName === 'TBD') && c.teacherId) {
           const teacher = this.allTeachers.find(t => (t._id || t.id) === c.teacherId);
-          return { ...c, instructorName: teacher?.fullName || 'N/A' };
+          return { ...c, instructorName: teacher?.fullName || 'TBD' };
         }
         return c;
       });
