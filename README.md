@@ -49,13 +49,14 @@ FYP/
 
 ### 2. Backend Setup
 
-```bash
+bash
 cd EduVerse-AI-main-backend
-python -m venv venv
-.\venv\Scripts\activate  # On Linux use: source venv/bin/activate
-pip install -r requirements.txt
+uv venv .venv
+.\venv\Scripts\activate # On Linux use: source venv/bin/activate
+uv sync
 uvicorn app.main:app --reload
-```
+
+````
 
 ### 3. Frontend Setup
 
@@ -63,7 +64,7 @@ uvicorn app.main:app --reload
 cd EduVerse-AI
 npm install
 ng serve -o
-```
+````
 
 ### 4. Stripe Webhook (Optional for testing payments)
 
