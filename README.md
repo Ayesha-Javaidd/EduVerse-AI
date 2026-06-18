@@ -51,9 +51,9 @@ FYP/
 
 ```bash
 cd EduVerse-AI-main-backend
-python -m venv venv
+uv venv .venv
 .\venv\Scripts\activate  # On Linux use: source venv/bin/activate
-pip install -r requirements.txt
+uv sync
 uvicorn app.main:app --reload
 ```
 
